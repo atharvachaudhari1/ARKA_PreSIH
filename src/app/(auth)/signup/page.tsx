@@ -16,6 +16,7 @@ export default function SignupPage() {
   useEffect(() => {
     const path = searchParams.get("path");
     if (path === "join" || path === "create") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedPath(path);
     }
   }, [searchParams]);

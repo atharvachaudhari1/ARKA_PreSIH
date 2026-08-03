@@ -2,209 +2,94 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
-  // Should be caught by middleware, but belt-and-suspenders
   if (!user) redirect("/login");
 
+  const profile = await prisma.user.findUnique({
+    where: { auth_user_id: user.id },
+    select: { name: true, verification_status: true, team_memberships: { select: { role: true, team: { select: { id: true, name: true, status: true } } } } },
+  });
+
+  const myTeam = profile?.team_memberships?.[0];
+
   return (
-    <div style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}>
-      {/* ── Navbar ── */}
-      <DashboardNav userEmail={user.email ?? ""} />
-
-      {/* ── Content ── */}
-      <div className="page-container" style={{ padding: "2rem 1.25rem" }}>
-        {/* Welcome banner */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%)",
-            border: "1px solid var(--color-border-brand)",
-            borderRadius: "var(--radius-xl)",
-            padding: "2rem",
-            marginBottom: "2rem",
-            animation: "fade-up 0.4s ease forwards",
-          }}
-        >
-          <p className="section-title" style={{ marginBottom: "0.5rem" }}>
-            $ whoami
-          </p>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.5rem" }}>
-            Welcome back 👋
-          </h1>
-          <p style={{ color: "var(--color-text-secondary)" }}>
-            {user.email} · SIH 2026
-          </p>
+    <div className="page-container" style={{ padding: "2rem 1.25rem" }}>
+      {/* Welcome banner */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.08) 100%)",
+          border: "1px solid var(--color-border-brand)",
+          borderRadius: "var(--radius-xl)",
+          padding: "2rem",
+          marginBottom: "2rem",
+          animation: "fade-up 0.4s ease forwards",
+        }}
+      >
+        <p className="section-title" style={{ marginBottom: "0.5rem" }}>$ whoami</p>
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 800, marginBottom: "0.5rem" }}>
+          Welcome back, {profile?.name?.split(" ")[0] ?? "hacker"} 👋
+        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+          <span style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem" }}>{user.email}</span>
+          {profile?.verification_status === "pending" && (
+            <span className="badge badge-unverified">ID verification pending</span>
+          )}
+          {profile?.verification_status === "verified" && (
+            <span style={{ fontSize: "0.75rem", color: "#10b981", fontWeight: 600 }}>✓ Verified</span>
+          )}
         </div>
+      </div>
 
-        {/* Quick actions — Devfolio-style dual path */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: "1.25rem",
-            marginBottom: "2.5rem",
-          }}
-        >
-          <Link
-            href="/teams"
-            id="dash-browse-teams"
-            style={{ textDecoration: "none" }}
-          >
-            <div
-              className="card card-brand"
-              style={{ height: "100%", cursor: "pointer" }}
-            >
-              <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>🔍</div>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                Browse Teams
-              </h2>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", lineHeight: 1.6 }}>
-                Find your team — filter by skills, vacancy, gender requirement, and more.
-              </p>
+      {/* My team card (if in one) */}
+      {myTeam && (
+        <div className="card card-brand" style={{ marginBottom: "2rem", padding: "1.25rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.25rem" }}>YOUR TEAM</p>
+              <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>{myTeam.team.name}</h2>
+              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.4rem" }}>
+                <span className={`badge badge-${myTeam.team.status}`}>{myTeam.team.status}</span>
+                {myTeam.role === "leader" && <span className="badge" style={{ background: "rgba(245,158,11,0.12)", color: "#f59e0b", border: "1px solid rgba(245,158,11,0.25)" }}>Leader</span>}
+              </div>
             </div>
-          </Link>
-
-          <Link
-            href="/teams/create"
-            id="dash-create-team"
-            style={{ textDecoration: "none" }}
-          >
-            <div className="card" style={{ height: "100%", cursor: "pointer" }}>
-              <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>⚡</div>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                Create a Team
-              </h2>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", lineHeight: 1.6 }}>
-                Start a new team and become the leader. Define your skills needed and recruit.
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            href="/profile"
-            id="dash-my-profile"
-            style={{ textDecoration: "none" }}
-          >
-            <div className="card" style={{ height: "100%", cursor: "pointer" }}>
-              <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>👤</div>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                My Profile
-              </h2>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", lineHeight: 1.6 }}>
-                Update your skills, bio, and contact info. Check your verification status.
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            href="/requests"
-            id="dash-my-requests"
-            style={{ textDecoration: "none" }}
-          >
-            <div className="card" style={{ height: "100%", cursor: "pointer" }}>
-              <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>📨</div>
-              <h2 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                My Requests
-              </h2>
-              <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", lineHeight: 1.6 }}>
-                Track your join requests and invites — pending, accepted, or rejected.
-              </p>
-            </div>
-          </Link>
+            <Link href={`/teams/${myTeam.team.id}`} className="btn btn-primary btn-sm">Manage →</Link>
+          </div>
         </div>
+      )}
 
-        {/* Placeholder — activity feed (Phase 4) */}
-        <div
-          style={{
-            background: "var(--color-bg-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-lg)",
-            padding: "2rem",
-            textAlign: "center",
-          }}
-        >
-          <p className="section-title" style={{ marginBottom: "0.5rem" }}>
-            $ tail -f activity.log
-          </p>
-          <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-            Activity feed coming in Phase 4 — notifications will appear here in real-time.
-          </p>
-        </div>
+      {/* Quick actions */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem", marginBottom: "2.5rem" }}>
+        <QuickCard href="/teams" emoji="🔍" title="Browse Teams" desc="Filter by skills, vacancy, and gender requirement." id="dash-browse" />
+        <QuickCard href="/teams/create" emoji="⚡" title="Create a Team" desc="Start a team and become the leader." id="dash-create" />
+        <QuickCard href="/profile" emoji="👤" title="My Profile" desc="Update skills, contact info, and presentation rating." id="dash-profile" />
+        <QuickCard href="/requests" emoji="📨" title="My Requests" desc="Track join requests — pending, accepted, rejected." id="dash-requests" />
+      </div>
+
+      {/* Activity feed placeholder */}
+      <div style={{ background: "var(--color-bg-surface)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-lg)", padding: "2rem", textAlign: "center" }}>
+        <p className="section-title" style={{ marginBottom: "0.5rem" }}>$ tail -f activity.log</p>
+        <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+          Real-time activity feed arrives in Phase 4.
+        </p>
       </div>
     </div>
   );
 }
 
-// ── Dashboard Navbar (server-rendered) ──
-function DashboardNav({ userEmail }: { userEmail: string }) {
+function QuickCard({ href, emoji, title, desc, id }: { href: string; emoji: string; title: string; desc: string; id: string }) {
   return (
-    <nav
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "1rem 1.25rem",
-        borderBottom: "1px solid var(--color-border)",
-        background: "rgba(11,13,20,0.9)",
-        backdropFilter: "blur(12px)",
-        position: "sticky",
-        top: 0,
-        zIndex: 50,
-      }}
-    >
-      <div
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontWeight: 700,
-          fontSize: "1.1rem",
-          color: "var(--color-text-primary)",
-        }}
-      >
-        <span style={{ color: "var(--color-brand-light)" }}>{"<"}</span>
-        TeamUp
-        <span style={{ color: "var(--color-brand-light)" }}>{"/>"}</span>
+    <Link href={href} id={id} style={{ textDecoration: "none" }}>
+      <div className="card" style={{ height: "100%", cursor: "pointer" }}>
+        <div style={{ fontSize: "2rem", marginBottom: "0.75rem" }}>{emoji}</div>
+        <h2 style={{ fontSize: "1.05rem", fontWeight: 700, marginBottom: "0.4rem" }}>{title}</h2>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", lineHeight: 1.6 }}>{desc}</p>
       </div>
-
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-        <Link
-          href="/teams"
-          style={{ color: "var(--color-text-secondary)", textDecoration: "none", fontSize: "0.875rem" }}
-        >
-          Browse
-        </Link>
-        <Link
-          href="/notifications"
-          style={{ color: "var(--color-text-secondary)", textDecoration: "none", fontSize: "0.875rem" }}
-        >
-          Notifications
-        </Link>
-        <div
-          style={{
-            background: "var(--color-bg-elevated)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-full)",
-            padding: "0.3rem 0.75rem",
-            fontSize: "0.8rem",
-            color: "var(--color-text-secondary)",
-          }}
-        >
-          {userEmail}
-        </div>
-        <form action="/api/auth/signout" method="POST">
-          <button
-            type="submit"
-            className="btn btn-ghost btn-sm"
-            id="btn-signout"
-          >
-            Sign out
-          </button>
-        </form>
-      </div>
-    </nav>
+    </Link>
   );
 }

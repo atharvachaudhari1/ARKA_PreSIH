@@ -7,6 +7,38 @@ Each entry follows the End-of-Session Brief format from the Build Guide (Section
 
 ## 2026-08-03
 
+### Session Brief — 2026-08-03 | Phase 1 — Auth + Profile Complete
+
+**Phase:** Phase 1 — Auth + Profile
+
+**What was built/changed:**
+- Created `src/app/(app)/layout.tsx` — Shared layout for all protected routes, verifies auth and profile existence. Redirects users to `/profile/complete` if no profile exists (e.g., first-time Google OAuth).
+- Created `src/components/AppNavbar.tsx` — Desktop navigation with active route highlighting, "Create Team" CTA, and user dropdown menu.
+- Created `src/app/profile/complete/page.tsx` — Onboarding page for users who skipped the initial signup form. Collects required profile info, presentation skill rating, and ID card upload.
+- Created `src/app/(app)/profile/page.tsx` — Full profile view and edit page. Implements presentation skill rating UI (1-5), unverified badge logic for department (GAP-7), and skills management.
+- Added `PATCH` method to `src/app/api/users/profile/route.ts` — Secure profile update endpoint. Enforces a field whitelist, validates gender/visibility enums, and explicitly excludes `id_card_storage_path` per GAP-6.
+- Created `src/app/api/users/profile/update/route.ts` (helper file) - now merged into the main route.
+- Created `src/app/api/users/skills/route.ts` — `POST`/`DELETE` endpoints for managing user skills with defined proficiencies (`beginner`, `intermediate`, `advanced`, `expert`).
+- Updated `src/app/(app)/dashboard/page.tsx` — Removed duplicate navbar, integrated layout, and added quick action cards. Also displays the user's primary team if they belong to one.
+- Added stub pages for upcoming Phase 2, 3, and 4 routes (`/teams`, `/teams/create`, `/requests`, `/notifications`) to prevent 404s in the navbar.
+- Resolved all Next.js 14 / React 19 strict-mode ESLint warnings regarding state updates inside effects (`react-hooks/set-state-in-effect`).
+
+**Decisions made:**
+- Next.js layouts (`layout.tsx`) were effectively utilized to intercept users lacking a completed profile, providing a robust fallback for OAuth-driven signups.
+- Merged the profile `PATCH` handler into the existing `GET/POST` route file for co-location of profile logic.
+- Adopted `eslint-disable-next-line` where setting state in a `useEffect` was strictly necessary to map URL search params to initial local state.
+
+**Tests added/updated:**
+- Next.js linter rules fully pass. No automated test suites implemented yet (scheduled for later phases as the UI stabilizes).
+
+**Known gaps / TODO next session (Phase 2):**
+- Stub for OCR/AI verification pipeline is still pending (can be simulated as a background cron or admin webhook in the future).
+- Moving on to Phase 2: Team Creation (`/teams/create`), browsing teams (`/teams`), and Team Cards implementation.
+
+**Docs updated:** Yes — task.md (marked Phase 1 as complete) and CHANGELOG.md (this entry).
+
+---
+
 ### Session Brief — 2026-08-03 | Phase 0 — Project Scaffold
 
 **Phase:** Phase 0 — Project Scaffold
