@@ -5,6 +5,102 @@ Each entry follows the End-of-Session Brief format from the Build Guide (Section
 
 ---
 
+### Session Brief — 2026-08-03 | Phase 4 — Notifications & Chat
+
+**Phase:** Phase 4 — Notifications & Chat
+
+**What was built/changed:**
+- **In-App Notifications**: Created a `NotificationCenter` UI component, integrated into `AppNavbar`. Displays unread notification counts and historical notifications.
+- **Chat System**: Added the `ChatMessage` model to Prisma schema.
+- **Chat UI**: Built `/teams/[id]/chat` for team members to communicate securely.
+- **API Endpoints**: 
+  - `GET /api/notifications`
+  - `PATCH /api/notifications/[id]/read`
+  - `GET /api/teams/[id]/chat`
+  - `POST /api/teams/[id]/chat`
+- **Notification Triggers**: Retrofitted `POST /api/join-requests` and `PATCH /api/join-requests/[id]/opinion` to instantly trigger `new_join_request` and `teammate_opinion_added` notifications.
+- **Real-time & Security**: Implemented a raw SQL migration to enable PostgreSQL Row-Level Security (RLS) on both `notifications` and `chat_messages` tables. Connected Supabase Realtime using private channels (`room_team_[id]` and `user_[id]`).
+
+**Decisions made:**
+- Opted for raw SQL RLS rules in Prisma migrations rather than relying on broadcast channels without auth-checks. This strictly prevents users from subscribing to other users' notifications or other teams' chat messages at the PostgreSQL layer.
+
+**Tests added/updated:**
+- Added `src/__tests__/api/chat.test.ts` to verify strict 403 Forbidden checks on non-members attempting to read/write messages.
+- Added `src/__tests__/api/notifications.test.ts` to ensure users can only access their own notifications.
+- All tests pass, ensuring complete authorization isolation.
+
+**Known gaps / TODO next session (Phase 5):**
+- Leader succession and the `auto_promote` algorithm.
+- Ensure leader contact info visibility reverts upon succession.
+- Report/block system for platform safety.
+
+**Docs updated:** Yes — task.md, implementation_plan.md, walkthrough.md, CHANGELOG.md (this entry).
+
+---
+
+### Session Brief — 2026-08-03 | Phase 3 — Join Request Flow
+
+**Phase:** Phase 3 — Join Request Flow
+
+**What was built/changed:**
+- **Join Requests API**: Implemented `POST /api/join-requests` and `GET /api/join-requests` to create and retrieve pending applications.
+- **Consultative Voting**: Implemented `PATCH /api/join-requests/:id/opinion` enabling team members to vote (`approve`, `reject`, `neutral`).
+- **Leader Decision**: Implemented `PATCH /api/join-requests/:id/decision` allowing the leader to accept or reject an applicant.
+- **Cascade-Expiry**: On applicant acceptance, all of their other pending requests are expired atomically (`requester_joined_another_team`).
+- **Team Full Auto-transition**: On applicant acceptance, if the team hits maximum capacity (e.g. 6), its status becomes `full` and all other pending applications to the team are cascade-expired (`team_full`).
+- **Unified Requests Dashboard**: Built `src/app/(app)/requests/page.tsx` with "My Requests" and "Team Requests" tabs.
+- **Team Details Profile**: Built `src/app/(app)/teams/[id]/page.tsx` with an active "Send Join Request" CTA.
+
+**Decisions made:**
+- Opted for a unified `/requests` page instead of splitting team requests into the team dashboard for Phase 3.
+- Removed `/api/join-requests/:id/transfer-leadership` from Phase 3 scope as succession is technically Phase 5.
+- Enforced identity reveal rule: Contact info remains hidden on the team's pending request view; it is only visible once the `TeamMembership` is fully established post-accept.
+- Added `team_full` enum value to `ExpiredReason` in Prisma schema and executed a migration.
+
+**Tests added/updated:**
+- Added `src/__tests__/api/join-requests.test.ts` to verify duplicate request prevention, member opinion voting, and the atomic accept/cascade-expire transaction. All tests pass.
+
+**Known gaps / TODO next session (Phase 4):**
+- Real-time Notifications: Wire up the in-app notification center using Supabase Realtime for the newly generated Notification records.
+- Basic in-app chat (post-match).
+
+**Docs updated:** Yes — task.md, docs/api.md, CHANGELOG.md (this entry).
+
+---
+
+### Session Brief — 2026-08-03 | Phase 2 — Team Creation & Browse Dashboard
+
+**Phase:** Phase 2 — Team Creation & Browse Dashboard
+
+**What was built/changed:**
+- `Team` schema extended with `min_experience_required`.
+- Auto-seeding of default "SIH 2026" Event for `Team` creation.
+- `POST /api/teams` to create a team, setting creator as leader and forcing contact visibility to `public_to_logged_in`.
+- `GET /api/teams` and `GET /api/teams/[id]` with filtering logic (vacancy, skill, gender, domain, min experience) and strict semi-transparency rules (member contact info is hidden).
+- Team creation page (`src/app/(app)/teams/create/page.tsx`) with dynamic domains and skills needed UI.
+- `TeamCard` component for displaying rich team data.
+- Dashboard (`src/app/(app)/dashboard/page.tsx`) completely rebuilt with dynamic team browsing and interactive filtering chips.
+- API testing suite for teams in `src/__tests__/api/teams.test.ts`.
+
+**Decisions made:**
+- Used a predefined dropdown of SIH themes for domains.
+- Min experience filter strictly implemented using `>=` against teams' requirements.
+- Leader contact visibility enforced at the DB level when a team is created.
+
+**Tests added/updated:**
+- Added `teams.test.ts` to test GET and POST endpoints for `/api/teams`. All tests pass.
+
+**Known gaps / TODO next session (Phase 3):**
+- Join Requests Flow (`/api/join-requests`).
+- Transfer Leadership action.
+- Consultative opinion voting.
+- Leader accept/reject decision logic with Cascade-expiry (both directions).
+- "Full" status transitions when teams hit size limits.
+
+**Docs updated:** Yes — task.md, docs/api.md, CHANGELOG.md (this entry).
+
+---
+
 ## 2026-08-03
 
 ### Session Brief — 2026-08-03 | Phase 1 — Auth + Profile Complete

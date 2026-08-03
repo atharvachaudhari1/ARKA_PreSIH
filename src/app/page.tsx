@@ -113,7 +113,6 @@ export default function HomePage() {
             lineHeight: 1.1,
             marginBottom: "1.5rem",
             animation: "fade-up 0.4s ease 0.1s both forwards",
-            opacity: 0,
           }}
         >
           Stop broadcasting.{" "}
@@ -129,7 +128,6 @@ export default function HomePage() {
             marginBottom: "2.5rem",
             lineHeight: 1.7,
             animation: "fade-up 0.4s ease 0.2s both forwards",
-            opacity: 0,
           }}
         >
           TeamUp replaces the WhatsApp DM chaos with a verified, semi-anonymous
@@ -145,7 +143,6 @@ export default function HomePage() {
             flexWrap: "wrap",
             justifyContent: "center",
             animation: "fade-up 0.4s ease 0.3s both forwards",
-            opacity: 0,
           }}
         >
           <Link
@@ -197,7 +194,6 @@ export default function HomePage() {
             fontSize: "0.8rem",
             color: "var(--color-text-muted)",
             animation: "fade-up 0.4s ease 0.4s both forwards",
-            opacity: 0,
           }}
         >
           College ID verified · No guest access · Leader contact always public

@@ -21,7 +21,7 @@ export default function ProfileCompletePage() {
 
   const [form, setForm] = useState({
     name: "",
-    gender: "" as "male" | "female" | "",
+    gender: "",
     college: "",
     department: "",
     past_hackathons_count: "0",
@@ -163,11 +163,7 @@ export default function ProfileCompletePage() {
 
               <div>
                 <label htmlFor="complete-gender" className="input-label">Gender</label>
-                <select id="complete-gender" required value={form.gender} onChange={(e) => update("gender", e.target.value)} className="input-field" style={{ cursor: "pointer" }}>
-                  <option value="">Select…</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                </select>
+                <input id="complete-gender" type="text" required value={form.gender} onChange={(e) => update("gender", e.target.value)} placeholder="e.g. Female, Male, Non-binary" className="input-field" />
               </div>
 
               <div>

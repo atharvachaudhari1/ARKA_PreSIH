@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import NotificationCenter from "./NotificationCenter";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Home", icon: "⌂" },
@@ -98,12 +99,14 @@ export default function AppNavbar({ userEmail }: { userEmail: string }) {
         })}
       </div>
 
-      {/* Right side */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+      {/* Right side controls */}
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+        <NotificationCenter />
         <Link
           href="/teams/create"
           className="btn btn-primary btn-sm"
           id="nav-create-team"
+          style={{ padding: "0.5rem 1rem", fontSize: "0.875rem", textDecoration: "none" }}
         >
           + Create Team
         </Link>

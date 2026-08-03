@@ -493,7 +493,6 @@ function PathSelectionScreen({
             fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
             fontWeight: 800,
             lineHeight: 1.2,
-            animation: "fade-up 0.4s ease forwards",
           }}
         >
           What are you here to do?
@@ -503,8 +502,6 @@ function PathSelectionScreen({
             marginTop: "0.75rem",
             color: "var(--color-text-secondary)",
             fontSize: "1rem",
-            animation: "fade-up 0.4s ease 0.1s both forwards",
-            opacity: 0,
           }}
         >
           You can always switch later.
@@ -518,8 +515,6 @@ function PathSelectionScreen({
           gap: "1.25rem",
           width: "100%",
           maxWidth: "620px",
-          animation: "fade-up 0.4s ease 0.2s both forwards",
-          opacity: 0,
         }}
       >
         {/* Join */}
@@ -651,8 +646,7 @@ function PathSelectionScreen({
         style={{
           color: "var(--color-text-muted)",
           fontSize: "0.875rem",
-          animation: "fade-up 0.4s ease 0.35s both forwards",
-          opacity: 0,
+          marginTop: "1.5rem",
         }}
       >
         Already have an account?{" "}

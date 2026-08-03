@@ -13,10 +13,7 @@ datasource db {
 // Enums
 // ─────────────────────────────────────────────
 
-enum Gender {
-  male
-  female
-}
+// Removed Gender enum in favor of decoupled String field
 
 enum VerificationStatus {
   pending
@@ -67,6 +64,7 @@ enum RequestStatus {
 enum ExpiredReason {
   timeout
   requester_joined_another_team
+  team_full
 }
 
 enum Opinion {
@@ -90,6 +88,19 @@ enum NotificationReadStatus {
   read
 }
 
+enum ReportReason {
+  spam
+  harassment
+  inappropriate_content
+  other
+}
+
+enum ReportStatus {
+  open
+  resolved
+  dismissed
+}
+
 // ─────────────────────────────────────────────
 // User
 // ─────────────────────────────────────────────
@@ -108,14 +119,16 @@ model User {
   id_card_storage_path String?
   verification_status  VerificationStatus @default(pending)
 
-  // [GAP-RESOLVED-2] Binary male/female for SIH MVP.
-  gender               Gender?
+  // Decoupled gender field: users can specify freely.
+  gender               String?
+  // Quota flag: strictly evaluated for SIH validation (e.g. true for 'female')
+  counts_toward_female_quota Boolean @default(false)
 
   // Contact — leader's fields forced public_to_logged_in while leading.
   phone_number         String?
   whatsapp_number      String?
   linkedin_url         String?
-  contact_visibility   ContactVisibility  @default(private)
+  preferred_contact_visibility ContactVisibility  @default(private)
 
   // Profile
   past_hackathons_count    Int     @default(0)
@@ -126,6 +139,9 @@ model User {
   created_at           DateTime           @default(now())
   updated_at           DateTime           @updatedAt
 
+  // Admin Flag
+  is_admin             Boolean            @default(false)
+
   // Relations
   skills               UserSkill[]
   team_memberships     TeamMembership[]
@@ -134,6 +150,9 @@ model User {
   final_decisions      JoinRequest[]      @relation("DecisionMaker")
   opinions             JoinRequestOpinion[]
   notifications        Notification[]
+  chat_messages        ChatMessage[]
+  reports_made         Report[]           @relation("Reporter")
+  reports_received     Report[]           @relation("ReportedUser")
 
   @@map("users")
 }
@@ -182,6 +201,7 @@ model Team {
   name           String
   description    String?
   domain_interest String?
+  min_experience_required Int?
 
   // skills_needed is explicit; skills_covered is derived at query time
   skills_needed  String[]
@@ -204,6 +224,8 @@ model Team {
   memberships     TeamMembership[]
   join_requests   JoinRequest[]
   notifications   Notification[]
+  chat_messages   ChatMessage[]
+  reports_received Report[]
 
   @@map("teams")
 }
@@ -289,3 +311,48 @@ model Notification {
   @@index([user_id, read_status])
   @@map("notifications")
 }
+
+// ─────────────────────────────────────────────
+// Chat Message
+// ─────────────────────────────────────────────
+
+model ChatMessage {
+  id         String   @id @default(cuid())
+  team_id    String
+  sender_id  String
+  content    String
+  created_at DateTime @default(now())
+
+  team       Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
+  sender     User     @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+
+  @@index([team_id, created_at])
+  @@map("chat_messages")
+}
+
+// ─────────────────────────────────────────────
+// Report
+// ─────────────────────────────────────────────
+
+model Report {
+  id               String       @id @default(cuid())
+  reporter_id      String
+  reported_user_id String?
+  reported_team_id String?
+  reason           ReportReason
+  description      String?
+  status           ReportStatus @default(open)
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+
+  reporter      User  @relation("Reporter", fields: [reporter_id], references: [id], onDelete: Cascade)
+  reported_user User? @relation("ReportedUser", fields: [reported_user_id], references: [id], onDelete: Cascade)
+  reported_team Team? @relation(fields: [reported_team_id], references: [id], onDelete: Cascade)
+
+  // Partial unique indexes implemented in raw SQL migration:
+  // CREATE UNIQUE INDEX reports_active_user_idx ON reports(reporter_id, reported_user_id) WHERE status = 'open';
+  // CREATE UNIQUE INDEX reports_active_team_idx ON reports(reporter_id, reported_team_id) WHERE status = 'open';
+  @@map("reports")
+}
+
+

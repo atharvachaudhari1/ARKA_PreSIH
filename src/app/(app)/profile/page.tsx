@@ -13,7 +13,7 @@ interface Profile {
   id: string;
   name: string;
   email: string;
-  gender: "male" | "female";
+  gender: string;
   college: string;
   department: string;
   verification_status: "pending" | "verified" | "rejected";
@@ -78,7 +78,7 @@ export default function ProfilePage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        name: form.name, bio: form.bio, college: form.college, department: form.department,
+        name: form.name, gender: form.gender, bio: form.bio, college: form.college, department: form.department,
         past_hackathons_count: form.past_hackathons_count, presentation_skill_rating: form.presentation_skill_rating,
         phone_number: form.phone_number, whatsapp_number: form.whatsapp_number,
         linkedin_url: form.linkedin_url, contact_visibility: form.contact_visibility,
@@ -204,6 +204,10 @@ export default function ProfilePage() {
                 <input className="input-field" value={form.name ?? ""} onChange={(e) => update("name", e.target.value)} />
               </div>
               <div>
+                <label className="input-label">Gender</label>
+                <input className="input-field" placeholder="e.g. Female, Male" value={form.gender ?? ""} onChange={(e) => update("gender", e.target.value)} />
+              </div>
+              <div>
                 <label className="input-label">College</label>
                 <input className="input-field" value={form.college ?? ""} onChange={(e) => update("college", e.target.value)} />
               </div>
@@ -231,7 +235,7 @@ export default function ProfilePage() {
                   </span>
                 }
               />
-              <InfoRow label="Gender" value={profile.gender === "male" ? "Male" : "Female"} />
+              <InfoRow label="Gender" value={profile.gender} />
               <InfoRow label="Past hackathons" value={`${profile.past_hackathons_count} hackathon${profile.past_hackathons_count !== 1 ? "s" : ""}`} />
             </>
           )}

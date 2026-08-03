@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Gender, ContactVisibility } from "@prisma/client";
+import { ContactVisibility } from "@prisma/client";
 
 /**
  * POST /api/users/profile
@@ -40,9 +40,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Missing required fields: name, gender, college, department" }, { status: 400 });
   }
 
-  if (!["male", "female"].includes(body.gender)) {
-    return NextResponse.json({ error: "gender must be 'male' or 'female'" }, { status: 400 });
-  }
+  // No strict enum validation for gender anymore.
 
   if (!body.id_card_storage_path) {
     return NextResponse.json({ error: "id_card_storage_path is required" }, { status: 400 });
@@ -64,7 +62,8 @@ export async function POST(request: NextRequest) {
       auth_user_id: user.id,
       email: user.email!,
       name: body.name,
-      gender: body.gender as Gender,
+      gender: body.gender.trim(),
+      counts_toward_female_quota: body.gender.trim().toLowerCase() === "female",
       college: body.college,
       department: body.department,
       past_hackathons_count: body.past_hackathons_count ?? 0,
@@ -117,7 +116,8 @@ export async function GET() {
       phone_number: true,
       whatsapp_number: true,
       linkedin_url: true,
-      contact_visibility: true,
+      preferred_contact_visibility: true,
+      led_teams: { select: { id: true }, take: 1 },
       skills: {
         select: { skill: true, proficiency: true },
       },
@@ -131,7 +131,16 @@ export async function GET() {
     return NextResponse.json({ error: "Profile not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ profile });
+  const { led_teams, ...profileData } = profile;
+  const isLeader = led_teams.length > 0;
+  const effective_visibility = isLeader ? "public_to_logged_in" : profileData.preferred_contact_visibility;
+
+  return NextResponse.json({ 
+    profile: {
+      ...profileData,
+      effective_visibility
+    } 
+  });
 }
 
 /**
@@ -154,12 +163,11 @@ export async function PATCH(request: NextRequest) {
   try { body = await request.json(); }
   catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  if (body.gender && !["male", "female"].includes(body.gender as string))
-    return NextResponse.json({ error: "gender must be 'male' or 'female'" }, { status: 400 });
+  // No strict enum validation for gender anymore.
 
   const validVisibility = ["public_to_logged_in", "team_only", "private"];
-  if (body.contact_visibility && !validVisibility.includes(body.contact_visibility as string))
-    return NextResponse.json({ error: "Invalid contact_visibility" }, { status: 400 });
+  if (body.preferred_contact_visibility && !validVisibility.includes(body.preferred_contact_visibility as string))
+    return NextResponse.json({ error: "Invalid preferred_contact_visibility" }, { status: 400 });
 
   if (body.presentation_skill_rating !== undefined) {
     const r = Number(body.presentation_skill_rating);
@@ -170,30 +178,44 @@ export async function PATCH(request: NextRequest) {
 
   // Whitelist — never allow id_card_storage_path updates via this endpoint
   const allowed = ["name", "gender", "college", "department", "bio", "past_hackathons_count",
-    "presentation_skill_rating", "phone_number", "whatsapp_number", "linkedin_url", "contact_visibility"];
+    "presentation_skill_rating", "phone_number", "whatsapp_number", "linkedin_url", "preferred_contact_visibility"];
   const updateData: Record<string, unknown> = {};
   for (const key of allowed) { if (key in body) updateData[key] = body[key]; }
+  if (updateData.gender) {
+    updateData.gender = (updateData.gender as string).trim();
+    updateData.counts_toward_female_quota = (updateData.gender as string).toLowerCase() === "female";
+  }
   if (Object.keys(updateData).length === 0)
     return NextResponse.json({ error: "No updatable fields provided" }, { status: 400 });
 
   const updated = await prisma.user.update({
     where: { id: profile.id },
     data: updateData as {
-      name?: string; gender?: Gender; college?: string; department?: string;
+      name?: string; gender?: string; counts_toward_female_quota?: boolean; college?: string; department?: string;
       bio?: string; past_hackathons_count?: number; presentation_skill_rating?: number;
       phone_number?: string; whatsapp_number?: string; linkedin_url?: string;
-      contact_visibility?: ContactVisibility;
+      preferred_contact_visibility?: ContactVisibility;
     },
     select: {
       id: true, name: true, email: true, gender: true, college: true, department: true,
       verification_status: true, past_hackathons_count: true, bio: true,
       presentation_skill_rating: true, phone_number: true, whatsapp_number: true,
-      linkedin_url: true, contact_visibility: true,
+      linkedin_url: true, preferred_contact_visibility: true,
+      led_teams: { select: { id: true }, take: 1 },
       skills: { select: { skill: true, proficiency: true } },
       updated_at: true,
     },
   });
 
-  return NextResponse.json({ profile: updated });
+  const { led_teams, ...profileData } = updated;
+  const isLeader = led_teams.length > 0;
+  const effective_visibility = isLeader ? "public_to_logged_in" : profileData.preferred_contact_visibility;
+
+  return NextResponse.json({ 
+    profile: {
+      ...profileData,
+      effective_visibility
+    } 
+  });
 }
 

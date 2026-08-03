@@ -10,7 +10,7 @@ const config: Config = {
       displayName: "frontend",
       testEnvironment: "jsdom",
       testMatch: ["**/__tests__/frontend/**/*.test.{ts,tsx}"],
-      setupFilesAfterFramework: ["<rootDir>/jest.setup.ts"],
+      setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
       moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1",
       },
@@ -21,7 +21,8 @@ const config: Config = {
     {
       displayName: "api",
       testEnvironment: "node",
-      testMatch: ["**/__tests__/api/**/*.test.ts"],
+      preset: "ts-jest",
+      testMatch: ["**/__tests__/**/*.test.ts", "!**/__tests__/frontend/**"],
       moduleNameMapper: {
         "^@/(.*)$": "<rootDir>/src/$1",
       },

@@ -47,6 +47,9 @@ export async function middleware(request: NextRequest) {
 
   // If not authenticated and trying to access a protected route → redirect to /login.
   if (!user && !isPublicRoute) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirectedFrom", pathname);
