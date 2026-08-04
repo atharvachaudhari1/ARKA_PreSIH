@@ -4,8 +4,9 @@ import { prisma } from "@/lib/prisma";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { reportId: string } }
+  { params }: { params: Promise<{ reportId: string }> }
 ) {
+  const { reportId } = await params;
   try {
     const supabase = await createClient();
     const { data: { user }, error: authErr } = await supabase.auth.getUser();
@@ -31,7 +32,7 @@ export async function PATCH(
     }
 
     await prisma.report.update({
-      where: { id: params.reportId },
+      where: { id: reportId },
       data: { status }
     });
 

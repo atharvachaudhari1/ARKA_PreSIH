@@ -41,7 +41,7 @@ export default function ReportClient({ initialReports }: { initialReports: Repor
     return (
       <EmptyState 
         title="No Open Reports" 
-        message="All clear! There are no open reports to review." 
+        description="All clear! There are no open reports to review." 
         icon="🎉" 
       />
     );

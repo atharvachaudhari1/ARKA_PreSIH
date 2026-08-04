@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
         },
         opinions: {
           include: {
-            member: { select: { id: true, name: true } }
+            team_member: { select: { id: true, name: true } }
           }
         }
       },

@@ -2,9 +2,9 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '.env' });
 import { createClient } from '@supabase/supabase-js';
+import { prisma } from '../src/lib/prisma';
 
 async function main() {
-  const { prisma } = await import('../src/lib/prisma');
   const eventName = 'SIH 2026';
 
   let event = await prisma.event.findFirst({

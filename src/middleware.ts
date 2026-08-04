@@ -57,7 +57,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // If authenticated and hitting a public route → redirect to /dashboard.
-  if (user && isPublicRoute && pathname !== "/auth/callback") {
+  if (user && isPublicRoute && pathname !== "/auth/callback" && pathname !== "/") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

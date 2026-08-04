@@ -40,15 +40,15 @@ export async function PATCH(
   const upsertedOpinion = await prisma.$transaction(async (tx) => {
     const op = await tx.joinRequestOpinion.upsert({
       where: {
-        request_id_member_id: {
-          request_id: joinRequest.id,
-          member_id: currentUser.id,
+        join_request_id_team_member_id: {
+          join_request_id: joinRequest.id,
+          team_member_id: currentUser.id,
         }
       },
       update: { opinion: opinion as any },
       create: {
-        request_id: joinRequest.id,
-        member_id: currentUser.id,
+        join_request_id: joinRequest.id,
+        team_member_id: currentUser.id,
         opinion: opinion as any,
       }
     });

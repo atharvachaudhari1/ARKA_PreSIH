@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { Gender, ContactVisibility } from "@prisma/client";
+import { ContactVisibility } from "@prisma/client";
 
 // ─── Helper: get authenticated user's DB profile ───────────────────────
 async function getAuthProfile() {

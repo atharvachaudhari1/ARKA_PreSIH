@@ -74,7 +74,7 @@ export default function VerificationClient({ initialUsers }: { initialUsers: Pen
     return (
       <EmptyState 
         title="Queue Empty" 
-        message="There are no pending ID verifications." 
+        description="There are no pending ID verifications." 
         icon="✅" 
       />
     );
