@@ -228,7 +228,7 @@ export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false 
                   width: 28,
                   height: 28,
                   borderRadius: "4px",
-                  background: "#1a1a1a",
+                  background: "#5b5fc7",
                   border: "1.5px solid #1a1a1a",
                   display: "flex",
                   alignItems: "center",

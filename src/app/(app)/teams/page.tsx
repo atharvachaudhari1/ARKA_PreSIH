@@ -114,7 +114,7 @@ export default function DashboardPage() {
               alignItems: "center",
               justifyContent: "center",
               gap: "0.5rem",
-              background: "#1a1a1a",
+              background: "#5b5fc7",
               color: "#ffffff",
               border: "2px solid #1a1a1a",
               boxShadow: "4px 4px 0px #1a1a1a",
@@ -127,8 +127,8 @@ export default function DashboardPage() {
               letterSpacing: "0.5px",
               transition: "transform 0.15s, box-shadow 0.15s"
             }}
-            onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "6px 6px 0px #1a1a1a"; }}
-            onMouseOut={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "4px 4px 0px #1a1a1a"; }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "6px 6px 0px #1a1a1a"; e.currentTarget.style.background = "#4a4fb5"; }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "4px 4px 0px #1a1a1a"; e.currentTarget.style.background = "#5b5fc7"; }}
           >
             <span>+</span> Deploy New Team
           </Link>
