@@ -2,6 +2,7 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SkillSelector } from "@/components/SkillSelector";
 import { SIH_THEMES } from "@/lib/constants";
 
 // Shared hover handlers for form fields
@@ -292,8 +293,8 @@ function CreateTeamForm() {
                     </div>
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>Skills (comma separated)</label>
-                    <input placeholder="e.g. React, UI/UX" value={slot.skills.join(", ")} onChange={e => updateSlot(i, "skills", e.target.value.split(",").map(s => s.trim()).filter(Boolean))} style={{...fieldStyle, padding: "0.4rem 0.6rem", minHeight: "36px"}} />
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>Required Skills</label>
+                    <SkillSelector selectedSkills={slot.skills} onChange={skills => updateSlot(i, "skills", skills)} />
                   </div>
                 </div>
               ))}
