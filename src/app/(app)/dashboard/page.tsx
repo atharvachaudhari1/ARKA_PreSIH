@@ -169,7 +169,7 @@ export default function DashboardPage() {
                </div>
             ) : profile?.led_teams?.length > 0 ? (
               <div style={{ background: "#eef0ff", border: "2px solid #1a1a1a", borderRadius: "4px", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", boxShadow: "inset 2px 2px 0px rgba(0,0,0,0.05)" }}>
-                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.5rem" }}>You are leading a team!</h3>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.5rem" }}>Leading: <span className="gradient-text">{profile.led_teams[0].name}</span></h3>
                 <p style={{ fontSize: "0.9rem", color: "#5a5a5a", marginBottom: "1.5rem", fontWeight: 500 }}>Check your team page to manage members and update your requirements.</p>
                 <Link href={`/teams/${profile.led_teams[0].id}`} style={{
                   background: "#5b5fc7", color: "#ffffff", border: "2px solid #1a1a1a", padding: "0.6rem 1.25rem",
@@ -183,7 +183,7 @@ export default function DashboardPage() {
               </div>
             ) : profile?.team_memberships?.length > 0 ? (
               <div style={{ background: "#f8f6f0", border: "2px solid #1a1a1a", borderRadius: "4px", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", boxShadow: "inset 2px 2px 0px rgba(0,0,0,0.05)" }}>
-                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.5rem" }}>You are in a team!</h3>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.5rem" }}>Team: <span className="gradient-text">{profile.team_memberships[0].team.name}</span></h3>
                 <p style={{ fontSize: "0.9rem", color: "#5a5a5a", marginBottom: "1.5rem", fontWeight: 500 }}>Access your team dashboard to view members and chat.</p>
                 <Link href={`/teams/${profile.team_memberships[0].team_id}`} style={{
                   background: "#1a1a1a", color: "#ffffff", border: "2px solid #1a1a1a", padding: "0.6rem 1.25rem",
