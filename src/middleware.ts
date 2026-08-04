@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
 
   // Public-only routes (unauthenticated users only).
   const publicRoutes = ["/login", "/signup", "/auth/callback", "/auth/error"];
-  const isPublicRoute = publicRoutes.some((route) =>
+  const isPublicRoute = pathname === "/" || publicRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
