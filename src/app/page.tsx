@@ -1,235 +1,764 @@
 import Link from "next/link";
+import { Metadata } from "next";
+import { 
+  IconTerminalPrompt, 
+  IconDashboardGrid, 
+  IconConsoleAlert, 
+  IconSearchRadar,
+  IconRocketDeploy 
+} from "@/components/TerminalIcons";
+
+export const metadata: Metadata = {
+  title: "TeamUp — Find Your Hackathon Team",
+  description:
+    "The verified teammate-matching platform for Smart India Hackathon. Join a team or build one — all verified, all semi-anonymous.",
+};
 
 export default function HomePage() {
   return (
-    <div className="page-container">
-      {/* ── Top Navigation Bar ── */}
-      <header className="flex flex-wrap items-center justify-between gap-4 pb-5 mb-8 border-b-2 border-stone-400">
-        <Link href="/" className="logo">
-          <span className="logo-bracket">{"<"}</span>
-          <span>TeamUp</span>
-          <span className="logo-bracket">{"/>"}</span>
-        </Link>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <span className="chip chip-alert text-xs py-1 px-2.5 font-mono border-amber-500 bg-amber-100 font-bold shadow-[2px_2px_0px_#1a1a1a] border-[1.5px] border-stone-900 text-amber-950">
-            ⚡ SIH 2026 Open
-          </span>
-          <Link href="/login" className="btn-t">
+    <main
+      style={{
+        minHeight: "100vh",
+        background: "#f3efe6",
+        color: "#1a1a1a",
+        display: "flex",
+        flexDirection: "column",
+        fontFamily: "var(--font-mono), monospace",
+        overflowX: "hidden",
+        width: "100%",
+        boxSizing: "border-box"
+      }}
+    >
+      {/* ─── Nav ─── */}
+      <nav
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0.75rem 1rem",
+          borderBottom: "2px solid #1a1a1a",
+          position: "sticky",
+          top: 0,
+          zIndex: 50,
+          background: "#eae5dc",
+          boxShadow: "0 2px 0 #1a1a1a",
+          width: "100%",
+          boxSizing: "border-box",
+          flexWrap: "nowrap",
+          gap: "0.5rem"
+        }}
+      >
+        <div
+          style={{
+            fontWeight: 900,
+            fontSize: "1.25rem",
+            color: "#1a1a1a",
+            letterSpacing: "-0.02em",
+            whiteSpace: "nowrap"
+          }}
+        >
+          <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
+          TeamUp
+          <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
+        </div>
+        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "nowrap" }}>
+          <Link
+            href="/login"
+            style={{
+              padding: "0.45rem 0.7rem",
+              background: "#f7f4ee",
+              border: "1.5px solid #1a1a1a",
+              boxShadow: "2px 2px 0px #1a1a1a",
+              borderRadius: "2px",
+              fontWeight: 700,
+              color: "#1a1a1a",
+              textDecoration: "none",
+              fontSize: "0.8rem",
+              whiteSpace: "nowrap",
+              transition: "transform 0.1s ease, box-shadow 0.1s ease",
+            }}
+          >
             Log in
           </Link>
-          <Link href="/signup" className="btn-t btn-t-brand">
+          <Link
+            href="/signup"
+            style={{
+              padding: "0.45rem 0.75rem",
+              background: "#5b5fc7",
+              border: "1.5px solid #1a1a1a",
+              boxShadow: "2px 2px 0px #1a1a1a",
+              borderRadius: "2px",
+              fontWeight: 700,
+              color: "#ffffff",
+              textDecoration: "none",
+              fontSize: "0.8rem",
+              whiteSpace: "nowrap",
+              transition: "transform 0.1s ease, box-shadow 0.1s ease",
+            }}
+          >
             Get started
           </Link>
         </div>
-      </header>
+      </nav>
 
-      {/* ── Section 1: Visitors / Welcome Banner ── */}
-      <fieldset className="t-fieldset">
-        <legend className="t-legend">- cat ~/for-visitors.md -</legend>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-sm font-medium text-stone-800">
-            <span className="text-2xl">👋</span>
-            <span className="leading-snug">
-              <strong>visiting from public SIH broadcast groups?</strong> we put a structured teammate matching platform together for you.
+      {/* ─── Hero ─── */}
+      <section
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          padding: "4rem 1.25rem 4rem",
+          maxWidth: "920px",
+          margin: "0 auto",
+          width: "100%",
+          boxSizing: "border-box"
+        }}
+      >
+        {/* Eyebrow */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            background: "#fffce8",
+            border: "1.5px solid #1a1a1a",
+            boxShadow: "3px 3px 0px #1a1a1a",
+            borderRadius: "20px",
+            padding: "0.4rem 1rem",
+            marginBottom: "2rem",
+            maxWidth: "100%",
+            boxSizing: "border-box",
+            flexWrap: "wrap",
+            justifyContent: "center"
+          }}
+        >
+          <span
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: "#10b981",
+              border: "1px solid #1a1a1a",
+              display: "inline-block",
+            }}
+          />
+          <span
+            style={{
+              fontSize: "0.78rem",
+              color: "#1a1a1a",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.04em",
+            }}
+          >
+            SIH 2026 · Team formation is open
+          </span>
+        </div>
+
+        {/* Headline */}
+        <h1
+          style={{
+            fontSize: "clamp(2.3rem, 6vw, 4.4rem)",
+            fontWeight: 900,
+            lineHeight: 1.12,
+            marginBottom: "1.5rem",
+            color: "#1a1a1a",
+            letterSpacing: "-0.03em",
+          }}
+        >
+          Stop broadcasting.{" "}
+          <span
+            style={{
+              color: "#5b5fc7",
+              textDecoration: "underline",
+              textDecorationThickness: "5px",
+              textUnderlineOffset: "6px",
+            }}
+          >
+            Start matching.
+          </span>
+        </h1>
+
+        {/* Sub-headline */}
+        <p
+          style={{
+            fontSize: "1.1rem",
+            color: "#3d3d3d",
+            maxWidth: "640px",
+            marginBottom: "2.5rem",
+            lineHeight: 1.7,
+            fontWeight: 500,
+          }}
+        >
+          TeamUp replaces the WhatsApp DM chaos with a verified, semi-anonymous
+          platform. Browse real teams, see who&apos;s on them — and apply
+          without your name being broadcast to the whole group.
+        </p>
+
+        {/* ─── Dual CTA — Devfolio-style ─── */}
+        <div
+          className="responsive-stack"
+          style={{
+            display: "flex",
+            gap: "1rem",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            width: "100%",
+            maxWidth: "540px",
+          }}
+        >
+          <Link
+            href="/signup?path=join"
+            className="btn-mobile-full"
+            style={{
+              flex: "1 1 220px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.6rem",
+              padding: "0.85rem 1.25rem",
+              minHeight: "50px",
+              background: "#5b5fc7",
+              color: "#ffffff",
+              border: "2px solid #1a1a1a",
+              boxShadow: "4px 4px 0px #1a1a1a",
+              borderRadius: "4px",
+              fontWeight: 800,
+              fontSize: "0.98rem",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+              boxSizing: "border-box"
+            }}
+          >
+            <IconDashboardGrid size={22} color="#ffffff" style={{ filter: "drop-shadow(1px 1px 0px #000)" }} />
+            Join a Team
+          </Link>
+          <Link
+            href="/signup?path=create"
+            className="btn-mobile-full"
+            style={{
+              flex: "1 1 220px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.6rem",
+              padding: "0.85rem 1.25rem",
+              minHeight: "50px",
+              background: "#fffce8",
+              color: "#1a1a1a",
+              border: "2px solid #1a1a1a",
+              boxShadow: "4px 4px 0px #1a1a1a",
+              borderRadius: "4px",
+              fontWeight: 800,
+              fontSize: "0.98rem",
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+              boxSizing: "border-box"
+            }}
+          >
+            <IconTerminalPrompt size={22} color="#5b5fc7" />
+            Create a Team
+          </Link>
+        </div>
+
+        {/* Trust line */}
+        <div
+          style={{
+            marginTop: "2.5rem",
+            padding: "0.6rem 1rem",
+            background: "#eae5dc",
+            border: "1.5px solid #1a1a1a",
+            borderRadius: "4px",
+            fontSize: "0.82rem",
+            color: "#1a1a1a",
+            fontWeight: 800,
+            maxWidth: "100%",
+            boxSizing: "border-box",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.75rem",
+            flexWrap: "wrap"
+          }}
+        >
+          <span>[ID VERIFIED SYSTEM]</span>
+          <span>·</span>
+          <span>[ZERO GUEST ACCESS]</span>
+          <span>·</span>
+          <span>[ENCRYPTED DOSSIERS]</span>
+        </div>
+      </section>
+
+      {/* ─── Live stats bar ─── */}
+      <section
+        style={{
+          borderTop: "2px solid #1a1a1a",
+          borderBottom: "2px solid #1a1a1a",
+          background: "#eae5dc",
+          padding: "2.5rem 1.5rem",
+          boxSizing: "border-box"
+        }}
+      >
+        <div
+          className="responsive-grid"
+          style={{
+            maxWidth: "1050px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: "1.5rem",
+          }}
+        >
+          {[
+            { value: "—", label: "Teams open" },
+            { value: "—", label: "Spots available" },
+            { value: "—", label: "Members verified" },
+            { value: "6", label: "Max team size (SIH)" },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              style={{
+                background: "#ffffff",
+                border: "2px solid #1a1a1a",
+                boxShadow: "4px 4px 0px #1a1a1a",
+                borderRadius: "4px",
+                padding: "1.5rem 1rem",
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "2.25rem",
+                  fontWeight: 900,
+                  color: "#5b5fc7",
+                  marginBottom: "0.25rem",
+                }}
+              >
+                {stat.value}
+              </div>
+              <div
+                style={{
+                  fontSize: "0.8rem",
+                  fontWeight: 800,
+                  textTransform: "uppercase",
+                  color: "#1a1a1a",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── How it works ─── */}
+      <section style={{ padding: "5rem 1.5rem", background: "#f3efe6", boxSizing: "border-box" }}>
+        <div style={{ maxWidth: "1050px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <span
+              style={{
+                background: "#1a1a1a",
+                color: "#fffce8",
+                padding: "0.35rem 0.85rem",
+                borderRadius: "3px",
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                display: "inline-block",
+                marginBottom: "0.75rem",
+              }}
+            >
+              $ cat how-it-works.md
             </span>
+            <h2
+              style={{
+                fontSize: "2.2rem",
+                fontWeight: 900,
+                color: "#1a1a1a",
+                margin: 0
+              }}
+            >
+              Two paths. One platform.
+            </h2>
           </div>
-          <Link href="#live-teams" className="btn-t btn-t-sm font-mono font-bold uppercase tracking-wide bg-white">
-            resources &amp; teams ↓
-          </Link>
+
+          <div
+            className="responsive-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: "2rem",
+            }}
+          >
+            {/* Path A — Join */}
+            <div
+              style={{
+                background: "#ffffff",
+                border: "2.5px solid #1a1a1a",
+                boxShadow: "6px 6px 0px #1a1a1a",
+                borderRadius: "6px",
+                padding: "2rem 1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                boxSizing: "border-box"
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: "4px",
+                    background: "#eef0ff",
+                    border: "2px solid #1a1a1a",
+                    boxShadow: "3px 3px 0px #1a1a1a",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  <IconDashboardGrid size={32} color="#5b5fc7" />
+                </div>
+                <h3
+                  style={{
+                    fontSize: "1.35rem",
+                    fontWeight: 900,
+                    marginBottom: "0.75rem",
+                    color: "#1a1a1a",
+                  }}
+                >
+                  Looking to join?
+                </h3>
+                <p
+                  style={{
+                    color: "#4a4a4a",
+                    lineHeight: 1.65,
+                    marginBottom: "1.75rem",
+                    fontSize: "0.98rem",
+                  }}
+                >
+                  Browse verified teams, see who&apos;s already on them, and check their
+                  skill gaps. Request to join — your profile is only shared with
+                  that team, not the whole platform.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                {["Browse teams", "Filter by skill", "Private application"].map(
+                  (t) => (
+                    <span
+                      key={t}
+                      style={{
+                        background: "#eae5dc",
+                        border: "1.5px solid #1a1a1a",
+                        boxShadow: "2px 2px 0px #1a1a1a",
+                        borderRadius: "2px",
+                        padding: "0.3rem 0.65rem",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        color: "#1a1a1a",
+                      }}
+                    >
+                      {t}
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Path B — Create */}
+            <div
+              style={{
+                background: "#ffffff",
+                border: "2.5px solid #1a1a1a",
+                boxShadow: "6px 6px 0px #1a1a1a",
+                borderRadius: "6px",
+                padding: "2rem 1.5rem",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                boxSizing: "border-box"
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: "4px",
+                    background: "#fffce8",
+                    border: "2px solid #1a1a1a",
+                    boxShadow: "3px 3px 0px #1a1a1a",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  <IconTerminalPrompt size={32} color="#5b5fc7" />
+                </div>
+                <h3
+                  style={{
+                    fontSize: "1.35rem",
+                    fontWeight: 900,
+                    marginBottom: "0.75rem",
+                    color: "#1a1a1a",
+                  }}
+                >
+                  Building a team?
+                </h3>
+                <p
+                  style={{
+                    color: "#4a4a4a",
+                    lineHeight: 1.65,
+                    marginBottom: "1.75rem",
+                    fontSize: "0.98rem",
+                  }}
+                >
+                  Create your team, define the skills you need, and become the
+                  leader. Invite people or let them find you — your whole team
+                  votes on applicants, you make the call.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+                {["Team leader", "Skill matching", "Consensus voting"].map(
+                  (t) => (
+                    <span
+                      key={t}
+                      style={{
+                        background: "#eae5dc",
+                        border: "1.5px solid #1a1a1a",
+                        boxShadow: "2px 2px 0px #1a1a1a",
+                        borderRadius: "2px",
+                        padding: "0.3rem 0.65rem",
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        color: "#1a1a1a",
+                      }}
+                    >
+                      {t}
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </fieldset>
+      </section>
 
-      {/* ── Section 2: Who We Are & Overview ── */}
-      <fieldset className="t-fieldset">
-        <legend className="t-legend">- whoami -</legend>
-        <div className="space-y-4 text-stone-800 leading-relaxed text-base">
-          <p className="text-lg font-bold text-stone-900">
-            Hii!! Welcome to <span className="font-mono bg-white px-2 py-0.5 border-[1.5px] border-stone-900 font-extrabold shadow-[2px_2px_0px_#1a1a1a] inline-block mx-1 text-base"><span className="logo-bracket">{"<"}</span>TeamUp<span className="logo-bracket">{"/>"}</span></span>, the verified semi-anonymous teammate platform for Smart India Hackathon (you&apos;ve probably experienced chaotic WhatsApp groups before)
-          </p>
-          <p>
-            Most of hackathon preparation goes into spamming public group chats, reading endless <em>&ldquo;I know HTML, please invite me&rdquo;</em> broadcast messages, and trying to build a balanced 6-person team before the official registration portal freezes.
-          </p>
-          <p>
-            When you&apos;re not building something awesome, you shouldn&apos;t have to expose your personal mobile number to 1,000+ strangers just to find one good AI/ML developer or fulfill the mandatory SIH gender diversity quota.
-          </p>
-          <p className="font-bold text-stone-950 bg-amber-50 p-3 border-[1.5px] border-stone-900 shadow-[2px_2px_0_#1a1a1a] inline-block w-full text-center sm:text-left">
-            🎯 Browse real verified teams, inspect exact skill gaps, and apply confidentially with 1-click!
-          </p>
-        </div>
+      {/* ─── Transparency model explainer ─── */}
+      <section
+        style={{
+          background: "#eae5dc",
+          padding: "5rem 1.5rem",
+          borderTop: "2px solid #1a1a1a",
+          borderBottom: "2px solid #1a1a1a",
+          boxSizing: "border-box"
+        }}
+      >
+        <div style={{ maxWidth: "820px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+            <span
+              style={{
+                background: "#1a1a1a",
+                color: "#fffce8",
+                padding: "0.35rem 0.85rem",
+                borderRadius: "3px",
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                display: "inline-block",
+                marginBottom: "0.75rem",
+              }}
+            >
+              $ cat transparency.md
+            </span>
+            <h2
+              style={{
+                fontSize: "2.2rem",
+                fontWeight: 900,
+                color: "#1a1a1a",
+                marginBottom: "0.75rem",
+              }}
+            >
+              Semi-anonymous by design
+            </h2>
+            <p
+              style={{
+                color: "#4a4a4a",
+                fontSize: "1.02rem",
+                fontWeight: 500,
+              }}
+            >
+              You can verify a team&apos;s credibility before applying. They can&apos;t see
+              who else you&apos;re applying to.
+            </p>
+          </div>
 
-        <hr className="t-separator" />
-
-        <div className="flex flex-wrap gap-4">
-          <Link href="/signup?path=join" className="btn-t btn-t-brand btn-t-lg font-mono">
-            🔍 Join a Verified Team
-          </Link>
-          <Link href="/signup?path=create" className="btn-t btn-t-lg font-mono bg-white">
-            ⚡ Create &amp; Lead a Team
-          </Link>
-        </div>
-      </fieldset>
-
-      {/* ── Section 3: Interactive Tabs & Motto ── */}
-      <fieldset className="t-fieldset">
-        <legend className="t-legend">- cat ~/random.md -</legend>
-        <div className="mb-4">
-          <p className="section-label mb-1">Our Platform Motto</p>
-          <p className="font-mono text-sm text-stone-900 font-semibold italic bg-white p-2.5 border-[1.5px] border-stone-900 shadow-[2px_2px_0_#1a1a1a]">
-            &ldquo;Stop broadcasting in public chats. Start precision matching.&rdquo; — SIH 2026 finalists
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 pt-2">
-          <button className="btn-t btn-t-brand justify-center font-mono text-xs font-bold">All Themes</button>
-          <button className="btn-t justify-center font-mono text-xs bg-white">AI / ML</button>
-          <button className="btn-t justify-center font-mono text-xs bg-white">Web3 / Fin</button>
-          <button className="btn-t justify-center font-mono text-xs bg-white">MedTech</button>
-          <button className="btn-t justify-center font-mono text-xs col-span-2 sm:col-span-1 bg-white">IoT / Drones</button>
-        </div>
-      </fieldset>
-
-      {/* ── Section 4: Live Teams Feed ── */}
-      <fieldset className="t-fieldset" id="live-teams">
-        <legend className="t-legend">- cat ~/live-teams.md -</legend>
-        <p className="section-label mb-4">the more professional-looking part of teammate finding</p>
-
-        <div className="space-y-4">
-          {/* Team Record 1 */}
-          <div className="t-card">
-            <div className="t-card-header">
-              <div className="flex items-center gap-3">
-                <div className="t-avatar text-stone-900 bg-indigo-100 font-bold text-sm">
-                  NF
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            {[
+              {
+                icon: <IconDashboardGrid size={24} color="#5b5fc7" />,
+                label: "Team structure",
+                desc: "Skills needed, vacancy count, domain — visible to everyone.",
+              },
+              {
+                icon: <IconTerminalPrompt size={24} color="#5b5fc7" />,
+                label: "Leader identity",
+                desc: "Name, phone, LinkedIn — always public so you can verify they're real.",
+              },
+              {
+                icon: <IconSearchRadar size={24} color="#5b5fc7" />,
+                label: "Existing members",
+                desc: "Name, department, skills — public. Contact info stays private.",
+              },
+              {
+                icon: <IconConsoleAlert size={24} color="#5b5fc7" />,
+                label: "Your application",
+                desc: "Your profile is shared only with the specific team you apply to.",
+              },
+              {
+                icon: <IconConsoleAlert size={24} color="#5b5fc7" />,
+                label: "Your other applications",
+                desc: "Teams never know who else you're applying to.",
+              },
+            ].map((row) => (
+              <div
+                key={row.label}
+                style={{
+                  background: "#ffffff",
+                  border: "2px solid #1a1a1a",
+                  boxShadow: "4px 4px 0px #1a1a1a",
+                  borderRadius: "4px",
+                  padding: "1.25rem",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "1.25rem",
+                  boxSizing: "border-box"
+                }}
+              >
+                <div style={{ flexShrink: 0, marginTop: "2px" }}>
+                  {row.icon}
                 </div>
                 <div>
-                  <h3 className="font-bold text-base text-stone-950 leading-tight">Neural Forge</h3>
-                  <span className="text-xs text-stone-600 font-mono font-medium">Theme: Smart Automation &amp; GovTech</span>
+                  <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "#1a1a1a", marginBottom: "0.2rem" }}>
+                    {row.label}
+                  </div>
+                  <div
+                    style={{
+                      color: "#4a4a4a",
+                      fontSize: "0.92rem",
+                      lineHeight: 1.5,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {row.desc}
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-                <span className="chip chip-alert border-amber-600 text-amber-900">⚠️ 2 Spots Open</span>
-                <span className="chip border-stone-900 font-bold bg-white text-stone-900 shadow-[1px_1px_0px_#1a1a1a]">04 / 06 filled</span>
-              </div>
-            </div>
-            
-            <p className="text-sm text-stone-800 font-medium mb-4 leading-relaxed">
-              Building an automated document verification and municipal fraud detection engine using Computer Vision &amp; LLMs. We have backend and design sorted; looking for high-performance ML engineers!
-            </p>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-300">
-              <div className="flex flex-wrap gap-1.5">
-                <span className="chip chip-brand">PyTorch</span>
-                <span className="chip chip-brand">FastAPI</span>
-                <span className="chip bg-stone-100 border-stone-400 text-stone-800 font-bold">Next.js 15</span>
-              </div>
-              <Link href="/signup?team=neural-forge" className="btn-t btn-t-sm font-mono font-bold text-stone-950 bg-stone-100 border-stone-900">
-                apply confidentially →
-              </Link>
-            </div>
-          </div>
-
-          {/* Team Record 2 */}
-          <div className="t-card">
-            <div className="t-card-header">
-              <div className="flex items-center gap-3">
-                <div className="t-avatar text-stone-900 bg-emerald-100 font-bold text-sm">
-                  BM
-                </div>
-                <div>
-                  <h3 className="font-bold text-base text-stone-950 leading-tight">BlockMed Labs</h3>
-                  <span className="text-xs text-stone-600 font-mono font-medium">Theme: Healthcare &amp; Cybersecurity</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-                <span className="chip bg-rose-100 border-rose-600 text-rose-950 font-bold shadow-[1px_1px_0px_#1a1a1a]">🎯 Female Teammate Needed</span>
-                <span className="chip border-stone-900 font-bold bg-white text-stone-900 shadow-[1px_1px_0px_#1a1a1a]">05 / 06 filled</span>
-              </div>
-            </div>
-
-            <p className="text-sm text-stone-800 font-medium mb-4 leading-relaxed">
-              Zero-knowledge diagnostic transfer protocols allowing ambulance paramedics to instantly secure emergency medical history access during trauma transit without compromising patient privacy laws.
-            </p>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-300">
-              <div className="flex flex-wrap gap-1.5">
-                <span className="chip chip-brand">Rust</span>
-                <span className="chip chip-brand">Solidity / Web3</span>
-                <span className="chip bg-stone-100 border-stone-400 text-stone-800 font-bold">React Native</span>
-              </div>
-              <Link href="/signup?team=blockmed" className="btn-t btn-t-sm font-mono font-bold text-stone-950 bg-stone-100 border-stone-900">
-                apply confidentially →
-              </Link>
-            </div>
-          </div>
-
-          {/* Team Record 3 */}
-          <div className="t-card">
-            <div className="t-card-header">
-              <div className="flex items-center gap-3">
-                <div className="t-avatar text-stone-900 bg-amber-100 font-bold text-sm">
-                  AA
-                </div>
-                <div>
-                  <h3 className="font-bold text-base text-stone-950 leading-tight">AeroAgri Tech</h3>
-                  <span className="text-xs text-stone-600 font-mono font-medium">Theme: Agriculture, FoodTech &amp; IoT</span>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-                <span className="chip chip-alert border-amber-600 text-amber-900">⚠️ 3 Spots Open</span>
-                <span className="chip border-stone-900 font-bold bg-white text-stone-900 shadow-[1px_1px_0px_#1a1a1a]">03 / 06 filled</span>
-              </div>
-            </div>
-
-            <p className="text-sm text-stone-800 font-medium mb-4 leading-relaxed">
-              Developing drone hyperspectral telemetry sensors that precisely detect soil nutrient depletion across rural farm grids to automate organic fertilizer irrigation.
-            </p>
-
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-300">
-              <div className="flex flex-wrap gap-1.5">
-                <span className="chip chip-brand">ROS2 / Drones</span>
-                <span className="chip chip-brand">C++ / Embedded</span>
-                <span className="chip bg-stone-100 border-stone-400 text-stone-800 font-bold">Flutter</span>
-              </div>
-              <Link href="/signup?team=aeroagri" className="btn-t btn-t-sm font-mono font-bold text-stone-950 bg-stone-100 border-stone-900">
-                apply confidentially →
-              </Link>
-            </div>
+            ))}
           </div>
         </div>
-      </fieldset>
+      </section>
 
-      {/* ── Section 5: Transparency & Privacy Model ── */}
-      <fieldset className="t-fieldset">
-        <legend className="t-legend">- cat ~/security-and-privacy.md -</legend>
-        <p className="section-label mb-4">how we protect students from public spam &amp; fake profiles</p>
-        
-        <div className="space-y-3 font-mono text-xs sm:text-sm text-stone-900">
-          <div className="p-3.5 bg-white border-[1.5px] border-stone-900 rounded-[2px] shadow-[2px_2px_0px_#1a1a1a]">
-            <span className="text-emerald-800 font-extrabold bg-emerald-100 px-2 py-0.5 border border-emerald-500 rounded text-xs mr-2 inline-block mb-1">✓ VERIFIED ID CARDS</span> 
-            Every college student is checked against an automated college ID card verification pipeline before joining teams.
-          </div>
-          <div className="p-3.5 bg-white border-[1.5px] border-stone-900 rounded-[2px] shadow-[2px_2px_0px_#1a1a1a]">
-            <span className="text-indigo-900 font-extrabold bg-indigo-100 px-2 py-0.5 border border-indigo-500 rounded text-xs mr-2 inline-block mb-1">✓ LEADER ACCOUNTABILITY</span> 
-            Team leaders must make their contact details visible to verified logged-in users so you know exactly who you are working with.
-          </div>
-          <div className="p-3.5 bg-white border-[1.5px] border-stone-900 rounded-[2px] shadow-[2px_2px_0px_#1a1a1a]">
-            <span className="text-blue-900 font-extrabold bg-blue-100 px-2 py-0.5 border border-blue-500 rounded text-xs mr-2 inline-block mb-1">🔒 PRIVATE APPLICATIONS</span> 
-            When you apply to a team, your personal profile is shared ONLY with that team&apos;s leader. You are never broadcasted to public WhatsApp groups.
-          </div>
+      {/* ─── Final CTA ─── */}
+      <section
+        style={{
+          padding: "5rem 1.25rem",
+          textAlign: "center",
+          background: "#f3efe6",
+          boxSizing: "border-box"
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "740px",
+            margin: "0 auto",
+            background: "#fffce8",
+            border: "2.5px solid #1a1a1a",
+            boxShadow: "6px 6px 0px #1a1a1a",
+            borderRadius: "6px",
+            padding: "3rem 1.5rem",
+            boxSizing: "border-box"
+          }}
+        >
+          <h2 style={{ fontSize: "2rem", fontWeight: 900, marginBottom: "1rem", color: "#1a1a1a" }}>
+            Ready? Your team is waiting.
+          </h2>
+          <p
+            style={{
+              color: "#3a3a3a",
+              marginBottom: "2.25rem",
+              fontSize: "1rem",
+              fontWeight: 500,
+              maxWidth: "520px",
+              margin: "0 auto 2.25rem",
+            }}
+          >
+            Sign up in 60 seconds. Verified. No spam. No public profiles until you
+            choose.
+          </p>
+          <Link
+            href="/signup"
+            className="btn-mobile-full"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "0.6rem",
+              padding: "0.95rem 2rem",
+              background: "#5b5fc7",
+              color: "#ffffff",
+              border: "2px solid #1a1a1a",
+              boxShadow: "4px 4px 0px #1a1a1a",
+              borderRadius: "4px",
+              fontWeight: 900,
+              fontSize: "1.05rem",
+              textDecoration: "none",
+              minHeight: "44px"
+            }}
+          >
+            <IconRocketDeploy size={22} color="#ffffff" style={{ filter: "drop-shadow(1px 1px 0px #000)" }} />
+            Create your account ➔
+          </Link>
         </div>
-      </fieldset>
+      </section>
 
-      {/* ── Footer ── */}
-      <footer className="mt-12 pt-6 border-t-[2px] border-stone-400 text-center font-mono text-xs text-stone-600">
-        <div className="mb-2">
-          <span className="logo-bracket">{"<"}</span>
-          <span className="font-extrabold text-stone-900 text-sm">TeamUp</span>
-          <span className="logo-bracket">{"/>"}</span>
-          {" "}— Built for Smart India Hackathon 2026
+      {/* ─── Footer ─── */}
+      <footer
+        style={{
+          borderTop: "2px solid #1a1a1a",
+          padding: "2rem 1.5rem",
+          textAlign: "center",
+          background: "#eae5dc",
+          color: "#4a4a4a",
+          fontSize: "0.8rem",
+          boxSizing: "border-box"
+        }}
+      >
+        <div style={{ maxWidth: "1050px", margin: "0 auto" }}>
+          <div
+            style={{
+              fontWeight: 900,
+              fontSize: "1.15rem",
+              marginBottom: "0.5rem",
+              color: "#1a1a1a",
+            }}
+          >
+            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
+            TeamUp
+            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
+          </div>
+          <p style={{ fontWeight: 600 }}>
+            Built for SIH 2026 · Semi-anonymous team matching · All verified
+          </p>
         </div>
-        <p className="font-medium">Semi-anonymous • Verified teammates • Zero public spam</p>
       </footer>
-    </div>
+    </main>
   );
 }

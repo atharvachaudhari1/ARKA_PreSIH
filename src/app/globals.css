@@ -656,3 +656,120 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.1em;
   font-weight: 600;
 }
+
+/* ═════════════════════════════════════════════
+   MOBILE-FIRST & RESPONSIVE LAYOUT PIPELINE
+   Ensures seamless scaling across phones, tablets & desktops
+═════════════════════════════════════════════ */
+
+body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+}
+
+/* Responsive Visibility Toggles */
+.desktop-only {
+  display: flex !important;
+}
+
+.mobile-only {
+  display: none !important;
+}
+
+.mobile-block {
+  display: none !important;
+}
+
+/* Base interactive touch target optimizations */
+button, a, .btn, .btn-t, select, input {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Tablet & Mobile Breakpoint (<= 860px) ── */
+@media (max-width: 860px) {
+  html {
+    font-size: 15px;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+  }
+
+  .mobile-block {
+    display: block !important;
+  }
+
+  /* Force stack on responsive containers */
+  .responsive-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 1rem !important;
+  }
+
+  .responsive-stack > * {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+  }
+
+  .responsive-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .page-container {
+    padding: 1.25rem 1rem 3.5rem !important;
+    max-width: 100% !important;
+  }
+
+  /* Enhance touch targets for iOS/Android tapping */
+  .input-field, .btn, .btn-t, select {
+    min-height: 44px;
+    font-size: 0.95rem;
+  }
+
+  .card, .t-fieldset, .t-card {
+    padding: 1.25rem 1rem !important;
+    box-shadow: 3px 3px 0px var(--border-dark) !important;
+  }
+
+  h1 {
+    font-size: 2.15rem !important;
+    letter-spacing: -0.03em !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* ── Small Phone Breakpoint (<= 480px) ── */
+@media (max-width: 480px) {
+  html {
+    font-size: 14px;
+  }
+
+  .card, .t-fieldset {
+    padding: 1.15rem 0.85rem !important;
+    border-radius: 4px !important;
+  }
+
+  h1 {
+    font-size: 1.85rem !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Ensure buttons fill width on tight screens while keeping icons and text aligned */
+  .btn-mobile-full {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+}
+

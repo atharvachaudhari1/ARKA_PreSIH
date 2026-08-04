@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { IconDashboardGrid, IconTerminalPrompt } from "@/components/TerminalIcons";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -223,7 +224,7 @@ export default function SignupPage() {
           <div className="divider" style={{ marginBottom: "1.5rem", textAlign: "center", color: "#1a1a1a", fontWeight: "bold" }}>or create account</div>
 
           <form onSubmit={handleSignup} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+            <div className="responsive-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
               <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                 <label htmlFor="signup-name" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Full name</label>
                 <input
@@ -527,11 +528,10 @@ function PathSelectionScreen({
               alignItems: "center",
               justifyContent: "center",
               marginBottom: "1.5rem",
-              fontSize: "1.75rem",
               boxShadow: "2px 2px 0px #1a1a1a"
             }}
           >
-            🔍
+            <IconDashboardGrid size={32} color="#5b5fc7" />
           </div>
           <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "0.6rem" }}>
             Join a Team
@@ -590,11 +590,10 @@ function PathSelectionScreen({
               alignItems: "center",
               justifyContent: "center",
               marginBottom: "1.5rem",
-              fontSize: "1.75rem",
               boxShadow: "2px 2px 0px #1a1a1a"
             }}
           >
-            ⚡
+            <IconTerminalPrompt size={32} color="#5b5fc7" />
           </div>
           <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "0.6rem" }}>
             Create a Team

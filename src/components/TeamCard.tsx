@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ContactVisibility } from "@prisma/client";
 
 interface TeamMember {
   id: string;
@@ -35,70 +34,133 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
   const isFull = team.status === "full" || vacancy <= 0;
 
   return (
-    <div className="card" style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
-      {/* ── Header ── */}
+    <div 
+      style={{ 
+        background: "#ffffff",
+        border: "2px solid #1a1a1a",
+        boxShadow: "5px 5px 0px #1a1a1a",
+        borderRadius: "6px",
+        padding: "1.75rem", 
+        display: "flex", 
+        flexDirection: "column", 
+        justifyContent: "space-between",
+        gap: "1.5rem",
+        transition: "all 0.15s ease",
+        position: "relative",
+        overflow: "hidden"
+      }}
+    >
+      {/* ── Top Section & Badges ── */}
       <div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 800 }}>{team.name}</h2>
-          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem", gap: "0.5rem" }}>
+          <h2 style={{ fontSize: "1.35rem", fontWeight: 900, color: "#1a1a1a", letterSpacing: "-0.5px", margin: 0, lineHeight: 1.3 }}>
+            {team.name}
+          </h2>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", justifyContent: "flex-end", flexShrink: 0 }}>
             <span
               style={{
-                fontSize: "0.75rem", fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)",
-                background: isFull ? "rgba(239,68,68,0.15)" : "rgba(16,185,129,0.15)",
-                color: isFull ? "#ef4444" : "#10b981", border: `1px solid ${isFull ? "#ef444440" : "#10b98140"}`,
+                fontSize: "0.7rem", 
+                fontWeight: 800, 
+                fontFamily: "var(--font-mono)",
+                padding: "3px 8px", 
+                borderRadius: "3px",
+                background: isFull ? "#fef2f2" : "#ecfdf5",
+                color: isFull ? "#dc2626" : "#059669", 
+                border: `1.5px solid ${isFull ? "#dc2626" : "#059669"}`,
+                boxShadow: "1.5px 1.5px 0px #1a1a1a",
+                letterSpacing: "0.5px"
               }}
             >
-              {isFull ? "FULL" : "OPEN"}
+              {isFull ? "CLOSED" : "OPEN"}
             </span>
             {!isFull && (
               <span
                 style={{
-                  fontSize: "0.75rem", fontWeight: 600, padding: "2px 8px", borderRadius: "var(--radius-sm)",
-                  background: "var(--color-bg-elevated)", color: "var(--color-text-secondary)", border: "1px solid var(--color-border)",
+                  fontSize: "0.7rem", 
+                  fontWeight: 800, 
+                  fontFamily: "var(--font-mono)",
+                  padding: "3px 8px", 
+                  borderRadius: "3px",
+                  background: "#f8f6f0", 
+                  color: "#1a1a1a", 
+                  border: "1.5px solid #1a1a1a",
+                  boxShadow: "1.5px 1.5px 0px #1a1a1a",
                 }}
               >
-                {vacancy} spot{vacancy !== 1 ? "s" : ""} left
-              </span>
-            )}
-            {team.needed_female_count > 0 && (
-              <span
-                style={{
-                  fontSize: "0.75rem", fontWeight: 600, padding: "2px 8px", borderRadius: "var(--radius-sm)",
-                  background: "rgba(168,85,247,0.15)", color: "#c084fc", border: "1px solid #c084fc40",
-                }}
-              >
-                Needs {team.needed_female_count} female member{team.needed_female_count !== 1 ? "s" : ""}
+              {vacancy} SPOT{vacancy !== 1 ? "S" : ""} LEFT
               </span>
             )}
           </div>
         </div>
-        <p style={{ color: "var(--color-brand-light)", fontSize: "0.85rem", fontWeight: 500 }}>
-          {team.domain_interest ?? "No domain specified"}
-        </p>
+
+        {/* Domain tag */}
+        <div style={{ 
+          display: "inline-block", 
+          background: "#eef0ff", 
+          color: "#1a1a1a", 
+          border: "1.5px solid #5b5fc7", 
+          padding: "2px 8px", 
+          borderRadius: "3px", 
+          fontSize: "0.75rem", 
+          fontFamily: "var(--font-mono)", 
+          fontWeight: 700,
+          marginBottom: "0.75rem" 
+        }}>
+          🎯 {team.domain_interest ?? "General Track / Unspecified Domain"}
+        </div>
+
+        {team.needed_female_count > 0 && (
+          <div style={{ marginBottom: "0.75rem" }}>
+            <span
+              style={{
+                fontSize: "0.75rem", 
+                fontWeight: 800, 
+                padding: "3px 10px", 
+                borderRadius: "4px",
+                background: "#fdf4ff", 
+                color: "#9333ea", 
+                border: "1.5px solid #9333ea",
+                display: "inline-block",
+                boxShadow: "1.5px 1.5px 0px #1a1a1a",
+                fontFamily: "var(--font-mono)"
+              }}
+            >
+              👑 Seeking {team.needed_female_count} Female Member{team.needed_female_count !== 1 ? "s" : ""} (SIH Requirement)
+            </span>
+          </div>
+        )}
+
+        {team.description && (
+          <p style={{ color: "#4b5563", fontSize: "0.95rem", lineHeight: 1.6, margin: "0.5rem 0 0", fontWeight: 500 }}>
+            {team.description}
+          </p>
+        )}
       </div>
 
-      {team.description && (
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "0.9rem", lineHeight: 1.5 }}>
-          {team.description}
-        </p>
-      )}
-
-      {/* ── Leader ── */}
-      <div style={{ background: "rgba(99,102,241,0.05)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: "var(--radius-md)", padding: "1rem" }}>
-        <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.5rem" }}>
-          Team Leader
+      {/* ── Leader Box ── */}
+      <div style={{ 
+        background: "#fdfbf7", 
+        border: "2px solid #1a1a1a", 
+        borderRadius: "4px", 
+        padding: "1rem", 
+        boxShadow: "2px 2px 0px #1a1a1a" 
+      }}>
+        <div style={{ fontSize: "0.7rem", color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 800, fontFamily: "var(--font-mono)", marginBottom: "0.5rem" }}>
+          [TEAM LEADER DOSSIER]
         </div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
-          <div style={{ fontWeight: 600 }}>{team.leader.name}</div>
-          <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.85rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+          <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "0.95rem" }}>
+            👤 {team.leader.name}
+          </div>
+          <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.8rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
             {team.leader.phone_number && (
-              <a href={`tel:${team.leader.phone_number}`} style={{ color: "var(--color-text-secondary)", textDecoration: "none" }}>📞 Call</a>
+              <a href={`tel:${team.leader.phone_number}`} style={{ color: "#1a1a1a", textDecoration: "none", borderBottom: "1.5px solid #1a1a1a", paddingBottom: "1px" }}>📞 Call</a>
             )}
             {team.leader.whatsapp_number && (
-              <a href={`https://wa.me/${team.leader.whatsapp_number.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: "#22c55e", textDecoration: "none" }}>💬 WhatsApp</a>
+              <a href={`https://wa.me/${team.leader.whatsapp_number.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: "#059669", textDecoration: "none", borderBottom: "1.5px solid #059669", paddingBottom: "1px" }}>💬 WhatsApp</a>
             )}
             {team.leader.linkedin_url && (
-              <a href={team.leader.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none" }}>in LinkedIn</a>
+              <a href={team.leader.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "none", borderBottom: "1.5px solid #2563eb", paddingBottom: "1px" }}>in LinkedIn</a>
             )}
           </div>
         </div>
@@ -107,20 +169,26 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
       {/* ── Skills Needed ── */}
       {team.skills_needed.length > 0 && (
         <div>
-          <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.4rem" }}>
-            Looking For
+          <div style={{ fontSize: "0.7rem", color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 800, fontFamily: "var(--font-mono)", marginBottom: "0.5rem" }}>
+            [REQUIRED TECHNOLOGIES]
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
             {team.skills_needed.map((skill) => (
               <span
                 key={skill}
                 style={{
-                  background: "var(--color-bg-elevated)", border: "1px solid var(--color-border)",
-                  borderRadius: "4px", padding: "2px 8px", fontSize: "0.75rem", fontFamily: "var(--font-mono)",
-                  color: "var(--color-text-primary)"
+                  background: "#ffffff", 
+                  border: "1.5px solid #1a1a1a",
+                  boxShadow: "1.5px 1.5px 0px #1a1a1a",
+                  borderRadius: "3px", 
+                  padding: "3px 8px", 
+                  fontSize: "0.75rem", 
+                  fontWeight: 700,
+                  fontFamily: "var(--font-mono)",
+                  color: "#1a1a1a"
                 }}
               >
-                {skill}
+                ⚡ {skill}
               </span>
             ))}
           </div>
@@ -129,22 +197,22 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
 
       {/* ── Members Preview ── */}
       <div>
-        <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.4rem" }}>
-          Existing Members ({team.memberships.length}/6)
+        <div style={{ fontSize: "0.7rem", color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 800, fontFamily: "var(--font-mono)", marginBottom: "0.5rem" }}>
+          [CURRENT SQUAD ({team.memberships.length}/6)]
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {team.memberships.map((m) => (
-            <div key={m.user.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.85rem", borderBottom: "1px solid var(--color-border-hover)", paddingBottom: "0.5rem" }}>
+            <div key={m.user.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.85rem", borderBottom: "1.5px solid #eae6df", paddingBottom: "0.4rem" }}>
               <div>
-                <span style={{ fontWeight: 500, color: "var(--color-text-primary)" }}>{m.user.name}</span>
-                <span style={{ color: "var(--color-text-muted)", marginLeft: "0.5rem" }}>
-                  {m.user.department}
+                <span style={{ fontWeight: 700, color: "#1a1a1a" }}>• {m.user.name}</span>
+                <span style={{ color: "#6b7280", marginLeft: "0.5rem", fontWeight: 500, fontSize: "0.8rem" }}>
+                  ({m.user.department || "Dept N/A"})
                   {m.user.verification_status !== "verified" && (
-                    <span style={{ fontSize: "0.65rem", padding: "1px 4px", background: "rgba(245,158,11,0.1)", color: "#f59e0b", borderRadius: "2px", marginLeft: "4px" }}>Unverified</span>
+                    <span style={{ fontSize: "0.65rem", padding: "1px 5px", background: "#fffbeb", color: "#d97706", border: "1px solid #d97706", borderRadius: "2px", marginLeft: "6px", fontWeight: 800 }}>Unverified</span>
                   )}
                 </span>
               </div>
-              <div style={{ color: "var(--color-brand-light)", fontSize: "0.75rem" }}>
+              <div style={{ color: "#5b5fc7", fontSize: "0.75rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
                 {m.user.skills.slice(0, 2).map((s) => s.skill).join(", ")}
                 {m.user.skills.length > 2 && " +"}
               </div>
@@ -153,16 +221,52 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
         </div>
       </div>
 
-      {/* ── CTA ── */}
+      {/* ── Action CTA ── */}
       {!hideCTA && (
         <div style={{ marginTop: "0.5rem" }}>
           {isFull ? (
-            <button disabled className="btn btn-secondary" style={{ width: "100%", opacity: 0.5, cursor: "not-allowed" }}>
-              Team Full
+            <button 
+              disabled 
+              style={{ 
+                width: "100%", 
+                padding: "0.75rem",
+                background: "#e5e7eb", 
+                color: "#6b7280", 
+                border: "2px solid #9ca3af", 
+                borderRadius: "4px",
+                fontWeight: 800, 
+                fontFamily: "var(--font-mono)",
+                textTransform: "uppercase",
+                letterSpacing: "1px",
+                cursor: "not-allowed",
+                boxShadow: "none"
+              }}
+            >
+              ⚠️ TEAM CAPACITY REACHED (FULL)
             </button>
           ) : (
-            <Link href={`/teams/${team.id}`} className="btn btn-primary" style={{ display: "block", textAlign: "center", textDecoration: "none" }}>
-              View Details & Request to Join
+            <Link 
+              href={`/teams/${team.id}`} 
+              style={{ 
+                display: "block", 
+                textAlign: "center", 
+                textDecoration: "none",
+                width: "100%",
+                padding: "0.85rem",
+                background: "#5b5fc7",
+                color: "#ffffff",
+                border: "2px solid #1a1a1a",
+                borderRadius: "4px",
+                boxShadow: "4px 4px 0px #1a1a1a",
+                fontWeight: 800,
+                fontFamily: "var(--font-mono)",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                transition: "transform 0.15s, box-shadow 0.15s",
+                boxSizing: "border-box"
+              }}
+            >
+              View Dossier & Request to Join →
             </Link>
           )}
         </div>
