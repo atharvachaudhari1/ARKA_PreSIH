@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
+import ReportModal from "./ReportModal";
 
 interface TeamMember {
   id: string;
@@ -30,10 +34,12 @@ interface TeamData {
 }
 
 export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hideCTA?: boolean }) {
+  const [showReport, setShowReport] = useState(false);
   const vacancy = 6 - team.memberships.length;
   const isFull = team.status === "full" || vacancy <= 0;
 
   return (
+    <>
     <div 
       style={{ 
         background: "#ffffff",
@@ -56,7 +62,19 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
           <h2 style={{ fontSize: "1.35rem", fontWeight: 900, color: "#1a1a1a", letterSpacing: "-0.5px", margin: 0, lineHeight: 1.3 }}>
             {team.name}
           </h2>
-          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", justifyContent: "flex-end", flexShrink: 0 }}>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", justifyContent: "flex-end", flexShrink: 0, alignItems: "center" }}>
+            <button 
+              onClick={() => setShowReport(true)}
+              title="Report Team"
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#9ca3af", display: "flex", alignItems: "center" }}
+              onMouseOver={e => e.currentTarget.style.color = "#dc2626"}
+              onMouseOut={e => e.currentTarget.style.color = "#9ca3af"}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                <line x1="4" y1="22" x2="4" y2="15"></line>
+              </svg>
+            </button>
             <span
               style={{
                 fontSize: "0.7rem", 
@@ -272,5 +290,15 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
         </div>
       )}
     </div>
+    
+    {showReport && (
+      <ReportModal
+        targetId={team.id}
+        targetType="team"
+        targetName={team.name}
+        onClose={() => setShowReport(false)}
+      />
+    )}
+    </>
   );
 }

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 export default function TeamChatPage() {
   const params = useParams();
   const supabase = createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -113,55 +114,164 @@ export default function TeamChatPage() {
     }
   }
 
-  if (loading) return <div className="page-container" style={{ padding: "3rem" }}>Loading chat...</div>;
-  if (!isMember) return <div className="page-container" style={{ padding: "3rem", color: "red" }}>Forbidden. You are not a member of this team.</div>;
+  if (loading) return (
+    <div className="page-container" style={{ padding: "4rem 1.25rem", textAlign: "center" }}>
+      <div style={{ height: 200, background: "#f5f3ec", border: "2px dashed #1a1a1a", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontWeight: 700, color: "#888" }}>
+        [INITIALIZING SECURE COMMS...]
+      </div>
+    </div>
+  );
+  
+  if (!isMember) return (
+    <div className="page-container" style={{ padding: "4rem 1.25rem", textAlign: "center", maxWidth: "600px", margin: "0 auto" }}>
+      <div style={{ background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "5px 5px 0px #dc2626", borderRadius: "6px", padding: "3rem 1.5rem" }}>
+        <h2 style={{ fontSize: "1.5rem", fontWeight: 900, color: "#dc2626", marginBottom: "0.5rem", fontFamily: "var(--font-mono)" }}>ACCESS DENIED</h2>
+        <p style={{ color: "#7f1d1d", marginBottom: "0", fontWeight: 600 }}>You do not have clearance to view this team&apos;s comms.</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="page-container" style={{ maxWidth: 800, padding: "1rem", height: "calc(100vh - 80px)", display: "flex", flexDirection: "column" }}>
-      <div style={{ marginBottom: "1rem" }}>
-        <h1 style={{ fontSize: "1.5rem", fontWeight: 800 }}>Team Chat</h1>
+    <div className="page-container" style={{ maxWidth: 900, margin: "0 auto", padding: "2rem 1.25rem", height: "calc(100vh - 80px)", display: "flex", flexDirection: "column" }}>
+      <div style={{ marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+        <div>
+          <div style={{
+            display: "inline-block",
+            background: "#1a1a1a",
+            color: "#ffffff",
+            padding: "0.35rem 0.85rem",
+            fontSize: "0.8rem",
+            fontFamily: "var(--font-mono)",
+            fontWeight: 800,
+            borderRadius: "3px",
+            marginBottom: "0.75rem",
+            letterSpacing: "1px",
+            boxShadow: "2px 2px 0px #5b5fc7"
+          }}>
+            $ TAIL -F ./TEAM_{params.id?.slice(0, 8)}_COMMS.LOG
+          </div>
+          <h1 style={{ fontSize: "2rem", fontWeight: 900, color: "#1a1a1a", letterSpacing: "-0.03em", margin: 0 }}>
+            Encrypted Comms
+          </h1>
+        </div>
       </div>
 
-      <div className="card" style={{ flex: 1, overflowY: "auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1rem" }}>
-        {messages.length === 0 ? (
-          <p style={{ color: "var(--color-text-muted)", textAlign: "center", marginTop: "auto", marginBottom: "auto" }}>
-            No messages yet. Say hi!
-          </p>
-        ) : (
-          messages.map(msg => {
-            const isMe = msg.sender_id === currentUserId;
-            return (
-              <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start" }}>
-                <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.25rem" }}>
-                  {isMe ? "You" : msg.sender.name}
-                </span>
-                <div style={{ 
-                  background: isMe ? "var(--gradient-brand)" : "var(--color-bg-elevated)", 
-                  color: isMe ? "#fff" : "var(--color-text-primary)",
-                  padding: "0.75rem 1rem", 
-                  borderRadius: "var(--radius-md)",
-                  maxWidth: "80%"
-                }}>
-                  {msg.content}
+      <div style={{ 
+        flex: 1, 
+        background: "#f9f8f6", 
+        border: "2px solid #1a1a1a", 
+        boxShadow: "5px 5px 0px #1a1a1a", 
+        borderRadius: "6px", 
+        display: "flex", 
+        flexDirection: "column",
+        overflow: "hidden",
+        marginBottom: "1rem"
+      }}>
+        {/* Chat Header */}
+        <div style={{
+          background: "#1a1a1a",
+          color: "#ffffff",
+          padding: "0.75rem 1.25rem",
+          fontSize: "0.8rem",
+          fontFamily: "var(--font-mono)",
+          fontWeight: 800,
+          letterSpacing: "1px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderBottom: "2px solid #1a1a1a"
+        }}>
+          <span>STATUS: CONNECTED (SECURE)</span>
+          <span style={{ color: "#10b981" }}>● LIVE</span>
+        </div>
+
+        {/* Message List */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+          {messages.length === 0 ? (
+            <div style={{ margin: "auto", textAlign: "center", color: "#6b7280", fontFamily: "var(--font-mono)", fontWeight: 700, fontSize: "0.85rem", opacity: 0.7 }}>
+              [ NO TRANSMISSIONS DETECTED. INITIATE PROTOCOL. ]
+            </div>
+          ) : (
+            messages.map((msg, index) => {
+              const isMe = msg.sender_id === currentUserId;
+              const showName = index === 0 || messages[index - 1].sender_id !== msg.sender_id;
+              
+              return (
+                <div key={msg.id} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start" }}>
+                  {showName && (
+                    <span style={{ 
+                      fontSize: "0.7rem", 
+                      color: isMe ? "#5b5fc7" : "#4b5563", 
+                      marginBottom: "0.2rem",
+                      fontWeight: 800,
+                      fontFamily: "var(--font-mono)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.5px"
+                    }}>
+                      {isMe ? "YOU" : msg.sender?.name || "UNKNOWN_OPERATIVE"}
+                    </span>
+                  )}
+                  <div style={{ 
+                    background: isMe ? "#eef0ff" : "#ffffff", 
+                    color: "#1a1a1a",
+                    border: "2px solid #1a1a1a",
+                    padding: "0.6rem 0.85rem", 
+                    borderRadius: "4px",
+                    boxShadow: isMe ? "2px 2px 0px #5b5fc7" : "2px 2px 0px #1a1a1a",
+                    maxWidth: "75%",
+                    fontSize: "0.95rem",
+                    fontWeight: 500,
+                    lineHeight: 1.4,
+                    wordBreak: "break-word"
+                  }}>
+                    {msg.content}
+                  </div>
                 </div>
-              </div>
-            );
-          })
-        )}
-        <div ref={bottomRef} />
+              );
+            })
+          )}
+          <div ref={bottomRef} />
+        </div>
       </div>
 
-      <form onSubmit={handleSend} style={{ display: "flex", gap: "0.5rem" }}>
+      <form onSubmit={handleSend} style={{ display: "flex", gap: "0.75rem" }}>
         <input 
           type="text" 
           value={input} 
           onChange={e => setInput(e.target.value)}
-          placeholder="Type a message..."
-          className="form-input"
-          style={{ flex: 1 }}
+          placeholder="Transmit a message..."
+          style={{ 
+            flex: 1, 
+            padding: "0.85rem 1rem", 
+            fontFamily: "var(--font-sans)", 
+            fontSize: "1rem",
+            background: "#ffffff", 
+            border: "2px solid #1a1a1a", 
+            borderRadius: "4px", 
+            boxShadow: "3px 3px 0px #1a1a1a",
+            outline: "none"
+          }}
         />
-        <button type="submit" className="btn btn-primary" disabled={!input.trim()}>
-          Send
+        <button 
+          type="submit" 
+          disabled={!input.trim()}
+          style={{
+            background: "#1a1a1a", 
+            color: "#ffffff", 
+            border: "2px solid #1a1a1a", 
+            padding: "0 1.5rem", 
+            fontFamily: "var(--font-mono)", 
+            fontWeight: 800, 
+            fontSize: "0.9rem",
+            borderRadius: "4px", 
+            boxShadow: "3px 3px 0px #5b5fc7", 
+            cursor: !input.trim() ? "not-allowed" : "pointer", 
+            transition: "all 0.15s ease",
+            textTransform: "uppercase",
+            opacity: !input.trim() ? 0.7 : 1
+          }}
+        >
+          SEND
         </button>
       </form>
     </div>

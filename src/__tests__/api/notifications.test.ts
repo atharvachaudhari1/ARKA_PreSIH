@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as notificationsHandler from "@/app/api/notifications/route";
 import * as readHandler from "@/app/api/notifications/[id]/read/route";
 import { prisma } from "@/lib/prisma";

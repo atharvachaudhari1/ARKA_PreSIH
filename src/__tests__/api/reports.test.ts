@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { testApiHandler } from 'next-test-api-route-handler';
 import * as reportsHandler from '@/app/api/reports/route';
 import { prisma } from '@/lib/prisma';

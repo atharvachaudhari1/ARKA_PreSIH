@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { testApiHandler } from 'next-test-api-route-handler';
 import * as leaveTeamHandler from '@/app/api/teams/[id]/leave/route';
 import { prisma } from '@/lib/prisma';

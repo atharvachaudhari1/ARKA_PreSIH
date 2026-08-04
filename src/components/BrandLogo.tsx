@@ -59,9 +59,9 @@ export default function BrandLogo({ size = "md", layout = "stacked", className =
       bracketShadow: "1.5px 1.5px 0px #1a1a1a",
     },
     md: {
-      titleFontSize: "1.38rem",
-      tagFontSize: "0.78rem",
-      arkaHeight: 14,
+      titleFontSize: "1.75rem",
+      tagFontSize: "0.95rem",
+      arkaHeight: 18,
       gap: "2px",
       shadow: "2px 2px 0px #f59e0b",
       bracketShadow: "1.5px 1.5px 0px #1a1a1a",

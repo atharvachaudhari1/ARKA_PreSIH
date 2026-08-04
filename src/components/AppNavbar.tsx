@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import NotificationCenter from "./NotificationCenter";
 import BrandLogo from "./BrandLogo";
@@ -27,6 +27,34 @@ export default function AppNavbar({ userEmail, isAdmin = false }: { userEmail: s
   const supabase = createClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
+  const [hasUnreadRequests, setHasUnreadRequests] = useState(false);
+
+  useEffect(() => {
+    async function fetchCounts() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const [notifRes, reqRes] = await Promise.all([
+        fetch("/api/notifications"),
+        fetch("/api/join-requests")
+      ]);
+
+      if (notifRes.ok) {
+        const notifData = await notifRes.json();
+        const hasUnread = notifData.notifications?.some((n: any) => n.read_status === "unread");
+        setHasUnreadAlerts(hasUnread);
+      }
+
+      if (reqRes.ok) {
+        const reqData = await reqRes.json();
+        const hasPendingMy = reqData.myRequests?.some((r: any) => r.status === "pending" && r.direction === "team_to_user");
+        const hasPendingTeam = reqData.teamRequests?.some((r: any) => r.status === "pending" && r.direction === "user_to_team");
+        setHasUnreadRequests(hasPendingMy || hasPendingTeam);
+      }
+    }
+    fetchCounts();
+  }, [supabase.auth]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -101,7 +129,22 @@ export default function AppNavbar({ userEmail, isAdmin = false }: { userEmail: s
                   transition: "all 0.15s ease",
                 }}
               >
-                <span style={{ display: "flex", alignItems: "center" }}>{link.icon}</span>
+                <span style={{ display: "flex", alignItems: "center", position: "relative" }}>
+                  {link.icon}
+                  {((link.label === "Alerts" && hasUnreadAlerts) || (link.label === "Requests" && hasUnreadRequests)) && (
+                    <span style={{
+                      position: "absolute",
+                      top: -4,
+                      right: -4,
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: link.label === "Alerts" ? "#d97706" : "#5b5fc7",
+                      border: `2px solid ${active ? "#eef0ff" : "#ffffff"}`,
+                      boxSizing: "content-box"
+                    }} />
+                  )}
+                </span>
                 {link.label}
               </Link>
             );
@@ -357,7 +400,22 @@ export default function AppNavbar({ userEmail, isAdmin = false }: { userEmail: s
                     boxShadow: "2.5px 2.5px 0px #1a1a1a",
                   }}
                 >
-                  <span style={{ display: "flex", alignItems: "center" }}>{link.icon}</span>
+                  <span style={{ display: "flex", alignItems: "center", position: "relative" }}>
+                    {link.icon}
+                    {((link.label === "Alerts" && hasUnreadAlerts) || (link.label === "Requests" && hasUnreadRequests)) && (
+                      <span style={{
+                        position: "absolute",
+                        top: -4,
+                        right: -4,
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: link.label === "Alerts" ? "#d97706" : "#5b5fc7",
+                        border: `2px solid ${active ? "#eef0ff" : "#fdfbf7"}`,
+                        boxSizing: "content-box"
+                      }} />
+                    )}
+                  </span>
                   {link.label}
                 </Link>
               );

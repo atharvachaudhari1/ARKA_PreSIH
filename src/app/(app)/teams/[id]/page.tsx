@@ -12,18 +12,28 @@ export default function TeamDetailsPage() {
   const [team, setTeam] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [requestLoading, setRequestLoading] = useState(false);
+  const [transferLoading, setTransferLoading] = useState(false);
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
+  const [selectedNewLeaderId, setSelectedNewLeaderId] = useState("");
   
   useEffect(() => {
-    async function fetchTeam() {
-      const res = await fetch(`/api/teams/${params.id}`);
-      if (res.ok) {
-        const data = await res.json();
+    async function fetchTeamAndProfile() {
+      const [resTeam, resProfile] = await Promise.all([
+        fetch(`/api/teams/${params.id}`),
+        fetch(`/api/users/profile`)
+      ]);
+      if (resTeam.ok) {
+        const data = await resTeam.json();
         setTeam(data.team);
+      }
+      if (resProfile.ok) {
+        const data = await resProfile.json();
+        setCurrentUserProfile(data.profile);
       }
       setLoading(false);
     }
-    fetchTeam();
+    fetchTeamAndProfile();
 
     const channel = supabase
       .channel(`team_${params.id}`)
@@ -64,6 +74,33 @@ export default function TeamDetailsPage() {
     setRequestLoading(false);
   }
 
+  async function handleTransferLeadership() {
+    if (!selectedNewLeaderId) {
+      setMessage({ type: "error", text: "Please select a member to transfer leadership to." });
+      return;
+    }
+    setTransferLoading(true);
+    setMessage(null);
+    const res = await fetch(`/api/teams/${team.id}/transfer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ new_leader_id: selectedNewLeaderId }),
+    });
+
+    if (res.ok) {
+      setMessage({ type: "success", text: "Leadership transferred successfully!" });
+      setTimeout(() => window.location.reload(), 1500);
+    } else {
+      const data = await res.json();
+      setMessage({ type: "error", text: data.error || "Failed to transfer leadership." });
+    }
+    setTransferLoading(false);
+  }
+
+  const isLeader = currentUserProfile?.id && team?.leader?.id === currentUserProfile?.id;
+  const teamMembers = team?.memberships?.map((m: any) => m.user).filter((u: any) => u.id !== currentUserProfile?.id) || [];
+
+
   if (loading) {
     return (
       <div className="page-container" style={{ padding: "4rem 1.25rem", textAlign: "center" }}>
@@ -94,16 +131,16 @@ export default function TeamDetailsPage() {
       <div style={{ marginBottom: "2rem" }}>
         <div style={{
           display: "inline-block",
-          background: "#1a1a1a",
-          color: "#ffffff",
-          padding: "0.3rem 0.75rem",
-          fontSize: "0.75rem",
-          fontFamily: "var(--font-mono)",
-          fontWeight: 800,
-          borderRadius: "3px",
-          marginBottom: "0.75rem",
-          letterSpacing: "1px",
-          boxShadow: "2px 2px 0px #5b5fc7"
+            background: "#1a1a1a",
+            color: "#ffffff",
+            padding: "0.35rem 0.85rem",
+            fontSize: "0.8rem",
+            fontFamily: "var(--font-mono)",
+            fontWeight: 800,
+            borderRadius: "3px",
+            marginBottom: "0.75rem",
+            letterSpacing: "1px",
+            boxShadow: "2px 2px 0px #5b5fc7"
         }}>
           $ CAT ./DOSSIERS/{team.id?.slice(0, 8)}.LOG
         </div>
@@ -179,6 +216,61 @@ export default function TeamDetailsPage() {
           {requestLoading ? "Submitting Application Dossier..." : team.status === "full" ? "⚠️ Team Capacity Reached (Full)" : "📨 Submit Enlistment Application"}
         </button>
       </div>
+
+      {/* Transfer Leadership Section for Leader */}
+      {isLeader && teamMembers.length > 0 && (
+        <div 
+          style={{ 
+            marginTop: "1.5rem", 
+            background: "#fffbeb", 
+            border: "2px solid #d97706", 
+            boxShadow: "5px 5px 0px #d97706", 
+            borderRadius: "6px", 
+            padding: "2rem",
+            boxSizing: "border-box"
+          }}
+        >
+          <div style={{ fontSize: "0.72rem", color: "#b45309", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>
+            [LEADER ACTIONS]
+          </div>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#92400e", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>
+            Transfer Leadership
+          </h3>
+          <p style={{ color: "#92400e", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
+            Pass your leadership role to another team member. This action cannot be undone unless they transfer it back to you.
+          </p>
+          <div style={{ display: "flex", gap: "1rem" }}>
+            <select
+              value={selectedNewLeaderId}
+              onChange={(e) => setSelectedNewLeaderId(e.target.value)}
+              style={{
+                flex: 1, padding: "0.75rem", fontFamily: "var(--font-mono)", fontSize: "0.9rem",
+                background: "#ffffff", border: "2px solid #b45309", borderRadius: "4px", outline: "none", cursor: "pointer"
+              }}
+            >
+              <option value="">Select a member...</option>
+              {teamMembers.map((member: any) => (
+                <option key={member.id} value={member.id}>
+                  {member.name} ({member.department})
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={handleTransferLeadership}
+              disabled={transferLoading || !selectedNewLeaderId}
+              style={{
+                padding: "0.75rem 1.5rem", background: "#d97706", color: "#ffffff",
+                border: "2px solid #78350f", boxShadow: "3px 3px 0px #78350f", borderRadius: "4px",
+                fontWeight: 800, fontFamily: "var(--font-mono)", textTransform: "uppercase",
+                cursor: transferLoading || !selectedNewLeaderId ? "not-allowed" : "pointer",
+                opacity: transferLoading || !selectedNewLeaderId ? 0.6 : 1, transition: "all 0.15s ease"
+              }}
+            >
+              {transferLoading ? "Transferring..." : "Transfer Role"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

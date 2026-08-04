@@ -12,6 +12,7 @@ export default async function AdminDashboard() {
     prisma.team.count({ where: { status: "open" } }),
     prisma.team.count({ where: { status: "full" } }),
     prisma.joinRequest.count({ where: { status: "pending" } }),
+    // eslint-disable-next-line react-hooks/purity
     prisma.user.count({ where: { created_at: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }),
     prisma.report.count({ where: { status: "open" } }),
     prisma.user.count({ where: { verification_status: "pending" } })

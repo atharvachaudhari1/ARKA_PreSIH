@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { testApiHandler } from "next-test-api-route-handler";
 import * as joinRequestsHandler from "@/app/api/join-requests/route";
 import * as decisionHandler from "@/app/api/join-requests/[id]/decision/route";

@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 
 function IconSearch() {
   return (
@@ -29,9 +28,9 @@ function IconInbox() {
 }
 
 export default function DashboardPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -48,7 +47,21 @@ export default function DashboardPage() {
   return (
     <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 1000 }}>
       <div style={{ marginBottom: "3rem" }}>
-        <p className="section-title" style={{ marginBottom: "0.4rem" }}>Home</p>
+        <div style={{
+          display: "inline-block",
+            background: "#1a1a1a",
+            color: "#ffffff",
+            padding: "0.35rem 0.85rem",
+            fontSize: "0.8rem",
+            fontFamily: "var(--font-mono)",
+            fontWeight: 800,
+            borderRadius: "3px",
+            marginBottom: "0.75rem",
+            letterSpacing: "1px",
+            boxShadow: "2px 2px 0px #5b5fc7"
+        }}>
+          $ ./DASHBOARD_INIT.SH
+        </div>
         <h1 style={{ fontSize: "2rem", fontWeight: 900, letterSpacing: "-0.02em" }}>
           Welcome back, <span className="gradient-text">{profile?.name ? profile.name.split(" ")[0] : "Hacker"}</span>
         </h1>
@@ -60,55 +73,151 @@ export default function DashboardPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem" }}>
         
         {/* Quick Actions */}
-        <div className="card" style={{ padding: "2rem" }}>
-          <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "1.5rem" }}>Quick Actions</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <Link href="/teams" className="btn btn-secondary" style={{ display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem" }}>
-              <div style={{ color: "var(--ember-peach)" }}><IconSearch /></div>
+        <div style={{ 
+          background: "#ffffff", 
+          border: "2px solid #1a1a1a", 
+          boxShadow: "5px 5px 0px #1a1a1a", 
+          borderRadius: "6px",
+          overflow: "hidden",
+          display: "flex", 
+          flexDirection: "column" 
+        }}>
+          {/* Terminal Header */}
+          <div style={{
+            background: "#1a1a1a",
+            color: "#ffffff",
+            padding: "0.65rem 1.25rem",
+            fontSize: "0.8rem",
+            fontFamily: "var(--font-mono)",
+            fontWeight: 800,
+            letterSpacing: "1px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "2px solid #1a1a1a"
+          }}>
+            <span>$ ./QUICK_ACTIONS.SH</span>
+          </div>
+          
+          <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <Link href="/teams" style={{ 
+              display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem",
+              background: "#ffffff", border: "2px solid #1a1a1a", borderRadius: "4px", boxShadow: "2px 2px 0px #1a1a1a",
+              transition: "all 0.15s ease", color: "var(--text-primary)"
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = "#5b5fc7"; e.currentTarget.style.boxShadow = "4px 4px 0px #5b5fc7"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = "#1a1a1a"; e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ color: "#1a1a1a" }}><IconSearch /></div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>Browse Teams</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--color-text-secondary)", fontWeight: 400 }}>Find a team looking for your skills</div>
+                <div style={{ fontWeight: 800, fontFamily: "var(--font-sans)", letterSpacing: "-0.01em" }}>Browse Teams</div>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>Find a team looking for your skills</div>
               </div>
             </Link>
 
-            <Link href="/teams/create" className="btn btn-secondary" style={{ display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem" }}>
-              <div style={{ color: "var(--ember-coral)" }}><IconPlus /></div>
+            <Link href="/teams/create" style={{ 
+              display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem",
+              background: "#ffffff", border: "2px solid #1a1a1a", borderRadius: "4px", boxShadow: "2px 2px 0px #1a1a1a",
+              transition: "all 0.15s ease", color: "var(--text-primary)"
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = "#5b5fc7"; e.currentTarget.style.boxShadow = "4px 4px 0px #5b5fc7"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = "#1a1a1a"; e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ color: "#1a1a1a" }}><IconPlus /></div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>Create a Team</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--color-text-secondary)", fontWeight: 400 }}>Start your own hackathon project</div>
+                <div style={{ fontWeight: 800, fontFamily: "var(--font-sans)", letterSpacing: "-0.01em" }}>Create a Team</div>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>Start your own hackathon project</div>
               </div>
             </Link>
 
-            <Link href="/requests" className="btn btn-secondary" style={{ display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem" }}>
-              <div style={{ color: "#3b82f6" }}><IconInbox /></div>
+            <Link href="/requests" style={{ 
+              display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem",
+              background: "#ffffff", border: "2px solid #1a1a1a", borderRadius: "4px", boxShadow: "2px 2px 0px #1a1a1a",
+              transition: "all 0.15s ease", color: "var(--text-primary)"
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.borderColor = "#5b5fc7"; e.currentTarget.style.boxShadow = "4px 4px 0px #5b5fc7"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.borderColor = "#1a1a1a"; e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a"; e.currentTarget.style.transform = "translateY(0)"; }}>
+              <div style={{ color: "#1a1a1a" }}><IconInbox /></div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 600, color: "var(--color-text-primary)" }}>Manage Requests</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--color-text-secondary)", fontWeight: 400 }}>View join requests and invitations</div>
+                <div style={{ fontWeight: 800, fontFamily: "var(--font-sans)", letterSpacing: "-0.01em" }}>Manage Requests</div>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>View join requests and invitations</div>
               </div>
             </Link>
           </div>
         </div>
 
         {/* Status / Activity */}
-        <div className="card" style={{ padding: "2rem", display: "flex", flexDirection: "column" }}>
-          <h2 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "1.5rem" }}>My Status</h2>
+        <div style={{ 
+          background: "#ffffff", 
+          border: "2px solid #1a1a1a", 
+          boxShadow: "5px 5px 0px #1a1a1a", 
+          borderRadius: "6px",
+          overflow: "hidden",
+          display: "flex", 
+          flexDirection: "column" 
+        }}>
+          {/* Terminal Header */}
+          <div style={{
+            background: "#1a1a1a",
+            color: "#ffffff",
+            padding: "0.65rem 1.25rem",
+            fontSize: "0.8rem",
+            fontFamily: "var(--font-mono)",
+            fontWeight: 800,
+            letterSpacing: "1px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderBottom: "2px solid #1a1a1a"
+          }}>
+            <span>$ ./STATUS_CHECK.SH</span>
+          </div>
           
-          {loading ? (
-             <div className="skeleton" style={{ height: 100, borderRadius: "var(--radius-md)" }} />
-          ) : profile?.led_teams?.length > 0 ? (
-            <div style={{ background: "rgba(246,70,104,0.05)", border: "1px solid rgba(246,70,104,0.15)", borderRadius: "var(--radius-md)", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--ember-peach)", marginBottom: "0.5rem" }}>You are leading a team!</h3>
-              <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>Check your team page to manage members and update your requirements.</p>
-              <Link href={`/teams/${profile.led_teams[0].id}`} className="btn btn-primary btn-sm">
-                View My Team
-              </Link>
-            </div>
-          ) : (
-            <div style={{ background: "var(--color-bg-elevated)", border: "1px dashed var(--color-border-hover)", borderRadius: "var(--radius-md)", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-primary)", marginBottom: "0.5rem" }}>No active team</h3>
-              <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary)", marginBottom: "1.5rem" }}>You haven't joined a team yet. Create your own or browse open positions.</p>
-            </div>
-          )}
+          <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
+            {loading ? (
+               <div className="skeleton" style={{ height: 100, borderRadius: "4px", border: "2px solid #1a1a1a" }} />
+            ) : profile?.led_teams?.length > 0 ? (
+              <div style={{ background: "#eef0ff", border: "2px solid #1a1a1a", borderRadius: "4px", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", boxShadow: "inset 2px 2px 0px rgba(0,0,0,0.05)" }}>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.5rem" }}>You are leading a team!</h3>
+                <p style={{ fontSize: "0.9rem", color: "#5a5a5a", marginBottom: "1.5rem", fontWeight: 500 }}>Check your team page to manage members and update your requirements.</p>
+                <Link href={`/teams/${profile.led_teams[0].id}`} style={{
+                  background: "#5b5fc7", color: "#ffffff", border: "2px solid #1a1a1a", padding: "0.6rem 1.25rem",
+                  fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.5px",
+                  borderRadius: "4px", boxShadow: "3px 3px 0px #1a1a1a", textDecoration: "none", transition: "all 0.15s ease"
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.transform = "translate(1px, 1px)"; e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a"; }}
+                onMouseOut={(e) => { e.currentTarget.style.transform = "translate(0, 0)"; e.currentTarget.style.boxShadow = "3px 3px 0px #1a1a1a"; }}>
+                  View My Team
+                </Link>
+              </div>
+            ) : profile?.team_memberships?.length > 0 ? (
+              <div style={{ background: "#f8f6f0", border: "2px solid #1a1a1a", borderRadius: "4px", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", boxShadow: "inset 2px 2px 0px rgba(0,0,0,0.05)" }}>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.5rem" }}>You are in a team!</h3>
+                <p style={{ fontSize: "0.9rem", color: "#5a5a5a", marginBottom: "1.5rem", fontWeight: 500 }}>Access your team dashboard to view members and chat.</p>
+                <Link href={`/teams/${profile.team_memberships[0].team_id}`} style={{
+                  background: "#1a1a1a", color: "#ffffff", border: "2px solid #1a1a1a", padding: "0.6rem 1.25rem",
+                  fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.5px",
+                  borderRadius: "4px", boxShadow: "3px 3px 0px #5b5fc7", textDecoration: "none", transition: "all 0.15s ease"
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.transform = "translate(1px, 1px)"; e.currentTarget.style.boxShadow = "2px 2px 0px #5b5fc7"; }}
+                onMouseOut={(e) => { e.currentTarget.style.transform = "translate(0, 0)"; e.currentTarget.style.boxShadow = "3px 3px 0px #5b5fc7"; }}>
+                  View My Team
+                </Link>
+              </div>
+            ) : (
+              <div style={{ background: "#ffffff", border: "2px solid #1a1a1a", borderRadius: "4px", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", boxShadow: "inset 2px 2px 0px rgba(0,0,0,0.05)" }}>
+                <div style={{ 
+                  display: "inline-flex", alignItems: "center", gap: "0.6rem", 
+                  fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "0.9rem", 
+                  background: "#1a1a1a", color: "#ffffff", padding: "0.5rem 1rem", 
+                  borderRadius: "3px", letterSpacing: "0.5px", marginBottom: "1.5rem" 
+                }}>
+                  <span>STATUS: NO_TEAM_ASSIGNED</span>
+                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444", border: "2px solid #1a1a1a", boxShadow: "0 0 5px #ef4444" }} />
+                </div>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.5rem" }}>No active team</h3>
+                <p style={{ fontSize: "0.9rem", color: "#5a5a5a", marginBottom: "0", fontWeight: 500 }}>You haven&apos;t joined a team yet. Create your own or browse open positions.</p>
+              </div>
+            )}
+          </div>
         </div>
 
       </div>

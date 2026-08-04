@@ -39,12 +39,11 @@ export function IconDashboardGrid({ size = 28, style, color = "#5b5fc7" }: IconP
 
 export function IconConsoleAlert({ size = 28, style, color = "#5b5fc7" }: IconProps) {
   return (
-    <svg width={size} height={size + 6} viewBox="0 0 24 30" fill="none" xmlns="http://www.w3.org/2000/svg" style={style}>
-      <rect x="2" y="2" width="20" height="18" rx="4" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={style}>
+      <rect x="2" y="2" width="20" height="20" rx="4" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
       <line x1="6" y1="6" x2="14" y2="6" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" />
       <path d="M7 10L10 13L7 16" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
       <line x1="12" y1="16" x2="17" y2="16" stroke="#1a1a1a" strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="12" cy="25" r="3.5" fill={color} />
     </svg>
   );
 }

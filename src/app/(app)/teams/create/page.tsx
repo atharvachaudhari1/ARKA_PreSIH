@@ -77,16 +77,16 @@ export default function CreateTeamPage() {
       <div style={{ marginBottom: "2rem" }}>
         <div style={{
           display: "inline-block",
-          background: "#1a1a1a",
-          color: "#ffffff",
-          padding: "0.3rem 0.75rem",
-          fontSize: "0.75rem",
-          fontFamily: "var(--font-mono)",
-          fontWeight: 800,
-          borderRadius: "3px",
-          marginBottom: "0.75rem",
-          letterSpacing: "1px",
-          boxShadow: "2px 2px 0px #5b5fc7"
+            background: "#1a1a1a",
+            color: "#ffffff",
+            padding: "0.35rem 0.85rem",
+            fontSize: "0.8rem",
+            fontFamily: "var(--font-mono)",
+            fontWeight: 800,
+            borderRadius: "3px",
+            marginBottom: "0.75rem",
+            letterSpacing: "1px",
+            boxShadow: "2px 2px 0px #5b5fc7"
         }}>
           $ MKDIR ./NEW_TEAM --INIT
         </div>

@@ -143,9 +143,8 @@ export default function HomePage() {
             fontWeight: 500,
           }}
         >
-          TeamUp replaces the WhatsApp DM chaos with a verified, semi-anonymous
-          platform. Browse real teams, see who&apos;s on them — and apply
-          without your name being broadcast to the whole group.
+          Team hunting without the group chat cringe with TeamUp<br />
+          Browse/Create teams, check the vibe, and apply!
         </p>
 
         {/* ─── Dual CTA — Devfolio-style ─── */}

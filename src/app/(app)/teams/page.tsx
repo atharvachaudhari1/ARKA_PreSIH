@@ -58,7 +58,7 @@ export default function DashboardPage() {
             background: "#1a1a1a",
             color: "#ffffff",
             padding: "0.35rem 0.85rem",
-            fontSize: "0.75rem",
+            fontSize: "0.8rem",
             fontFamily: "var(--font-mono)",
             fontWeight: 800,
             borderRadius: "3px",

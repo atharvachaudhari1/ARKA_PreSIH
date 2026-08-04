@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { testApiHandler } from "next-test-api-route-handler";
 import * as appHandler from "@/app/api/admin/verifications/[userId]/id-card/route";
 import { prisma } from "@/lib/prisma";

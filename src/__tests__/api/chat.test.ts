@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as chatHandler from "@/app/api/teams/[id]/chat/route";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
