@@ -49,28 +49,14 @@ export default function LoginPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--color-bg-base)",
+        background: "#f7f4ee",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "1.25rem",
       }}
     >
-      {/* Background glow */}
-      <div
-        style={{
-          position: "fixed",
-          top: "20%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 600,
-          height: 600,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
-
+      {/* Background glow removed for clean paper style */}
       <div
         style={{
           width: "100%",
@@ -86,30 +72,29 @@ export default function LoginPage() {
               fontFamily: "var(--font-mono)",
               fontWeight: 700,
               fontSize: "1.5rem",
-              color: "var(--color-text-primary)",
+              color: "#1a1a1a",
               textDecoration: "none",
             }}
           >
-            <span style={{ color: "var(--color-brand-light)" }}>{"<"}</span>
+            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
             TeamUp
-            <span style={{ color: "var(--color-brand-light)" }}>{"/>"}</span>
+            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
           </Link>
-          <p style={{ marginTop: "0.5rem", color: "var(--color-text-secondary)", fontSize: "0.9rem" }}>
+          <p style={{ marginTop: "0.5rem", color: "#1a1a1a", fontSize: "0.9rem" }}>
             Welcome back
           </p>
         </div>
 
         <div
           className="card"
-          style={{ padding: "2rem", border: "1px solid var(--color-border-hover)" }}
+          style={{ padding: "2rem", border: "1.5px solid #1a1a1a", background: "#ffffff", boxShadow: "3px 3px 0px #1a1a1a", borderRadius: "2px" }}
         >
           {/* Google sign-in */}
           <button
             id="btn-google-login"
             onClick={handleGoogleLogin}
             disabled={googleLoading || loading}
-            className="btn btn-secondary"
-            style={{ width: "100%", gap: "0.75rem", marginBottom: "1.5rem" }}
+            style={{ width: "100%", gap: "0.75rem", marginBottom: "1.5rem", background: "#f7f4ee", color: "#1a1a1a", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.75rem" }}
           >
             {googleLoading ? (
               <span style={{ opacity: 0.7 }}>Redirecting…</span>
@@ -126,12 +111,12 @@ export default function LoginPage() {
             )}
           </button>
 
-          <div className="divider" style={{ marginBottom: "1.5rem" }}>or</div>
+          <div className="divider" style={{ marginBottom: "1.5rem", textAlign: "center", color: "#1a1a1a", fontWeight: "bold" }}>or</div>
 
           {/* Email / password form */}
           <form onSubmit={handleEmailLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div>
-              <label htmlFor="login-email" className="input-label">Email</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+              <label htmlFor="login-email" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Email</label>
               <input
                 id="login-email"
                 type="email"
@@ -139,12 +124,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@college.ac.in"
-                className="input-field"
+                style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%" }}
                 autoComplete="email"
               />
             </div>
-            <div>
-              <label htmlFor="login-password" className="input-label">Password</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+              <label htmlFor="login-password" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Password</label>
               <input
                 id="login-password"
                 type="password"
@@ -152,7 +137,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="input-field"
+                style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%" }}
                 autoComplete="current-password"
               />
             </div>
@@ -176,8 +161,7 @@ export default function LoginPage() {
               id="btn-email-login"
               type="submit"
               disabled={loading || googleLoading}
-              className="btn btn-primary"
-              style={{ width: "100%", marginTop: "0.25rem" }}
+              style={{ width: "100%", marginTop: "0.5rem", background: "#5b5fc7", color: "#fff", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", padding: "0.75rem", cursor: "pointer" }}
             >
               {loading ? "Signing in…" : "Sign in"}
             </button>
@@ -188,14 +172,15 @@ export default function LoginPage() {
           style={{
             textAlign: "center",
             marginTop: "1.5rem",
-            color: "var(--color-text-muted)",
+            color: "#1a1a1a",
             fontSize: "0.875rem",
+            fontWeight: 500,
           }}
         >
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            style={{ color: "var(--color-brand-light)", textDecoration: "none", fontWeight: 500 }}
+            style={{ color: "#5b5fc7", textDecoration: "none", fontWeight: 700 }}
           >
             Sign up
           </Link>

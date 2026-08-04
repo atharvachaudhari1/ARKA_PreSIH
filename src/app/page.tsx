@@ -1,494 +1,235 @@
 import Link from "next/link";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "TeamUp — Find Your Hackathon Team",
-  description:
-    "The verified teammate-matching platform for Smart India Hackathon. Join a team or build one — all verified, all semi-anonymous.",
-};
 
 export default function HomePage() {
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "var(--color-bg-base)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      {/* ── Nav ── */}
-      <nav
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "1.25rem 2rem",
-          borderBottom: "1px solid var(--color-border)",
-          position: "sticky",
-          top: 0,
-          zIndex: 50,
-          background: "rgba(11, 13, 20, 0.85)",
-          backdropFilter: "blur(16px)",
-        }}
-      >
-        <div
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontWeight: 700,
-            fontSize: "1.25rem",
-            color: "var(--color-text-primary)",
-          }}
-        >
-          <span style={{ color: "var(--color-brand-light)" }}>{"<"}</span>
-          TeamUp
-          <span style={{ color: "var(--color-brand-light)" }}>{"/>"}</span>
-        </div>
-        <div style={{ display: "flex", gap: "0.75rem" }}>
-          <Link href="/login" className="btn btn-ghost btn-sm">
+    <div className="page-container">
+      {/* ── Top Navigation Bar ── */}
+      <header className="flex flex-wrap items-center justify-between gap-4 pb-5 mb-8 border-b-2 border-stone-400">
+        <Link href="/" className="logo">
+          <span className="logo-bracket">{"<"}</span>
+          <span>TeamUp</span>
+          <span className="logo-bracket">{"/>"}</span>
+        </Link>
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          <span className="chip chip-alert text-xs py-1 px-2.5 font-mono border-amber-500 bg-amber-100 font-bold shadow-[2px_2px_0px_#1a1a1a] border-[1.5px] border-stone-900 text-amber-950">
+            ⚡ SIH 2026 Open
+          </span>
+          <Link href="/login" className="btn-t">
             Log in
           </Link>
-          <Link href="/signup" className="btn btn-primary btn-sm">
+          <Link href="/signup" className="btn-t btn-t-brand">
             Get started
           </Link>
         </div>
-      </nav>
+      </header>
 
-      {/* ── Hero ── */}
-      <section
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-          padding: "5rem 1.25rem 4rem",
-          maxWidth: "860px",
-          margin: "0 auto",
-          width: "100%",
-        }}
-      >
-        {/* Eyebrow */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            background: "rgba(99,102,241,0.1)",
-            border: "1px solid var(--color-border-brand)",
-            borderRadius: "var(--radius-full)",
-            padding: "0.35rem 1rem",
-            marginBottom: "2rem",
-            animation: "fade-up 0.4s ease forwards",
-          }}
-        >
-          <span
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: "#10b981",
-              display: "inline-block",
-              animation: "pulse-dot 2s ease infinite",
-            }}
-          />
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.75rem",
-              color: "var(--color-brand-light)",
-              fontWeight: 500,
-            }}
-          >
-            SIH 2026 · Team formation is open
-          </span>
-        </div>
-
-        {/* Headline */}
-        <h1
-          style={{
-            fontSize: "clamp(2.5rem, 6vw, 4.25rem)",
-            fontWeight: 900,
-            lineHeight: 1.1,
-            marginBottom: "1.5rem",
-            animation: "fade-up 0.4s ease 0.1s both forwards",
-          }}
-        >
-          Stop broadcasting.{" "}
-          <span className="gradient-text">Start matching.</span>
-        </h1>
-
-        {/* Sub-headline */}
-        <p
-          style={{
-            fontSize: "1.15rem",
-            color: "var(--color-text-secondary)",
-            maxWidth: "580px",
-            marginBottom: "2.5rem",
-            lineHeight: 1.7,
-            animation: "fade-up 0.4s ease 0.2s both forwards",
-          }}
-        >
-          TeamUp replaces the WhatsApp DM chaos with a verified, semi-anonymous
-          platform. Browse real teams, see who&apos;s on them — and apply
-          without your name being broadcast to the whole group.
-        </p>
-
-        {/* ── Dual CTA — Devfolio-style ── */}
-        <div
-          style={{
-            display: "flex",
-            gap: "1rem",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            animation: "fade-up 0.4s ease 0.3s both forwards",
-          }}
-        >
-          <Link
-            href="/signup?path=join"
-            className="btn btn-primary btn-lg"
-            style={{ minWidth: "200px" }}
-            id="cta-join-team"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            Join a Team
-          </Link>
-          <Link
-            href="/signup?path=create"
-            className="btn btn-secondary btn-lg"
-            style={{ minWidth: "200px" }}
-            id="cta-create-team"
-          >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 8v8M8 12h8" />
-            </svg>
-            Create a Team
-          </Link>
-        </div>
-
-        {/* Trust line */}
-        <p
-          style={{
-            marginTop: "1.5rem",
-            fontSize: "0.8rem",
-            color: "var(--color-text-muted)",
-            animation: "fade-up 0.4s ease 0.4s both forwards",
-          }}
-        >
-          College ID verified · No guest access · Leader contact always public
-        </p>
-      </section>
-
-      {/* ── Live stats bar ── */}
-      <section
-        style={{
-          borderTop: "1px solid var(--color-border)",
-          borderBottom: "1px solid var(--color-border)",
-          background: "var(--color-bg-surface)",
-          padding: "2rem 1.25rem",
-        }}
-      >
-        <div
-          className="page-container"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-            gap: "2rem",
-          }}
-        >
-          {[
-            { value: "—", label: "Teams open" },
-            { value: "—", label: "Spots available" },
-            { value: "—", label: "Members verified" },
-            { value: "6", label: "Max team size (SIH)" },
-          ].map((stat) => (
-            <div key={stat.label} className="stat-card">
-              <div className="stat-value">{stat.value}</div>
-              <div className="stat-label">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── How it works ── */}
-      <section
-        style={{ padding: "5rem 1.25rem" }}
-      >
-        <div className="page-container">
-          <p className="section-title" style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            $ cat how-it-works.md
-          </p>
-          <h2
-            style={{
-              textAlign: "center",
-              fontSize: "2rem",
-              fontWeight: 800,
-              marginBottom: "3rem",
-            }}
-          >
-            Two paths. One platform.
-          </h2>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-              gap: "1.5rem",
-            }}
-          >
-            {/* Path A — Join */}
-            <div className="card card-brand" style={{ padding: "2rem" }}>
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "var(--radius-md)",
-                  background: "rgba(99,102,241,0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "1.25rem",
-                }}
-              >
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-brand-light)"
-                  strokeWidth="2"
-                >
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
-              <h3 style={{ fontSize: "1.2rem", marginBottom: "0.75rem" }}>
-                Looking to join?
-              </h3>
-              <p style={{ color: "var(--color-text-secondary)", lineHeight: 1.7, marginBottom: "1.25rem" }}>
-                Browse verified teams, see who&apos;s already on them, and check their
-                skill gaps. Request to join — your profile is only shared with
-                that team, not the whole platform.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                {["Browse teams", "Filter by skill", "Private application"].map(
-                  (t) => (
-                    <span key={t} className="skill-chip">
-                      {t}
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
-
-            {/* Path B — Create */}
-            <div className="card" style={{ padding: "2rem" }}>
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: "var(--radius-md)",
-                  background: "rgba(245,158,11,0.1)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "1.25rem",
-                }}
-              >
-                <svg
-                  width="22"
-                  height="22"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="var(--color-amber)"
-                  strokeWidth="2"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 8v8M8 12h8" />
-                </svg>
-              </div>
-              <h3 style={{ fontSize: "1.2rem", marginBottom: "0.75rem" }}>
-                Building a team?
-              </h3>
-              <p style={{ color: "var(--color-text-secondary)", lineHeight: 1.7, marginBottom: "1.25rem" }}>
-                Create your team, define the skills you need, and become the
-                leader. Invite people or let them find you — your whole team
-                votes on applicants, you make the call.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-                {["Team leader", "Skill matching", "Consensus voting"].map(
-                  (t) => (
-                    <span key={t} className="skill-chip">
-                      {t}
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
+      {/* ── Section 1: Visitors / Welcome Banner ── */}
+      <fieldset className="t-fieldset">
+        <legend className="t-legend">- cat ~/for-visitors.md -</legend>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-sm font-medium text-stone-800">
+            <span className="text-2xl">👋</span>
+            <span className="leading-snug">
+              <strong>visiting from public SIH broadcast groups?</strong> we put a structured teammate matching platform together for you.
+            </span>
           </div>
+          <Link href="#live-teams" className="btn-t btn-t-sm font-mono font-bold uppercase tracking-wide bg-white">
+            resources &amp; teams ↓
+          </Link>
         </div>
-      </section>
+      </fieldset>
 
-      {/* ── Transparency model explainer ── */}
-      <section
-        style={{
-          background: "var(--color-bg-surface)",
-          padding: "5rem 1.25rem",
-          borderTop: "1px solid var(--color-border)",
-        }}
-      >
-        <div className="page-container" style={{ maxWidth: "800px" }}>
-          <p className="section-title" style={{ textAlign: "center", marginBottom: "0.75rem" }}>
-            $ cat transparency.md
+      {/* ── Section 2: Who We Are & Overview ── */}
+      <fieldset className="t-fieldset">
+        <legend className="t-legend">- whoami -</legend>
+        <div className="space-y-4 text-stone-800 leading-relaxed text-base">
+          <p className="text-lg font-bold text-stone-900">
+            Hii!! Welcome to <span className="font-mono bg-white px-2 py-0.5 border-[1.5px] border-stone-900 font-extrabold shadow-[2px_2px_0px_#1a1a1a] inline-block mx-1 text-base"><span className="logo-bracket">{"<"}</span>TeamUp<span className="logo-bracket">{"/>"}</span></span>, the verified semi-anonymous teammate platform for Smart India Hackathon (you&apos;ve probably experienced chaotic WhatsApp groups before)
           </p>
-          <h2 style={{ textAlign: "center", fontSize: "2rem", fontWeight: 800, marginBottom: "1rem" }}>
-            Semi-anonymous by design
-          </h2>
-          <p
-            style={{
-              textAlign: "center",
-              color: "var(--color-text-secondary)",
-              marginBottom: "3rem",
-            }}
-          >
-            You can verify a team&apos;s credibility before applying. They can&apos;t see
-            who else you&apos;re applying to.
+          <p>
+            Most of hackathon preparation goes into spamming public group chats, reading endless <em>&ldquo;I know HTML, please invite me&rdquo;</em> broadcast messages, and trying to build a balanced 6-person team before the official registration portal freezes.
           </p>
+          <p>
+            When you&apos;re not building something awesome, you shouldn&apos;t have to expose your personal mobile number to 1,000+ strangers just to find one good AI/ML developer or fulfill the mandatory SIH gender diversity quota.
+          </p>
+          <p className="font-bold text-stone-950 bg-amber-50 p-3 border-[1.5px] border-stone-900 shadow-[2px_2px_0_#1a1a1a] inline-block w-full text-center sm:text-left">
+            🎯 Browse real verified teams, inspect exact skill gaps, and apply confidentially with 1-click!
+          </p>
+        </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {[
-              {
-                icon: "✅",
-                label: "Team structure",
-                desc: "Skills needed, vacancy count, domain — visible to everyone.",
-              },
-              {
-                icon: "✅",
-                label: "Leader identity",
-                desc: "Name, phone, LinkedIn — always public so you can verify they're real.",
-              },
-              {
-                icon: "✅",
-                label: "Existing members",
-                desc: "Name, department, skills — public. Contact info stays private.",
-              },
-              {
-                icon: "🔒",
-                label: "Your application",
-                desc: "Your profile is shared only with the specific team you apply to.",
-              },
-              {
-                icon: "🔒",
-                label: "Your other applications",
-                desc: "Teams never know who else you're applying to.",
-              },
-            ].map((row) => (
-              <div
-                key={row.label}
-                className="card"
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: "1rem",
-                  padding: "1rem 1.25rem",
-                }}
-              >
-                <span style={{ fontSize: "1.25rem", flexShrink: 0 }}>
-                  {row.icon}
-                </span>
+        <hr className="t-separator" />
+
+        <div className="flex flex-wrap gap-4">
+          <Link href="/signup?path=join" className="btn-t btn-t-brand btn-t-lg font-mono">
+            🔍 Join a Verified Team
+          </Link>
+          <Link href="/signup?path=create" className="btn-t btn-t-lg font-mono bg-white">
+            ⚡ Create &amp; Lead a Team
+          </Link>
+        </div>
+      </fieldset>
+
+      {/* ── Section 3: Interactive Tabs & Motto ── */}
+      <fieldset className="t-fieldset">
+        <legend className="t-legend">- cat ~/random.md -</legend>
+        <div className="mb-4">
+          <p className="section-label mb-1">Our Platform Motto</p>
+          <p className="font-mono text-sm text-stone-900 font-semibold italic bg-white p-2.5 border-[1.5px] border-stone-900 shadow-[2px_2px_0_#1a1a1a]">
+            &ldquo;Stop broadcasting in public chats. Start precision matching.&rdquo; — SIH 2026 finalists
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 pt-2">
+          <button className="btn-t btn-t-brand justify-center font-mono text-xs font-bold">All Themes</button>
+          <button className="btn-t justify-center font-mono text-xs bg-white">AI / ML</button>
+          <button className="btn-t justify-center font-mono text-xs bg-white">Web3 / Fin</button>
+          <button className="btn-t justify-center font-mono text-xs bg-white">MedTech</button>
+          <button className="btn-t justify-center font-mono text-xs col-span-2 sm:col-span-1 bg-white">IoT / Drones</button>
+        </div>
+      </fieldset>
+
+      {/* ── Section 4: Live Teams Feed ── */}
+      <fieldset className="t-fieldset" id="live-teams">
+        <legend className="t-legend">- cat ~/live-teams.md -</legend>
+        <p className="section-label mb-4">the more professional-looking part of teammate finding</p>
+
+        <div className="space-y-4">
+          {/* Team Record 1 */}
+          <div className="t-card">
+            <div className="t-card-header">
+              <div className="flex items-center gap-3">
+                <div className="t-avatar text-stone-900 bg-indigo-100 font-bold text-sm">
+                  NF
+                </div>
                 <div>
-                  <div style={{ fontWeight: 600, marginBottom: "0.2rem" }}>
-                    {row.label}
-                  </div>
-                  <div
-                    style={{
-                      color: "var(--color-text-secondary)",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    {row.desc}
-                  </div>
+                  <h3 className="font-bold text-base text-stone-950 leading-tight">Neural Forge</h3>
+                  <span className="text-xs text-stone-600 font-mono font-medium">Theme: Smart Automation &amp; GovTech</span>
                 </div>
               </div>
-            ))}
+              <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+                <span className="chip chip-alert border-amber-600 text-amber-900">⚠️ 2 Spots Open</span>
+                <span className="chip border-stone-900 font-bold bg-white text-stone-900 shadow-[1px_1px_0px_#1a1a1a]">04 / 06 filled</span>
+              </div>
+            </div>
+            
+            <p className="text-sm text-stone-800 font-medium mb-4 leading-relaxed">
+              Building an automated document verification and municipal fraud detection engine using Computer Vision &amp; LLMs. We have backend and design sorted; looking for high-performance ML engineers!
+            </p>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-300">
+              <div className="flex flex-wrap gap-1.5">
+                <span className="chip chip-brand">PyTorch</span>
+                <span className="chip chip-brand">FastAPI</span>
+                <span className="chip bg-stone-100 border-stone-400 text-stone-800 font-bold">Next.js 15</span>
+              </div>
+              <Link href="/signup?team=neural-forge" className="btn-t btn-t-sm font-mono font-bold text-stone-950 bg-stone-100 border-stone-900">
+                apply confidentially →
+              </Link>
+            </div>
+          </div>
+
+          {/* Team Record 2 */}
+          <div className="t-card">
+            <div className="t-card-header">
+              <div className="flex items-center gap-3">
+                <div className="t-avatar text-stone-900 bg-emerald-100 font-bold text-sm">
+                  BM
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-stone-950 leading-tight">BlockMed Labs</h3>
+                  <span className="text-xs text-stone-600 font-mono font-medium">Theme: Healthcare &amp; Cybersecurity</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+                <span className="chip bg-rose-100 border-rose-600 text-rose-950 font-bold shadow-[1px_1px_0px_#1a1a1a]">🎯 Female Teammate Needed</span>
+                <span className="chip border-stone-900 font-bold bg-white text-stone-900 shadow-[1px_1px_0px_#1a1a1a]">05 / 06 filled</span>
+              </div>
+            </div>
+
+            <p className="text-sm text-stone-800 font-medium mb-4 leading-relaxed">
+              Zero-knowledge diagnostic transfer protocols allowing ambulance paramedics to instantly secure emergency medical history access during trauma transit without compromising patient privacy laws.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-300">
+              <div className="flex flex-wrap gap-1.5">
+                <span className="chip chip-brand">Rust</span>
+                <span className="chip chip-brand">Solidity / Web3</span>
+                <span className="chip bg-stone-100 border-stone-400 text-stone-800 font-bold">React Native</span>
+              </div>
+              <Link href="/signup?team=blockmed" className="btn-t btn-t-sm font-mono font-bold text-stone-950 bg-stone-100 border-stone-900">
+                apply confidentially →
+              </Link>
+            </div>
+          </div>
+
+          {/* Team Record 3 */}
+          <div className="t-card">
+            <div className="t-card-header">
+              <div className="flex items-center gap-3">
+                <div className="t-avatar text-stone-900 bg-amber-100 font-bold text-sm">
+                  AA
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-stone-950 leading-tight">AeroAgri Tech</h3>
+                  <span className="text-xs text-stone-600 font-mono font-medium">Theme: Agriculture, FoodTech &amp; IoT</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+                <span className="chip chip-alert border-amber-600 text-amber-900">⚠️ 3 Spots Open</span>
+                <span className="chip border-stone-900 font-bold bg-white text-stone-900 shadow-[1px_1px_0px_#1a1a1a]">03 / 06 filled</span>
+              </div>
+            </div>
+
+            <p className="text-sm text-stone-800 font-medium mb-4 leading-relaxed">
+              Developing drone hyperspectral telemetry sensors that precisely detect soil nutrient depletion across rural farm grids to automate organic fertilizer irrigation.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-stone-300">
+              <div className="flex flex-wrap gap-1.5">
+                <span className="chip chip-brand">ROS2 / Drones</span>
+                <span className="chip chip-brand">C++ / Embedded</span>
+                <span className="chip bg-stone-100 border-stone-400 text-stone-800 font-bold">Flutter</span>
+              </div>
+              <Link href="/signup?team=aeroagri" className="btn-t btn-t-sm font-mono font-bold text-stone-950 bg-stone-100 border-stone-900">
+                apply confidentially →
+              </Link>
+            </div>
           </div>
         </div>
-      </section>
+      </fieldset>
 
-      {/* ── Final CTA ── */}
-      <section
-        style={{
-          padding: "5rem 1.25rem",
-          textAlign: "center",
-        }}
-      >
-        <h2 style={{ fontSize: "2rem", fontWeight: 800, marginBottom: "1rem" }}>
-          Ready? Your team is waiting.
-        </h2>
-        <p
-          style={{
-            color: "var(--color-text-secondary)",
-            marginBottom: "2rem",
-            fontSize: "1.05rem",
-          }}
-        >
-          Sign up in 60 seconds. Verified. No spam. No public profiles until you
-          choose.
-        </p>
-        <Link href="/signup" className="btn btn-primary btn-lg" id="cta-final">
-          Create your account →
-        </Link>
-      </section>
+      {/* ── Section 5: Transparency & Privacy Model ── */}
+      <fieldset className="t-fieldset">
+        <legend className="t-legend">- cat ~/security-and-privacy.md -</legend>
+        <p className="section-label mb-4">how we protect students from public spam &amp; fake profiles</p>
+        
+        <div className="space-y-3 font-mono text-xs sm:text-sm text-stone-900">
+          <div className="p-3.5 bg-white border-[1.5px] border-stone-900 rounded-[2px] shadow-[2px_2px_0px_#1a1a1a]">
+            <span className="text-emerald-800 font-extrabold bg-emerald-100 px-2 py-0.5 border border-emerald-500 rounded text-xs mr-2 inline-block mb-1">✓ VERIFIED ID CARDS</span> 
+            Every college student is checked against an automated college ID card verification pipeline before joining teams.
+          </div>
+          <div className="p-3.5 bg-white border-[1.5px] border-stone-900 rounded-[2px] shadow-[2px_2px_0px_#1a1a1a]">
+            <span className="text-indigo-900 font-extrabold bg-indigo-100 px-2 py-0.5 border border-indigo-500 rounded text-xs mr-2 inline-block mb-1">✓ LEADER ACCOUNTABILITY</span> 
+            Team leaders must make their contact details visible to verified logged-in users so you know exactly who you are working with.
+          </div>
+          <div className="p-3.5 bg-white border-[1.5px] border-stone-900 rounded-[2px] shadow-[2px_2px_0px_#1a1a1a]">
+            <span className="text-blue-900 font-extrabold bg-blue-100 px-2 py-0.5 border border-blue-500 rounded text-xs mr-2 inline-block mb-1">🔒 PRIVATE APPLICATIONS</span> 
+            When you apply to a team, your personal profile is shared ONLY with that team&apos;s leader. You are never broadcasted to public WhatsApp groups.
+          </div>
+        </div>
+      </fieldset>
 
       {/* ── Footer ── */}
-      <footer
-        style={{
-          borderTop: "1px solid var(--color-border)",
-          padding: "2rem 1.25rem",
-          textAlign: "center",
-          color: "var(--color-text-muted)",
-          fontSize: "0.8rem",
-        }}
-      >
-        <div className="page-container">
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontWeight: 700,
-              marginBottom: "0.5rem",
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            <span style={{ color: "var(--color-brand-light)" }}>{"<"}</span>
-            TeamUp
-            <span style={{ color: "var(--color-brand-light)" }}>{"/>"}</span>
-          </div>
-          <p>Built for SIH 2026 · Semi-anonymous team matching · All verified</p>
+      <footer className="mt-12 pt-6 border-t-[2px] border-stone-400 text-center font-mono text-xs text-stone-600">
+        <div className="mb-2">
+          <span className="logo-bracket">{"<"}</span>
+          <span className="font-extrabold text-stone-900 text-sm">TeamUp</span>
+          <span className="logo-bracket">{"/>"}</span>
+          {" "}— Built for Smart India Hackathon 2026
         </div>
+        <p className="font-medium">Semi-anonymous • Verified teammates • Zero public spam</p>
       </footer>
-    </main>
+    </div>
   );
 }
