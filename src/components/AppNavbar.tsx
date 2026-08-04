@@ -145,21 +145,19 @@ export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false 
               >
                 <span style={{ display: "flex", alignItems: "center", position: "relative" }}>
                   {link.icon}
-                  {((link.label === "Alerts" && hasUnreadAlerts) || (link.label === "Requests" && hasUnreadRequests)) && (
-                    <span style={{
-                      position: "absolute",
-                      top: -4,
-                      right: -4,
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: link.label === "Alerts" ? "#d97706" : "#5b5fc7",
-                      border: `2px solid ${active ? "#eef0ff" : "#ffffff"}`,
-                      boxSizing: "content-box"
-                    }} />
-                  )}
                 </span>
                 {link.label}
+                {((link.label === "Alerts" && hasUnreadAlerts) || (link.label === "Requests" && hasUnreadRequests)) && (
+                  <span style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: link.label === "Alerts" ? "#d97706" : "#5b5fc7",
+                    marginLeft: "auto",
+                    flexShrink: 0,
+                    boxShadow: "1px 1px 0px rgba(0,0,0,0.1)"
+                  }} />
+                )}
               </Link>
             );
           })}
