@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import EmptyState from "@/components/EmptyState";
-import { IconSearchRadar } from "@/components/TerminalIcons";
+import { IconSignal } from "@/components/TerminalIcons";
 
 function IconBell() {
   return (
@@ -152,7 +152,7 @@ export default function NotificationCenter() {
               {notifications.length === 0 ? (
                 <div style={{ padding: "3.5rem 1.5rem", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                   <div style={{ marginBottom: "0.5rem" }}>
-                    <IconSearchRadar size={42} color="var(--color-text-secondary)" />
+                    <IconSignal size={42} color="var(--color-text-secondary)" />
                   </div>
                   <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-text-primary)", marginBottom: "0.25rem", fontFamily: "var(--font-mono)" }}>
                     All caught up!

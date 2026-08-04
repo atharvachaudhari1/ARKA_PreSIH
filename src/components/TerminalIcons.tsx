@@ -79,3 +79,14 @@ export function IconRocketDeploy({ size = 28, style, color = "#5b5fc7" }: IconPr
     </svg>
   );
 }
+
+export function IconSignal({ size = 28, style, color = "#5b5fc7" }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={style}>
+      <rect x="2" y="2" width="20" height="20" rx="4" fill="#ffffff" stroke="#1a1a1a" strokeWidth="2.5" />
+      <circle cx="12" cy="17" r="2" fill={color} />
+      <path d="M8 13C10.2091 10.7909 13.7909 10.7909 16 13" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M5 9.5C8.86599 5.63401 15.134 5.63401 19 9.5" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+    </svg>
+  );
+}
