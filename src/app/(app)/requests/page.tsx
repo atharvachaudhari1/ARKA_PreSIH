@@ -1,46 +1,29 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { createClient } from "@/lib/supabase/client";
+
+import useSWR, { mutate } from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function RequestsPage() {
-  const supabase = createClient();
-  const [loading, setLoading] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [myRequests, setMyRequests] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [teamRequests, setTeamRequests] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"my" | "team">("my");
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [hasSetTab, setHasSetTab] = useState(false);
 
-  const fetchRequests = useCallback(async () => {
-    setLoading(true);
-    
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const resProfile = await fetch('/api/users/profile');
-      if (resProfile.ok) {
-        const { profile } = await resProfile.json();
-        setCurrentUserId(profile.id);
-      }
-    }
+  const { data: profileData } = useSWR('/api/users/profile', fetcher);
+  const currentUserId = profileData?.profile?.id || null;
 
-    const res = await fetch("/api/join-requests");
-    if (res.ok) {
-      const data = await res.json();
-      setMyRequests(data.myRequests);
-      setTeamRequests(data.teamRequests);
-      if (data.teamRequests.length > 0 && data.myRequests.length === 0) {
+  const { data: requestsData, isLoading: loading } = useSWR('/api/join-requests', fetcher, {
+    onSuccess: (data) => {
+      if (!hasSetTab && data.teamRequests?.length > 0 && data.myRequests?.length === 0) {
         setActiveTab("team");
+        setHasSetTab(true);
       }
     }
-    setLoading(false);
-  }, [supabase.auth]);
+  });
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchRequests();
-  }, [fetchRequests]);
+  const myRequests = requestsData?.myRequests || [];
+  const teamRequests = requestsData?.teamRequests || [];
 
   async function handleOpinion(requestId: string, opinion: "approve" | "reject" | "neutral") {
     const res = await fetch(`/api/join-requests/${requestId}/opinion`, {
@@ -48,7 +31,7 @@ export default function RequestsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ opinion })
     });
-    if (res.ok) fetchRequests();
+    if (res.ok) mutate('/api/join-requests');
   }
 
   async function handleDecision(requestId: string, decision: "accept" | "reject") {
@@ -58,11 +41,17 @@ export default function RequestsPage() {
       body: JSON.stringify({ decision })
     });
     if (res.ok) {
-      fetchRequests();
+      mutate('/api/join-requests');
+      mutate('/api/users/profile'); // user might have joined a team
     } else {
       const error = await res.json();
       alert(error.error || "Failed to make decision");
     }
+  }
+
+  async function handleCancel(requestId: string) {
+    const res = await fetch(`/api/join-requests/${requestId}/cancel`, { method: "DELETE" });
+    if (res.ok) mutate('/api/join-requests');
   }
 
   return (
@@ -152,7 +141,7 @@ export default function RequestsPage() {
               <p style={{ fontSize: "0.95rem", margin: 0 }}>You haven&apos;t submitted applications to any teams yet. Head over to the Browse tab to find an open squad!</p>
             </div>
           ) : (
-            myRequests.map((req) => (
+            myRequests.map((req: any) => (
               <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "4px 4px 0px #1a1a1a", borderRadius: "6px", padding: "1.75rem", boxSizing: "border-box" }}>
                 <div className="responsive-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
                   <div>
@@ -197,7 +186,7 @@ export default function RequestsPage() {
               <p style={{ fontSize: "0.95rem", margin: 0 }}>Your team currently has no unreviewed inbound applicant dossiers.</p>
             </div>
           ) : (
-            teamRequests.map((req) => {
+            teamRequests.map((req: any) => {
               const myOpinion = req.opinions.find((o: any) => o.member.id === currentUserId);
               return (
                 <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "5px 5px 0px #1a1a1a", borderRadius: "6px", padding: "1.75rem", boxSizing: "border-box" }}>
@@ -208,7 +197,7 @@ export default function RequestsPage() {
                       </div>
                       <h3 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#1a1a1a", margin: "0 0 0.2rem" }}>{req.requester.name}</h3>
                       <p style={{ color: "#5a5a5a", fontSize: "0.85rem", fontWeight: 700, fontFamily: "var(--font-mono)", margin: 0 }}>
-                        🎓 {req.requester.department} • 👤 {req.requester.gender} • 🏅 {req.requester.past_hackathons_count} Past Hackathons
+                        🎓 {req.requester.department} • 👤 {req.requester.gender} • 🏅 {req.requester.past_hackathons_count} Past Hackathons • 🎤 {req.requester.presentation_skill_rating}/5 Presentation
                       </p>
                     </div>
                     <span

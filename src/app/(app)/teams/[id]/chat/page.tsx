@@ -4,6 +4,42 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
+function formatMessageContent(content: string) {
+  // Simple formatter for URLs and inline code `code`
+  const parts = content.split(/(```[\s\S]*?```|`[^`]+`|https?:\/\/[^\s]+)/g);
+  
+  return parts.map((part, i) => {
+    if (part.startsWith('```') && part.endsWith('```')) {
+      return (
+        <pre key={i} style={{ 
+          background: "#1a1a1a", color: "#fff", padding: "0.75rem", borderRadius: "4px", 
+          marginTop: "0.5rem", overflowX: "auto", fontFamily: "var(--font-mono)", fontSize: "0.85rem" 
+        }}>
+          <code>{part.slice(3, -3).trim()}</code>
+        </pre>
+      );
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return (
+        <code key={i} style={{ 
+          background: "rgba(26,26,26,0.1)", padding: "0.1rem 0.3rem", borderRadius: "3px", 
+          fontFamily: "var(--font-mono)", fontSize: "0.85rem", fontWeight: 700 
+        }}>
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
+    if (part.startsWith('http://') || part.startsWith('https://')) {
+      return (
+        <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "underline", fontWeight: 600 }}>
+          {part}
+        </a>
+      );
+    }
+    return <span key={i} style={{ whiteSpace: "pre-wrap" }}>{part}</span>;
+  });
+}
+
 export default function TeamChatPage() {
   const params = useParams();
   const supabase = createClient();
@@ -11,9 +47,14 @@ export default function TeamChatPage() {
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserName, setCurrentUserName] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [isMember, setIsMember] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<{ [key: string]: string }>({});
   const bottomRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const channelRef = useRef<any>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     async function init() {
@@ -22,6 +63,7 @@ export default function TeamChatPage() {
       if (resProfile.ok) {
         const { profile } = await resProfile.json();
         setCurrentUserId(profile.id);
+        setCurrentUserName(profile.name);
       }
 
       // Fetch messages
@@ -47,7 +89,7 @@ export default function TeamChatPage() {
   useEffect(() => {
     if (!isMember) return;
     
-    // Subscribe to realtime messages on this team's chat
+    // Subscribe to realtime messages and presence on this team's chat
     const channel = supabase
       .channel(`room_team_${params.id}`)
       .on(
@@ -59,13 +101,7 @@ export default function TeamChatPage() {
           filter: `team_id=eq.${params.id}`
         },
         async (payload) => {
-          // If we receive a message from someone else, we need their name
-          // Since postgres_changes doesn't include joined tables, we might just fetch the message
-          // Or optimistically just insert it if we are the sender
-          
-          if (payload.new.sender_id === currentUserId) return; // Handled optimistically
-          
-          // Re-fetch to get sender name, or we could just append with "Someone"
+          if (payload.new.sender_id === currentUserId) return;
           const res = await fetch(`/api/teams/${params.id}/chat`);
           if (res.ok) {
             const data = await res.json();
@@ -73,12 +109,38 @@ export default function TeamChatPage() {
           }
         }
       )
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const typing: { [key: string]: string } = {};
+        for (const id in state) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          state[id].forEach((presence: any) => {
+            if (presence.isTyping && presence.userId !== currentUserId) {
+              typing[presence.userId] = presence.userName;
+            }
+          });
+        }
+        setTypingUsers(typing);
+      })
       .subscribe();
+      
+    channelRef.current = channel;
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [params.id, isMember, currentUserId, supabase]);
+
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setInput(e.target.value);
+    if (channelRef.current && currentUserId && currentUserName) {
+      channelRef.current.track({ userId: currentUserId, userName: currentUserName, isTyping: true });
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => {
+        channelRef.current?.track({ userId: currentUserId, userName: currentUserName, isTyping: false });
+      }, 2000);
+    }
+  }
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault();
@@ -224,7 +286,7 @@ export default function TeamChatPage() {
                     lineHeight: 1.4,
                     wordBreak: "break-word"
                   }}>
-                    {msg.content}
+                    {formatMessageContent(msg.content)}
                   </div>
                 </div>
               );
@@ -234,11 +296,17 @@ export default function TeamChatPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSend} style={{ display: "flex", gap: "0.75rem" }}>
-        <input 
-          type="text" 
-          value={input} 
-          onChange={e => setInput(e.target.value)}
+      <form onSubmit={handleSend} style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        {Object.keys(typingUsers).length > 0 && (
+          <div style={{ color: "#6b7280", fontSize: "0.75rem", fontStyle: "italic", fontFamily: "var(--font-mono)", paddingLeft: "0.25rem" }}>
+            [ {Object.values(typingUsers).join(", ")} {Object.values(typingUsers).length > 1 ? "are" : "is"} typing... ]
+          </div>
+        )}
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <input 
+            type="text" 
+            value={input} 
+            onChange={handleInputChange}
           placeholder="Transmit a message..."
           style={{ 
             flex: 1, 
@@ -273,6 +341,7 @@ export default function TeamChatPage() {
         >
           SEND
         </button>
+        </div>
       </form>
     </div>
   );

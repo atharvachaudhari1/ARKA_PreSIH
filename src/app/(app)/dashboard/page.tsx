@@ -27,22 +27,13 @@ function IconInbox() {
   );
 }
 
-export default function DashboardPage() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+import useSWR from "swr";
 
-  useEffect(() => {
-    async function fetchDashboardData() {
-      const res = await fetch("/api/users/profile");
-      if (res.ok) {
-        const data = await res.json();
-        setProfile(data.profile);
-      }
-      setLoading(false);
-    }
-    fetchDashboardData();
-  }, []);
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export default function DashboardPage() {
+  const { data, isLoading: loading } = useSWR("/api/users/profile", fetcher);
+  const profile = data?.profile || null;
 
   return (
     <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 1000 }}>
@@ -173,7 +164,9 @@ export default function DashboardPage() {
           
           <div style={{ padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column" }}>
             {loading ? (
-               <div className="skeleton" style={{ height: 100, borderRadius: "4px", border: "2px solid #1a1a1a" }} />
+               <div style={{ height: 140, background: "#f5f3ec", border: "2px dashed #1a1a1a", borderRadius: "4px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontWeight: 700, color: "#888", fontSize: "0.9rem" }}>
+                 [FETCHING MY STATUS...]
+               </div>
             ) : profile?.led_teams?.length > 0 ? (
               <div style={{ background: "#eef0ff", border: "2px solid #1a1a1a", borderRadius: "4px", padding: "1.5rem", flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", boxShadow: "inset 2px 2px 0px rgba(0,0,0,0.05)" }}>
                 <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.5rem" }}>You are leading a team!</h3>

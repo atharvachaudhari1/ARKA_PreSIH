@@ -21,8 +21,18 @@ export async function GET(
   const isMember = currentUser.team_memberships.some(m => m.team_id === teamId);
   if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+  // Fetch users the current user has reported to exclude their messages
+  const reports = await prisma.report.findMany({
+    where: { reporter_id: currentUser.id },
+    select: { reported_user_id: true }
+  });
+  const mutedUserIds = reports.map(r => r.reported_user_id).filter((id): id is string => id !== null);
+
   const messages = await prisma.chatMessage.findMany({
-    where: { team_id: teamId },
+    where: { 
+      team_id: teamId,
+      sender_id: { notIn: mutedUserIds }
+    },
     include: {
       sender: { select: { id: true, name: true } }
     },

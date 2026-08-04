@@ -30,6 +30,12 @@ export default function HomePage() {
         boxSizing: "border-box"
       }}
     >
+      <style>{`
+        .btn-nav-login:hover { transform: translateY(-1px) !important; box-shadow: 3px 3px 0px #1a1a1a !important; background: #fff !important; }
+        .btn-nav-start:hover { transform: translateY(-1px) !important; box-shadow: 3px 3px 0px #1a1a1a !important; background: #4a4fb5 !important; }
+        .btn-hero-join:hover { transform: translateY(-2px) !important; box-shadow: 6px 6px 0px #1a1a1a !important; background: #4a4fb5 !important; }
+        .btn-hero-create:hover { transform: translateY(-2px) !important; box-shadow: 6px 6px 0px #1a1a1a !important; background: #fff9c4 !important; }
+      `}</style>
       {/* ─── Nav ─── */}
       <nav
         style={{
@@ -55,6 +61,7 @@ export default function HomePage() {
         <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "nowrap" }}>
           <Link
             href="/login"
+            className="btn-nav-login"
             style={{
               padding: "0.45rem 0.7rem",
               background: "#f7f4ee",
@@ -66,13 +73,14 @@ export default function HomePage() {
               textDecoration: "none",
               fontSize: "0.8rem",
               whiteSpace: "nowrap",
-              transition: "transform 0.1s ease, box-shadow 0.1s ease",
+              transition: "transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease",
             }}
           >
             Log in
           </Link>
           <Link
             href="/signup"
+            className="btn-nav-start"
             style={{
               padding: "0.45rem 0.75rem",
               background: "#5b5fc7",
@@ -84,7 +92,7 @@ export default function HomePage() {
               textDecoration: "none",
               fontSize: "0.8rem",
               whiteSpace: "nowrap",
-              transition: "transform 0.1s ease, box-shadow 0.1s ease",
+              transition: "transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease",
             }}
           >
             Get started
@@ -161,7 +169,7 @@ export default function HomePage() {
         >
           <Link
             href="/signup?path=join"
-            className="btn-mobile-full"
+            className="btn-mobile-full btn-hero-join"
             style={{
               flex: "1 1 220px",
               display: "inline-flex",
@@ -179,7 +187,8 @@ export default function HomePage() {
               fontSize: "0.98rem",
               textDecoration: "none",
               whiteSpace: "nowrap",
-              boxSizing: "border-box"
+              boxSizing: "border-box",
+              transition: "all 0.15s ease",
             }}
           >
             <IconDashboardGrid size={22} color="#ffffff" style={{ filter: "drop-shadow(1px 1px 0px #000)" }} />
@@ -187,7 +196,7 @@ export default function HomePage() {
           </Link>
           <Link
             href="/signup?path=create"
-            className="btn-mobile-full"
+            className="btn-mobile-full btn-hero-create"
             style={{
               flex: "1 1 220px",
               display: "inline-flex",
@@ -205,7 +214,8 @@ export default function HomePage() {
               fontSize: "0.98rem",
               textDecoration: "none",
               whiteSpace: "nowrap",
-              boxSizing: "border-box"
+              boxSizing: "border-box",
+              transition: "all 0.15s ease",
             }}
           >
             <IconTerminalPrompt size={22} color="#5b5fc7" />
@@ -327,11 +337,20 @@ export default function HomePage() {
                 fontSize: "2.2rem",
                 fontWeight: 900,
                 color: "#1a1a1a",
-                margin: 0
+                margin: 0,
+                marginBottom: "0.5rem"
               }}
             >
               Two paths. One platform.
             </h2>
+            <p style={{
+                color: "#5b5fc7",
+                fontSize: "1.3rem",
+                fontWeight: 800,
+                margin: 0,
+            }}>
+              No awkwardness.
+            </p>
           </div>
 
           <div
@@ -391,9 +410,9 @@ export default function HomePage() {
                     fontSize: "0.98rem",
                   }}
                 >
-                  Browse verified teams, see who&apos;s already on them, and check their
-                  skill gaps. Request to join — your profile is only shared with
-                  that team, not the whole platform.
+                  Browse verified teams. Check their roster. See if your skills match. 
+                  Shoot your shot. Your stats stay private. They only drop for the 
+                  teams you apply to.
                 </p>
               </div>
 
@@ -469,9 +488,9 @@ export default function HomePage() {
                     fontSize: "0.98rem",
                   }}
                 >
-                  Create your team, define the skills you need, and become the
-                  leader. Invite people or let them find you — your whole team
-                  votes on applicants, you make the call.
+                  Create a team. List the skills you need. Become the captain.
+                  Scout for talent or let them slide into your queue. The crew votes 
+                  on the vibe check. You get the final say.
                 </p>
               </div>
 
@@ -554,27 +573,27 @@ export default function HomePage() {
               {
                 icon: <IconDashboardGrid size={24} color="#5b5fc7" />,
                 label: "Team structure",
-                desc: "Skills needed, vacancy count, domain — visible to everyone.",
+                desc: "The vibe check. Skills needed, open spots, and the domain are visible to everyone.",
               },
               {
                 icon: <IconTerminalPrompt size={24} color="#5b5fc7" />,
                 label: "Leader identity",
-                desc: "Name, phone, LinkedIn — always public so you can verify they're real.",
+                desc: "No catfishes here. The captain's name, phone, and LinkedIn are public so you know they are legit.",
               },
               {
                 icon: <IconSearchRadar size={24} color="#5b5fc7" />,
                 label: "Existing members",
-                desc: "Name, department, skills — public. Contact info stays private.",
+                desc: "See who you are working with. Names, departments, and skills are public. Contact info stays strictly private.",
               },
               {
                 icon: <IconConsoleAlert size={24} color="#5b5fc7" />,
                 label: "Your application",
-                desc: "Your profile is shared only with the specific team you apply to.",
+                desc: "No oversharing. Your full profile drops only for the specific team you apply to.",
               },
               {
                 icon: <IconConsoleAlert size={24} color="#5b5fc7" />,
                 label: "Your other applications",
-                desc: "Teams never know who else you're applying to.",
+                desc: "Keep your options open. Teams will never know who else you are sliding in with.",
               },
             ].map((row) => (
               <div

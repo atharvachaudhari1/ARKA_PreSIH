@@ -54,6 +54,10 @@ export async function POST(
         const otherMembers = team.memberships.filter(m => m.user_id !== currentUser.id);
         
         if (otherMembers.length > 0) {
+          if (team.succession_mode === 'manual') {
+            throw new Error("MANUAL_SUCCESSION_REQUIRED");
+          }
+          
           // Auto promote the next eligible member
           // The array is already ordered by joined_at, user.created_at, user.id
           const nextLeader = otherMembers[0];
@@ -97,6 +101,9 @@ export async function POST(
 
   } catch (error: any) {
     console.error('Error leaving team:', error);
+    if (error.message === 'MANUAL_SUCCESSION_REQUIRED') {
+      return NextResponse.json({ error: 'You must transfer leadership manually before leaving, or change succession mode to auto-promote.' }, { status: 400 });
+    }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

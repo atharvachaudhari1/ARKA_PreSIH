@@ -51,20 +51,20 @@ export default function BrandLogo({ size = "md", layout = "stacked", className =
   // Dimensions based on size
   const sizes = {
     sm: {
-      titleFontSize: "1.15rem",
-      tagFontSize: "0.68rem",
-      arkaHeight: 12,
-      gap: "1px",
-      shadow: "1.5px 1.5px 0px #f59e0b",
-      bracketShadow: "1.5px 1.5px 0px #1a1a1a",
-    },
-    md: {
-      titleFontSize: "1.75rem",
-      tagFontSize: "0.95rem",
-      arkaHeight: 18,
+      titleFontSize: "1.45rem",
+      tagFontSize: "0.85rem",
+      arkaHeight: 15,
       gap: "2px",
       shadow: "2px 2px 0px #f59e0b",
-      bracketShadow: "1.5px 1.5px 0px #1a1a1a",
+      bracketShadow: "2px 2px 0px #1a1a1a",
+    },
+    md: {
+      titleFontSize: "2rem",
+      tagFontSize: "1.1rem",
+      arkaHeight: 22,
+      gap: "4px",
+      shadow: "2.5px 2.5px 0px #f59e0b",
+      bracketShadow: "2px 2px 0px #1a1a1a",
     },
     lg: {
       titleFontSize: "2.35rem",

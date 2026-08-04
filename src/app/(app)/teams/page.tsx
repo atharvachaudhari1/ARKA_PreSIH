@@ -5,10 +5,11 @@ import Link from "next/link";
 import TeamCard from "@/components/TeamCard";
 import { SIH_THEMES } from "@/lib/constants";
 
-export default function DashboardPage() {
-  const [teams, setTeams] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+import useSWR from "swr";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
+export default function DashboardPage() {
   // Filters
   const [status, setStatus] = useState<string>("open");
   const [domain, setDomain] = useState<string>("");
@@ -16,29 +17,16 @@ export default function DashboardPage() {
   const [minExperience, setMinExperience] = useState<string>("");
   const [skillsNeeded, setSkillsNeeded] = useState<string>("");
 
-  const fetchTeams = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (status) params.set("status", status);
-    if (domain) params.set("domain", domain);
-    if (genderNeed) params.set("gender_need", "true");
-    if (minExperience) params.set("min_experience", minExperience);
-    
-    // Split skills by comma
-    const skillsArray = skillsNeeded.split(",").map((s) => s.trim()).filter(Boolean);
-    skillsArray.forEach((s) => params.append("skills_needed[]", s));
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  if (domain) params.set("domain", domain);
+  if (genderNeed) params.set("gender_need", "true");
+  if (minExperience) params.set("min_experience", minExperience);
+  const skillsArray = skillsNeeded.split(",").map((s) => s.trim()).filter(Boolean);
+  skillsArray.forEach((s) => params.append("skills_needed[]", s));
 
-    const res = await fetch(`/api/teams?${params.toString()}`);
-    if (res.ok) {
-      const data = await res.json();
-      setTeams(data.teams);
-    }
-    setLoading(false);
-  }, [status, domain, genderNeed, minExperience, skillsNeeded]);
-
-  useEffect(() => {
-    fetchTeams();
-  }, [fetchTeams]);
+  const { data, isLoading: loading } = useSWR(`/api/teams?${params.toString()}`, fetcher, { keepPreviousData: true });
+  const teams = data?.teams || [];
 
   const resetFilters = () => {
     setStatus("open");
@@ -48,9 +36,50 @@ export default function DashboardPage() {
     setSkillsNeeded("");
   };
 
+  // Shared hover handler for inputs/selects
+  const fieldHoverOn = (e: React.SyntheticEvent<HTMLElement>) => {
+    const el = e.currentTarget as HTMLElement;
+    if (document.activeElement !== el) {
+      el.style.borderColor = "#5b5fc7";
+      el.style.boxShadow = "3px 3px 0px #5b5fc7";
+    }
+  };
+  const fieldHoverOff = (e: React.SyntheticEvent<HTMLElement>, shadow = "2px 2px 0px rgba(0,0,0,0.1)") => {
+    const el = e.currentTarget as HTMLElement;
+    if (document.activeElement !== el) {
+      el.style.borderColor = "#1a1a1a";
+      el.style.boxShadow = shadow;
+    }
+  };
+  const fieldFocusOn = (e: React.SyntheticEvent<HTMLElement>) => {
+    const el = e.currentTarget as HTMLElement;
+    el.style.borderColor = "#5b5fc7";
+    el.style.boxShadow = "3px 3px 0px #5b5fc7";
+  };
+  const fieldFocusOff = (e: React.SyntheticEvent<HTMLElement>, shadow = "2px 2px 0px rgba(0,0,0,0.1)") => {
+    const el = e.currentTarget as HTMLElement;
+    el.style.borderColor = "#1a1a1a";
+    el.style.boxShadow = shadow;
+  };
+
+  const fieldBaseStyle: React.CSSProperties = {
+    padding: "0.65rem 0.85rem",
+    border: "2px solid #1a1a1a",
+    borderRadius: "4px",
+    background: "#fdfbfa",
+    color: "#1a1a1a",
+    fontWeight: 700,
+    fontSize: "0.95rem",
+    width: "100%",
+    outline: "none",
+    minHeight: "44px",
+    boxSizing: "border-box",
+    transition: "all 0.15s ease",
+  };
+
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "2.5rem 2rem", minHeight: "85vh", boxSizing: "border-box" }} className="page-container">
-      {/* ── Hero Title Section (Responsive Stack) ── */}
+      {/* ── Hero Title Section ── */}
       <div className="responsive-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2.5rem", flexWrap: "wrap", gap: "1.5rem" }}>
         <div>
           <div style={{
@@ -76,10 +105,10 @@ export default function DashboardPage() {
           </p>
         </div>
         <div style={{ width: "auto" }}>
-          <Link 
-            href="/teams/create" 
+          <Link
+            href="/teams/create"
             className="btn-mobile-full"
-            style={{ 
+            style={{
               textDecoration: "none",
               display: "inline-flex",
               alignItems: "center",
@@ -88,7 +117,7 @@ export default function DashboardPage() {
               background: "#1a1a1a",
               color: "#ffffff",
               border: "2px solid #1a1a1a",
-              boxShadow: "4px 4px 0px #5b5fc7",
+              boxShadow: "4px 4px 0px #1a1a1a",
               padding: "0.85rem 1.5rem",
               borderRadius: "4px",
               fontWeight: 800,
@@ -98,20 +127,22 @@ export default function DashboardPage() {
               letterSpacing: "0.5px",
               transition: "transform 0.15s, box-shadow 0.15s"
             }}
+            onMouseOver={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "6px 6px 0px #1a1a1a"; }}
+            onMouseOut={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "4px 4px 0px #1a1a1a"; }}
           >
             <span>+</span> Deploy New Team
           </Link>
         </div>
       </div>
 
-      {/* ── Terminal Control Pipeline (Responsive Filter Bar) ── */}
-      <div style={{ 
-        background: "#ffffff", 
-        border: "2px solid #1a1a1a", 
-        boxShadow: "5px 5px 0px #1a1a1a", 
-        borderRadius: "6px", 
-        marginBottom: "2.5rem", 
-        overflow: "hidden" 
+      {/* ── Terminal Control Pipeline (Filter Bar) ── */}
+      <div style={{
+        background: "#ffffff",
+        border: "2px solid #1a1a1a",
+        boxShadow: "5px 5px 0px #1a1a1a",
+        borderRadius: "6px",
+        marginBottom: "2.5rem",
+        overflow: "hidden"
       }}>
         {/* Console Header Bar */}
         <div style={{
@@ -131,133 +162,101 @@ export default function DashboardPage() {
           <span style={{ opacity: 0.8 }} className="desktop-only">STATUS: ACTIVE</span>
         </div>
 
-        {/* Console Inputs (Responsive Stacking) */}
+        {/* Filter Inputs */}
         <div className="responsive-stack" style={{ padding: "1.25rem 1.25rem", display: "flex", flexWrap: "wrap", gap: "1rem", alignItems: "flex-end" }}>
-          <div style={{ flex: "1 1 auto", minWidth: "160px", width: "100%" }}>
+
+          {/* Vacancy Status */}
+          <div style={{ flex: "1 1 auto", minWidth: "160px" }}>
             <label style={{ fontSize: "0.75rem", fontWeight: 800, fontFamily: "var(--font-mono)", color: "#1a1a1a", marginBottom: "0.4rem", display: "block", letterSpacing: "0.5px" }}>
               VACANCY STATUS
             </label>
-            <select 
-              value={status} 
-              onChange={(e) => setStatus(e.target.value)} 
-              style={{ 
-                padding: "0.65rem 0.85rem", 
-                border: "2px solid #1a1a1a", 
-                borderRadius: "4px", 
-                background: "#fdfbfa", 
-                color: "#1a1a1a", 
-                fontWeight: 700, 
-                fontSize: "0.95rem",
-                width: "100%",
-                boxShadow: "2px 2px 0px rgba(0,0,0,0.1)",
-                outline: "none",
-                cursor: "pointer",
-                minHeight: "44px",
-                boxSizing: "border-box"
-              }}
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              style={{ ...fieldBaseStyle, boxShadow: "2px 2px 0px rgba(0,0,0,0.1)", cursor: "pointer" }}
+              onFocus={fieldFocusOn}
+              onBlur={fieldFocusOff}
+              onMouseOver={fieldHoverOn}
+              onMouseOut={fieldHoverOff}
             >
-              <option value="">All Teams (Open & Full)</option>
+              <option value="">All Teams (Open &amp; Full)</option>
               <option value="open">🟢 Open (Has Vacancy)</option>
               <option value="full">🔴 Full (Completed)</option>
             </select>
           </div>
-          
-          <div style={{ flex: "1 1 auto", minWidth: "180px", width: "100%" }}>
+
+          {/* Hackathon Domain */}
+          <div style={{ flex: "1 1 auto", minWidth: "180px" }}>
             <label style={{ fontSize: "0.75rem", fontWeight: 800, fontFamily: "var(--font-mono)", color: "#1a1a1a", marginBottom: "0.4rem", display: "block", letterSpacing: "0.5px" }}>
               HACKATHON DOMAIN
             </label>
-            <select 
-              value={domain} 
-              onChange={(e) => setDomain(e.target.value)} 
-              style={{ 
-                padding: "0.65rem 0.85rem", 
-                border: "2px solid #1a1a1a", 
-                borderRadius: "4px", 
-                background: "#fdfbfa", 
-                color: "#1a1a1a", 
-                fontWeight: 700, 
-                fontSize: "0.95rem",
-                width: "100%",
-                boxShadow: "2px 2px 0px rgba(0,0,0,0.1)",
-                outline: "none",
-                cursor: "pointer",
-                minHeight: "44px",
-                boxSizing: "border-box"
-              }}
+            <select
+              value={domain}
+              onChange={(e) => setDomain(e.target.value)}
+              style={{ ...fieldBaseStyle, boxShadow: "2px 2px 0px rgba(0,0,0,0.1)", cursor: "pointer" }}
+              onFocus={fieldFocusOn}
+              onBlur={fieldFocusOff}
+              onMouseOver={fieldHoverOn}
+              onMouseOut={fieldHoverOff}
             >
-              <option value="">🌐 All Domains & Themes</option>
+              <option value="">🌐 All Domains &amp; Themes</option>
               {SIH_THEMES.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
 
-          <div style={{ flex: "2 1 auto", minWidth: "200px", width: "100%" }}>
+          {/* Required Skillsets */}
+          <div style={{ flex: "2 1 auto", minWidth: "200px" }}>
             <label style={{ fontSize: "0.75rem", fontWeight: 800, fontFamily: "var(--font-mono)", color: "#1a1a1a", marginBottom: "0.4rem", display: "block", letterSpacing: "0.5px" }}>
               REQUIRED SKILLSETS
             </label>
-            <input 
-              placeholder="e.g. React, Node, AI/ML (comma separated)" 
-              value={skillsNeeded} 
-              onChange={(e) => setSkillsNeeded(e.target.value)} 
-              style={{ 
-                padding: "0.65rem 0.85rem", 
-                border: "2px solid #1a1a1a", 
-                borderRadius: "4px", 
-                background: "#fdfbfa", 
-                color: "#1a1a1a", 
-                fontWeight: 600, 
-                fontSize: "0.95rem",
-                width: "100%",
-                boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.06)",
-                outline: "none",
-                minHeight: "44px",
-                boxSizing: "border-box"
-              }} 
+            <input
+              placeholder="e.g. React, Node, AI/ML (comma separated)"
+              value={skillsNeeded}
+              onChange={(e) => setSkillsNeeded(e.target.value)}
+              style={{ ...fieldBaseStyle, fontWeight: 600, boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.06)" }}
+              onFocus={fieldFocusOn}
+              onBlur={(e) => fieldFocusOff(e, "inset 1px 1px 2px rgba(0,0,0,0.06)")}
+              onMouseOver={fieldHoverOn}
+              onMouseOut={(e) => fieldHoverOff(e, "inset 1px 1px 2px rgba(0,0,0,0.06)")}
             />
           </div>
 
-          <div style={{ flex: "1 1 auto", minWidth: "120px", width: "100%" }}>
+          {/* Min Hackathons */}
+          <div style={{ flex: "1 1 auto", minWidth: "120px" }}>
             <label style={{ fontSize: "0.75rem", fontWeight: 800, fontFamily: "var(--font-mono)", color: "#1a1a1a", marginBottom: "0.4rem", display: "block", letterSpacing: "0.5px" }}>
               MIN HACKATHONS
             </label>
-            <input 
-              type="number" 
-              min="0" 
-              placeholder="0" 
-              value={minExperience} 
-              onChange={(e) => setMinExperience(e.target.value)} 
-              style={{ 
-                padding: "0.65rem 0.85rem", 
-                border: "2px solid #1a1a1a", 
-                borderRadius: "4px", 
-                background: "#fdfbfa", 
-                color: "#1a1a1a", 
-                fontWeight: 700, 
-                fontSize: "0.95rem",
-                width: "100%",
-                boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.06)",
-                outline: "none",
-                minHeight: "44px",
-                boxSizing: "border-box"
-              }} 
+            <input
+              type="number"
+              min="0"
+              placeholder="0"
+              value={minExperience}
+              onChange={(e) => setMinExperience(e.target.value)}
+              style={{ ...fieldBaseStyle, boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.06)" }}
+              onFocus={fieldFocusOn}
+              onBlur={(e) => fieldFocusOff(e, "inset 1px 1px 2px rgba(0,0,0,0.06)")}
+              onMouseOver={fieldHoverOn}
+              onMouseOut={(e) => fieldHoverOff(e, "inset 1px 1px 2px rgba(0,0,0,0.06)")}
             />
           </div>
 
-          <div style={{ flex: "1 1 auto", width: "100%", display: "flex", alignItems: "center" }}>
-            <label 
+          {/* Gender Quota Toggle */}
+          <div style={{ flex: "1 1 auto", minWidth: "220px", display: "flex", alignItems: "flex-end" }}>
+            <label
               onClick={() => setGenderNeed(!genderNeed)}
-              style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                gap: "0.75rem", 
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
                 padding: "0.65rem 1.15rem",
-                border: "2px solid #1a1a1a",
+                border: genderNeed ? "2px solid #5b5fc7" : "2px solid #1a1a1a",
                 borderRadius: "4px",
                 background: genderNeed ? "#eef0ff" : "#ffffff",
                 boxShadow: genderNeed ? "3px 3px 0px #5b5fc7" : "2px 2px 0px #1a1a1a",
-                cursor: "pointer", 
-                fontSize: "0.85rem", 
+                cursor: "pointer",
+                fontSize: "0.85rem",
                 fontWeight: 800,
-                color: "#1a1a1a", 
+                color: genderNeed ? "#5b5fc7" : "#1a1a1a",
                 userSelect: "none",
                 transition: "all 0.15s ease",
                 width: "100%",
@@ -265,16 +264,31 @@ export default function DashboardPage() {
                 minHeight: "44px",
                 boxSizing: "border-box"
               }}
+              onMouseOver={(e) => {
+                if (!genderNeed) {
+                  e.currentTarget.style.borderColor = "#5b5fc7";
+                  e.currentTarget.style.boxShadow = "3px 3px 0px #5b5fc7";
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!genderNeed) {
+                  e.currentTarget.style.borderColor = "#1a1a1a";
+                  e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a";
+                  e.currentTarget.style.transform = "translateY(0)";
+                }
+              }}
             >
-              <input 
-                type="checkbox" 
-                checked={genderNeed} 
-                onChange={() => {}} 
-                style={{ cursor: "pointer", width: 18, height: 18, accentColor: "#5b5fc7" }} 
+              <input
+                type="checkbox"
+                checked={genderNeed}
+                onChange={() => {}}
+                style={{ cursor: "pointer", width: 18, height: 18, accentColor: "#5b5fc7" }}
               />
               Needs Female Member (SIH Quota)
             </label>
           </div>
+
         </div>
       </div>
 
@@ -282,12 +296,12 @@ export default function DashboardPage() {
       {loading ? (
         <div className="responsive-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.75rem" }}>
           {[1, 2, 3].map((n) => (
-            <div 
-              key={n} 
-              style={{ 
-                height: 300, 
-                background: "#f5f3ec", 
-                border: "2px dashed #1a1a1a", 
+            <div
+              key={n}
+              style={{
+                height: 300,
+                background: "#f5f3ec",
+                border: "2px dashed #1a1a1a",
                 borderRadius: "6px",
                 display: "flex",
                 alignItems: "center",
@@ -296,36 +310,36 @@ export default function DashboardPage() {
                 fontWeight: 700,
                 color: "#888",
                 fontSize: "0.9rem"
-              }} 
+              }}
             >
               [LOADING SECTOR DATA...]
             </div>
           ))}
         </div>
       ) : teams.length === 0 ? (
-        <div style={{ 
-          background: "#ffffff", 
-          border: "2px solid #1a1a1a", 
-          boxShadow: "6px 6px 0px #1a1a1a", 
-          borderRadius: "8px", 
-          padding: "3.5rem 1.5rem", 
-          textAlign: "center", 
-          maxWidth: "680px", 
+        <div style={{
+          background: "#ffffff",
+          border: "2px solid #1a1a1a",
+          boxShadow: "6px 6px 0px #1a1a1a",
+          borderRadius: "8px",
+          padding: "3.5rem 1.5rem",
+          textAlign: "center",
+          maxWidth: "680px",
           margin: "2rem auto",
           boxSizing: "border-box"
         }}>
-          <div style={{ 
-            width: "64px", 
-            height: "64px", 
-            margin: "0 auto 1.25rem", 
-            background: "#eef0ff", 
-            border: "2px solid #1a1a1a", 
-            borderRadius: "8px", 
-            boxShadow: "3px 3px 0px #1a1a1a", 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
-            fontSize: "2rem" 
+          <div style={{
+            width: "64px",
+            height: "64px",
+            margin: "0 auto 1.25rem",
+            background: "#eef0ff",
+            border: "2px solid #1a1a1a",
+            borderRadius: "8px",
+            boxShadow: "3px 3px 0px #1a1a1a",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "2rem"
           }}>
             🛰️
           </div>
@@ -333,21 +347,21 @@ export default function DashboardPage() {
             No Active Team Broadcasts
           </h3>
           <p style={{ color: "#5a5a5a", fontSize: "1rem", maxWidth: "460px", margin: "0 auto 2rem", lineHeight: "1.6" }}>
-            We scanned the repository but couldn't find any open squads matching your current filter parameters. Try broadening your criteria or inaugurate your own project squad!
+            We scanned the repository but couldn&apos;t find any open squads matching your current filter parameters. Try broadening your criteria or inaugurate your own project squad!
           </p>
           <div className="responsive-stack" style={{ display: "flex", justifyContent: "center", gap: "1rem", flexWrap: "wrap" }}>
-            <button 
-              onClick={resetFilters} 
+            <button
+              onClick={resetFilters}
               className="btn-mobile-full"
-              style={{ 
-                border: "2px solid #1a1a1a", 
-                background: "#f8f6f0", 
-                color: "#1a1a1a", 
-                padding: "0.75rem 1.5rem", 
-                fontWeight: 800, 
+              style={{
+                border: "2px solid #1a1a1a",
+                background: "#f8f6f0",
+                color: "#1a1a1a",
+                padding: "0.75rem 1.5rem",
+                fontWeight: 800,
                 fontSize: "0.9rem",
                 fontFamily: "var(--font-mono)",
-                borderRadius: "4px", 
+                borderRadius: "4px",
                 boxShadow: "3px 3px 0px #1a1a1a",
                 cursor: "pointer",
                 textTransform: "uppercase",
@@ -355,21 +369,23 @@ export default function DashboardPage() {
                 transition: "all 0.15s ease",
                 minHeight: "44px"
               }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = "#5b5fc7"; e.currentTarget.style.boxShadow = "4px 4px 0px #5b5fc7"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = "#1a1a1a"; e.currentTarget.style.boxShadow = "3px 3px 0px #1a1a1a"; e.currentTarget.style.transform = "translateY(0)"; }}
             >
               Reset All Filters
             </button>
-            <Link 
-              href="/teams/create" 
+            <Link
+              href="/teams/create"
               className="btn-mobile-full"
-              style={{ 
-                border: "2px solid #1a1a1a", 
-                background: "#5b5fc7", 
-                color: "#ffffff", 
-                padding: "0.75rem 1.5rem", 
-                fontWeight: 800, 
+              style={{
+                border: "2px solid #1a1a1a",
+                background: "#5b5fc7",
+                color: "#ffffff",
+                padding: "0.75rem 1.5rem",
+                fontWeight: 800,
                 fontSize: "0.9rem",
                 fontFamily: "var(--font-mono)",
-                borderRadius: "4px", 
+                borderRadius: "4px",
                 boxShadow: "3px 3px 0px #1a1a1a",
                 textDecoration: "none",
                 textTransform: "uppercase",
@@ -380,6 +396,8 @@ export default function DashboardPage() {
                 transition: "all 0.15s ease",
                 minHeight: "44px"
               }}
+              onMouseOver={(e) => { e.currentTarget.style.background = "#4a4fb5"; e.currentTarget.style.boxShadow = "4px 4px 0px #1a1a1a"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = "#5b5fc7"; e.currentTarget.style.boxShadow = "3px 3px 0px #1a1a1a"; e.currentTarget.style.transform = "translateY(0)"; }}
             >
               + Launch Your Team
             </Link>
@@ -387,7 +405,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="responsive-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.75rem" }}>
-          {teams.map((team) => (
+          {teams.map((team: any) => (
             <TeamCard key={team.id} team={team} />
           ))}
         </div>

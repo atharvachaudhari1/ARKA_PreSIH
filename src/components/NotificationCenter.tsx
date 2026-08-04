@@ -149,12 +149,14 @@ export default function NotificationCenter() {
 
             <div style={{ overflowY: "auto", flex: 1 }}>
               {notifications.length === 0 ? (
-                <div style={{ padding: "1rem" }}>
-                  <EmptyState
-                    icon={<div style={{ fontSize: "1.75rem" }}>🎉</div>}
-                    title="All caught up!"
-                    description=""
-                  />
+                <div style={{ padding: "3.5rem 1.5rem", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ fontSize: "2.25rem", marginBottom: "0.5rem" }}>📭</div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--color-text-primary)", marginBottom: "0.25rem", fontFamily: "var(--font-mono)" }}>
+                    All caught up!
+                  </h3>
+                  <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary)", fontWeight: 500, margin: 0 }}>
+                    No new signals detected.
+                  </p>
                 </div>
               ) : (
                 notifications.map((n) => (

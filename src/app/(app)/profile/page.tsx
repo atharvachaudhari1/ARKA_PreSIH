@@ -40,32 +40,32 @@ const PROFICIENCY_TEXT: Record<Proficiency, string> = {
   expert:       "var(--ember-coral)",
 };
 
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const [form, setForm] = useState<Partial<Profile>>({});
+  const [hasSetForm, setHasSetForm] = useState(false);
 
   // Skills
   const [newSkill, setNewSkill] = useState("");
   const [newProficiency, setNewProficiency] = useState<Proficiency>("intermediate");
   const [skillLoading, setSkillLoading] = useState(false);
 
-  const fetchProfile = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch("/api/users/profile");
-    if (res.ok) {
-      const data = await res.json();
-      setProfile(data.profile);
-      setForm(data.profile);
+  const { data, isLoading: loading, mutate: mutateProfile } = useSWR("/api/users/profile", fetcher, {
+    onSuccess: (data) => {
+      if (!hasSetForm && data.profile) {
+        setForm(data.profile);
+        setHasSetForm(true);
+      }
     }
-    setLoading(false);
-  }, []);
+  });
 
-  // eslint-disable-next-line
-  useEffect(() => { fetchProfile(); }, [fetchProfile]);
+  const profile = data?.profile || null;
 
   function update(field: string, value: unknown) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -86,7 +86,7 @@ export default function ProfilePage() {
     });
     if (res.ok) {
       const data = await res.json();
-      setProfile(data.profile);
+      mutateProfile();
       setForm(data.profile);
       setEditing(false);
       setSaveMsg("Profile saved ✓");
@@ -107,7 +107,7 @@ export default function ProfilePage() {
       body: JSON.stringify({ skill: newSkill.trim(), proficiency: newProficiency }),
     });
     if (res.ok) {
-      await fetchProfile();
+      mutateProfile();
       setNewSkill("");
       setNewProficiency("intermediate");
     }
@@ -115,12 +115,12 @@ export default function ProfilePage() {
   }
 
   async function handleRemoveSkill(skill: string) {
-    await fetch("/api/users/skills", {
+    const res = await fetch("/api/users/skills", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ skill }),
     });
-    await fetchProfile();
+    if (res.ok) mutateProfile();
   }
 
   if (loading) {
@@ -255,14 +255,14 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Presentation skill rating ── */}
-      <div className="card" style={{ marginBottom: "1.25rem", padding: "1.5rem" }}>
-        <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.25rem", color: "var(--color-text-secondary)" }}>
+      <div style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "4px 4px 0px #1a1a1a", borderRadius: "6px", marginBottom: "1.25rem", padding: "1.5rem" }}>
+        <h2 style={{ fontSize: "1.2rem", fontWeight: 900, marginBottom: "0.25rem", color: "#1a1a1a", fontFamily: "var(--font-mono)" }}>
           Presentation / Soft Skill
         </h2>
-        <p style={{ fontSize: "0.8rem", color: "var(--color-text-muted)", marginBottom: "1rem" }}>
+        <p style={{ fontSize: "0.85rem", color: "#5a5a5a", marginBottom: "1.25rem", fontWeight: 600 }}>
           Self-rated 1–5. Shown to teams reviewing your join request.
         </p>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
           {[1, 2, 3, 4, 5].map((n) => {
             const active = (form.presentation_skill_rating ?? profile.presentation_skill_rating ?? 0) >= n;
             return (
@@ -271,22 +271,25 @@ export default function ProfilePage() {
                 id={`rating-star-${n}`}
                 onClick={() => editing && update("presentation_skill_rating", n)}
                 style={{
-                  width: 40, height: 40, borderRadius: "var(--radius-sm)",
-                  border: `1px solid ${active ? "var(--ember-coral)" : "var(--color-border)"}`,
-                  background: active ? "rgba(246,70,104,0.15)" : "var(--color-bg-elevated)",
-                  color: active ? "var(--ember-peach)" : "var(--color-text-muted)",
-                  fontWeight: 700, fontSize: "1rem", cursor: editing ? "pointer" : "default",
-                  transition: "all 0.15s",
+                  width: 45, height: 45, borderRadius: "4px",
+                  border: "2px solid #1a1a1a",
+                  background: active ? "#5b5fc7" : "#ffffff",
+                  color: active ? "#ffffff" : "#1a1a1a",
+                  boxShadow: active ? "2px 2px 0px #1a1a1a" : "2px 2px 0px #1a1a1a",
+                  transform: active ? "translate(-2px, -2px)" : "none",
+                  fontWeight: 800, fontSize: "1.1rem", cursor: editing ? "pointer" : "default",
+                  transition: "all 0.15s ease",
+                  fontFamily: "var(--font-mono)"
                 }}
               >
                 {n}
               </button>
             );
           })}
-          <span style={{ marginLeft: "0.5rem", color: "var(--color-text-muted)", fontSize: "0.8rem", alignSelf: "center" }}>
-            {profile.presentation_skill_rating
+          <span style={{ marginLeft: "0.5rem", color: "#1a1a1a", fontSize: "0.85rem", fontWeight: 800, fontFamily: "var(--font-mono)", alignSelf: "center", textTransform: "uppercase" }}>
+            [ {profile.presentation_skill_rating
               ? ["", "Needs work", "Developing", "Good", "Strong", "Excellent"][profile.presentation_skill_rating]
-              : "Not rated yet"}
+              : "Not rated yet"} ]
           </span>
         </div>
       </div>
@@ -302,7 +305,7 @@ export default function ProfilePage() {
           {profile.skills.length === 0 && (
             <span style={{ color: "var(--color-text-muted)", fontSize: "0.875rem" }}>No skills added yet.</span>
           )}
-          {profile.skills.map((s) => (
+          {profile.skills.map((s: Skill) => (
             <div
               key={s.skill}
               style={{
@@ -393,7 +396,7 @@ export default function ProfilePage() {
               <InfoRow label="Phone" value={profile.phone_number ?? <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
               <InfoRow label="LinkedIn" value={profile.linkedin_url ? <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ember-peach)" }}>View profile</a> : <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
               <InfoRow label="Visibility" value={
-                { private: "🔒 Private", team_only: "👥 Team members only", public_to_logged_in: "🌐 All logged-in users" }[profile.contact_visibility] ?? profile.contact_visibility
+                ({ private: "🔒 Private", team_only: "👥 Team members only", public_to_logged_in: "🌐 All logged-in users" } as any)[profile.contact_visibility] ?? profile.contact_visibility
               } />
             </>
           )}

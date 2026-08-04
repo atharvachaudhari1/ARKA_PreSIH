@@ -110,13 +110,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode } = body;
+    const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode, event_id } = body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Team name is required" }, { status: 400 });
     }
 
-    const event = await getDefaultEvent();
+    let event;
+    if (event_id) {
+      event = await prisma.event.findUnique({ where: { id: event_id } });
+      if (!event) return NextResponse.json({ error: "Invalid event" }, { status: 400 });
+    } else {
+      event = await getDefaultEvent();
+    }
 
     // Compute initial needed female count:
     // if the creator counts toward the female quota, they satisfy 1 spot.
