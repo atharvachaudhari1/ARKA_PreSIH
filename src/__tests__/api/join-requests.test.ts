@@ -122,7 +122,7 @@ describe("Join Requests API", () => {
 
       await testApiHandler({
         appHandler: opinionHandler,
-        params: { id: "req1" },
+        params: { id: "req1" } as any,
         test: async ({ fetch }) => {
           const res = await fetch({
             method: "PATCH",
@@ -170,7 +170,7 @@ describe("Join Requests API", () => {
 
       await testApiHandler({
         appHandler: decisionHandler,
-        params: { id: "req1" },
+        params: { id: "req1" } as any,
         test: async ({ fetch }) => {
           const res = await fetch({
             method: "PATCH",
@@ -237,7 +237,7 @@ describe("Join Requests API", () => {
 
       await testApiHandler({
         appHandler: decisionHandler,
-        params: { id: "req_invite1" },
+        params: { id: "req_invite1" } as any,
         test: async ({ fetch }) => {
           const res = await fetch({
             method: "PATCH",
@@ -298,7 +298,7 @@ describe("Join Requests API", () => {
 
       await testApiHandler({
         appHandler: decisionHandler,
-        params: { id: "req1" },
+        params: { id: "req1" } as any,
         test: async ({ fetch }) => {
           const res = await fetch({ method: "PATCH", body: JSON.stringify({ decision: "accept" }) });
           expect(res.status).toBe(400);
@@ -344,7 +344,7 @@ describe("Join Requests API", () => {
 
       await testApiHandler({
         appHandler: decisionHandler,
-        params: { id: "req1" },
+        params: { id: "req1" } as any,
         test: async ({ fetch }) => {
           const res = await fetch({ method: "PATCH", body: JSON.stringify({ decision: "accept" }) });
           expect(res.status).toBe(400);
@@ -392,7 +392,7 @@ describe("Join Requests API", () => {
 
       await testApiHandler({
         appHandler: decisionHandler,
-        params: { id: "req1" },
+        params: { id: "req1" } as any,
         test: async ({ fetch }) => {
           const res = await fetch({ method: "PATCH", body: JSON.stringify({ decision: "accept" }) });
           expect(res.status).toBe(200); // Success!

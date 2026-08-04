@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient();
   const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
@@ -15,7 +15,7 @@ export async function PATCH(
   });
   if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const notifId = String(params.id);
+  const notifId = (await params).id;
   const notification = await prisma.notification.findUnique({
     where: { id: notifId }
   });

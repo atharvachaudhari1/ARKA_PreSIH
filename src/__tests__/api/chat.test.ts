@@ -37,7 +37,7 @@ describe("Chat API", () => {
       });
 
       const req = new NextRequest("http://localhost/api/teams/team1/chat");
-      const res = await chatHandler.GET(req, { params: { id: "team1" } });
+      const res = await chatHandler.GET(req, { params: Promise.resolve({ id: "team1" }) });
       expect(res.status).toBe(403);
       expect(prisma.chatMessage.findMany).not.toHaveBeenCalled();
     });
@@ -51,7 +51,7 @@ describe("Chat API", () => {
       (prisma.chatMessage.findMany as jest.Mock).mockResolvedValue([{ id: "msg1", content: "hello" }]);
 
       const req = new NextRequest("http://localhost/api/teams/team1/chat");
-      const res = await chatHandler.GET(req, { params: { id: "team1" } });
+      const res = await chatHandler.GET(req, { params: Promise.resolve({ id: "team1" }) });
       expect(res.status).toBe(200);
       expect(prisma.chatMessage.findMany).toHaveBeenCalled();
     });
@@ -69,7 +69,7 @@ describe("Chat API", () => {
         method: "POST",
         body: JSON.stringify({ content: "hello" })
       });
-      const res = await chatHandler.POST(req, { params: { id: "team1" } });
+      const res = await chatHandler.POST(req, { params: Promise.resolve({ id: "team1" }) });
       expect(res.status).toBe(403);
       expect(prisma.chatMessage.create).not.toHaveBeenCalled();
     });

@@ -24,7 +24,27 @@ export default function TeamDetailsPage() {
       setLoading(false);
     }
     fetchTeam();
-  }, [params.id]);
+
+    const channel = supabase
+      .channel(`team_${params.id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "teams", filter: `id=eq.${params.id}` },
+        (payload) => {
+          if (payload.new && payload.new.status) {
+            setTeam((prev: any) => ({ ...prev, status: payload.new.status }));
+            if (payload.new.status === "full") {
+              setMessage({ type: "error", text: "This team has just become full and is no longer accepting requests." });
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [params.id, supabase]);
 
   async function handleRequestToJoin() {
     setRequestLoading(true);

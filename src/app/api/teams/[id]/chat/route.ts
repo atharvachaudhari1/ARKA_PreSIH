@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient();
   const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
@@ -17,7 +17,7 @@ export async function GET(
   if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   // Only team members can fetch chat
-  const teamId = String(params.id);
+  const teamId = (await params).id;
   const isMember = currentUser.team_memberships.some(m => m.team_id === teamId);
   if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
@@ -35,7 +35,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient();
   const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
@@ -47,7 +47,7 @@ export async function POST(
   });
   if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const teamId = String(params.id);
+  const teamId = (await params).id;
   const isMember = currentUser.team_memberships.some(m => m.team_id === teamId);
   if (!isMember) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

@@ -57,7 +57,8 @@ export default function CreateTeamPage() {
     });
 
     if (res.ok) {
-      router.push(`/dashboard`); // Go back to dashboard after creating
+      const data = await res.json();
+      router.push(`/teams/${data.team.id}`);
       router.refresh();
     } else {
       const data = await res.json();
@@ -69,8 +70,8 @@ export default function CreateTeamPage() {
   return (
     <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 600 }}>
       <div style={{ marginBottom: "2rem" }}>
-        <p className="section-title" style={{ marginBottom: "0.4rem" }}>$ mkdir team</p>
-        <h1 style={{ fontSize: "1.75rem", fontWeight: 800 }}>Create a Team</h1>
+      <p className="section-title" style={{ marginBottom: "0.4rem" }}>Create</p>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 900, letterSpacing: "-0.02em" }}>Create a <span className="gradient-text">Team</span></h1>
         <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
           You will automatically be assigned as the team leader.
         </p>
@@ -107,6 +108,14 @@ export default function CreateTeamPage() {
           </div>
 
           <div>
+            <label htmlFor="team-succession" className="input-label">Succession Mode</label>
+            <select id="team-succession" value={form.succession_mode} onChange={(e) => update("succession_mode", e.target.value)} className="input-field" style={{ cursor: "pointer" }}>
+              <option value="manual">Manual (Leader must manually transfer leadership)</option>
+              <option value="auto_promote">Auto Promote (Next oldest member becomes leader if you leave)</option>
+            </select>
+          </div>
+
+          <div>
             <label className="input-label">Skills Needed</label>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
               {skills.map((s) => (
@@ -114,11 +123,11 @@ export default function CreateTeamPage() {
                   key={s}
                   style={{
                     display: "inline-flex", alignItems: "center", gap: "0.5rem",
-                    background: "rgba(99,102,241,0.15)",
-                    border: "1px solid rgba(99,102,241,0.3)",
-                    borderRadius: "var(--radius-sm)", padding: "4px 10px",
+                    background: "rgba(246,70,104,0.10)",
+                    border: "1px solid rgba(246,70,104,0.25)",
+                    borderRadius: "var(--radius-full)", padding: "3px 11px",
                     fontFamily: "var(--font-mono)", fontSize: "0.78rem",
-                    color: "var(--color-brand-light)", fontWeight: 500
+                    color: "var(--ember-peach)", fontWeight: 500
                   }}
                 >
                   {s}

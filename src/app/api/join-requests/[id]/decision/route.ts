@@ -4,11 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const supabase = await createClient();
   const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
   if (authErr || !authUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const { id } = await params;
 
   const currentUser = await prisma.user.findUnique({
     where: { auth_user_id: authUser.id },
@@ -25,7 +27,7 @@ export async function PATCH(
   }
 
   const joinRequest = await prisma.joinRequest.findUnique({
-    where: { id: params.id },
+    where: { id: id },
     include: {
       team: { include: { event: true, memberships: { include: { user: true } } } },
       requester: { include: { team_memberships: true } }

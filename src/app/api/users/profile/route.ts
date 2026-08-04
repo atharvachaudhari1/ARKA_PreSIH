@@ -2,6 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { ContactVisibility } from "@prisma/client";
+import { fuzzyMatchSimilarity } from "@/lib/stringMatch";
+
+const MATCH_THRESHOLD = 0.85;
+const MIN_OCR_CONFIDENCE = 0.7;
+// Department abbreviations vary wildly (e.g., "CS" vs "Computer Science" vs "CSE"), so we use a lower threshold
+const DEPARTMENT_MATCH_THRESHOLD = 0.5;
 
 /**
  * POST /api/users/profile
@@ -55,7 +61,39 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Profile already exists" }, { status: 409 });
   }
 
-  // 4. Create profile
+  // 4. Server-Authoritative OCR Verification
+  const latestOcr = await prisma.ocrVerificationAttempt.findFirst({
+    where: { 
+      user_id: user.id,
+      expires_at: { gt: new Date() }
+    },
+    orderBy: { created_at: "desc" }
+  });
+
+  let verification_status: "pending" | "verified" | "rejected" = "pending";
+  let verification_method: "auto" | "manual_review" = "manual_review";
+  let verified_at: Date | null = null;
+
+  if (latestOcr) {
+    // We intentionally use >= for the 85% boundary condition
+    const nameMatch = fuzzyMatchSimilarity(body.name, latestOcr.ocr_parsed_name || "");
+    const collegeMatch = fuzzyMatchSimilarity(body.college, latestOcr.ocr_parsed_college || "");
+    const deptMatch = fuzzyMatchSimilarity(body.department, latestOcr.ocr_parsed_department || "");
+    
+    // If OCR engine had reasonable confidence overall, and our fuzzy match threshold is met
+    if (
+      latestOcr.ocr_confidence_score && latestOcr.ocr_confidence_score >= MIN_OCR_CONFIDENCE &&
+      nameMatch >= MATCH_THRESHOLD &&
+      collegeMatch >= MATCH_THRESHOLD &&
+      deptMatch >= DEPARTMENT_MATCH_THRESHOLD
+    ) {
+      verification_status = "verified";
+      verification_method = "auto";
+      verified_at = new Date();
+    }
+  }
+
+  // 5. Create profile
   // NEVER return id_card_storage_path in any response (GAP-RESOLVED-6)
   const profile = await prisma.user.create({
     data: {
@@ -69,7 +107,9 @@ export async function POST(request: NextRequest) {
       past_hackathons_count: body.past_hackathons_count ?? 0,
       bio: body.bio,
       id_card_storage_path: body.id_card_storage_path,
-      verification_status: "pending",
+      verification_status,
+      verification_method,
+      verified_at,
     },
     select: {
       id: true,
@@ -79,6 +119,8 @@ export async function POST(request: NextRequest) {
       college: true,
       department: true,
       verification_status: true,
+      verification_method: true,
+      verified_at: true,
       past_hackathons_count: true,
       bio: true,
       created_at: true,

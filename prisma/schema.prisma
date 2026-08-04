@@ -21,6 +21,11 @@ enum VerificationStatus {
   rejected
 }
 
+enum VerificationMethod {
+  auto
+  manual_review
+}
+
 enum ContactVisibility {
   public_to_logged_in
   team_only
@@ -118,6 +123,14 @@ model User {
   // [GAP-RESOLVED-6] NEVER returned by any public API route.
   id_card_storage_path String?
   verification_status  VerificationStatus @default(pending)
+  verification_method  VerificationMethod?
+  verified_at          DateTime?
+
+  // OCR Verification Fields
+  ocr_parsed_name       String?
+  ocr_parsed_department String?
+  ocr_parsed_college    String?
+  ocr_confidence_score  Float?
 
   // Decoupled gender field: users can specify freely.
   gender               String?
@@ -153,8 +166,24 @@ model User {
   chat_messages        ChatMessage[]
   reports_made         Report[]           @relation("Reporter")
   reports_received     Report[]           @relation("ReportedUser")
+  ocr_attempts         OcrVerificationAttempt[]
 
   @@map("users")
+}
+
+model OcrVerificationAttempt {
+  id                    String   @id @default(cuid())
+  user_id               String
+  ocr_parsed_name       String?
+  ocr_parsed_department String?
+  ocr_parsed_college    String?
+  ocr_confidence_score  Float?
+  created_at            DateTime @default(now())
+  expires_at            DateTime
+
+  user                  User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("ocr_verification_attempts")
 }
 
 model UserSkill {

@@ -57,7 +57,7 @@ describe("Notifications API", () => {
       });
 
       const req = new NextRequest("http://localhost/api/notifications/n2/read", { method: "PATCH" });
-      const res = await readHandler.PATCH(req, { params: { id: "n2" } });
+      const res = await readHandler.PATCH(req, { params: { id: "n2" } as any });
       expect(res.status).toBe(403);
       expect(prisma.notification.update).not.toHaveBeenCalled();
     });
@@ -71,7 +71,7 @@ describe("Notifications API", () => {
       });
 
       const req = new NextRequest("http://localhost/api/notifications/n1/read", { method: "PATCH" });
-      const res = await readHandler.PATCH(req, { params: { id: "n1" } });
+      const res = await readHandler.PATCH(req, { params: { id: "n1" } as any });
       expect(res.status).toBe(200);
       expect(prisma.notification.update).toHaveBeenCalledWith(
         expect.objectContaining({

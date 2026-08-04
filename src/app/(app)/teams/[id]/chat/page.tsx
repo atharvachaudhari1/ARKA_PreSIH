@@ -136,8 +136,8 @@ export default function TeamChatPage() {
                   {isMe ? "You" : msg.sender.name}
                 </span>
                 <div style={{ 
-                  background: isMe ? "var(--color-brand)" : "var(--color-bg-elevated)", 
-                  color: isMe ? "var(--color-brand-light)" : "var(--color-text-primary)",
+                  background: isMe ? "var(--gradient-brand)" : "var(--color-bg-elevated)", 
+                  color: isMe ? "#fff" : "var(--color-text-primary)",
                   padding: "0.75rem 1rem", 
                   borderRadius: "var(--radius-md)",
                   maxWidth: "80%"

@@ -133,3 +133,9 @@ docs/
 
 See `../ANTIGRAVITY_BUILD_GUIDE.md` for the full phased build plan.
 Current status: **Phase 0 complete**.
+
+## Admin Setup
+1. Set ADMIN_EMAIL in your .env file.
+2. Run `npx prisma db seed` to securely provision the admin account directly in Supabase Auth and the database.
+3. Run 
+px prisma db seed to grant admin privileges to that user.

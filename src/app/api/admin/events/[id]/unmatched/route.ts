@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { RequestStatus } from "@prisma/client";
 
 export async function GET(
   request: NextRequest,
@@ -35,7 +36,7 @@ export async function GET(
     NOT: {
       OR: [
         { team_memberships: { some: { team: { event_id: eventId } } } },
-        { sent_requests: { some: { team: { event_id: eventId }, status: "pending" } } }
+        { sent_requests: { some: { team: { event_id: eventId }, status: RequestStatus.pending } } }
       ]
     }
   };

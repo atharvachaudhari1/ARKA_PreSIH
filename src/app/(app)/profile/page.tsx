@@ -28,16 +28,16 @@ interface Profile {
 }
 
 const PROFICIENCY_COLORS: Record<Proficiency, string> = {
-  beginner: "rgba(148,163,184,0.15)",
-  intermediate: "rgba(99,102,241,0.15)",
-  advanced: "rgba(16,185,129,0.15)",
-  expert: "rgba(245,158,11,0.15)",
+  beginner:     "rgba(148,163,184,0.12)",
+  intermediate: "rgba(254,150,119,0.12)",
+  advanced:     "rgba(52,211,153,0.12)",
+  expert:       "rgba(246,70,104,0.12)",
 };
 const PROFICIENCY_TEXT: Record<Proficiency, string> = {
-  beginner: "#94a3b8",
-  intermediate: "#818cf8",
-  advanced: "#10b981",
-  expert: "#f59e0b",
+  beginner:     "#94a3b8",
+  intermediate: "var(--ember-peach)",
+  advanced:     "#34d399",
+  expert:       "var(--ember-coral)",
 };
 
 export default function ProfilePage() {
@@ -147,8 +147,8 @@ export default function ProfilePage() {
       {/* ── Header ── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
         <div>
-          <p className="section-title" style={{ marginBottom: "0.4rem" }}>$ cat profile.md</p>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 800 }}>{profile.name}</h1>
+          <p className="section-title" style={{ marginBottom: "0.4rem" }}>Profile</p>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: 900, letterSpacing: "-0.02em" }}>{profile.name}</h1>
           <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", marginTop: "0.25rem" }}>{profile.email}</p>
         </div>
         <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
@@ -272,9 +272,9 @@ export default function ProfilePage() {
                 onClick={() => editing && update("presentation_skill_rating", n)}
                 style={{
                   width: 40, height: 40, borderRadius: "var(--radius-sm)",
-                  border: `1px solid ${active ? "var(--color-brand)" : "var(--color-border)"}`,
-                  background: active ? "rgba(99,102,241,0.15)" : "var(--color-bg-elevated)",
-                  color: active ? "var(--color-brand-light)" : "var(--color-text-muted)",
+                  border: `1px solid ${active ? "var(--ember-coral)" : "var(--color-border)"}`,
+                  background: active ? "rgba(246,70,104,0.15)" : "var(--color-bg-elevated)",
+                  color: active ? "var(--ember-peach)" : "var(--color-text-muted)",
                   fontWeight: 700, fontSize: "1rem", cursor: editing ? "pointer" : "default",
                   transition: "all 0.15s",
                 }}
@@ -391,7 +391,7 @@ export default function ProfilePage() {
           ) : (
             <>
               <InfoRow label="Phone" value={profile.phone_number ?? <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
-              <InfoRow label="LinkedIn" value={profile.linkedin_url ? <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-brand-light)" }}>View profile</a> : <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
+              <InfoRow label="LinkedIn" value={profile.linkedin_url ? <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ember-peach)" }}>View profile</a> : <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
               <InfoRow label="Visibility" value={
                 { private: "🔒 Private", team_only: "👥 Team members only", public_to_logged_in: "🌐 All logged-in users" }[profile.contact_visibility] ?? profile.contact_visibility
               } />

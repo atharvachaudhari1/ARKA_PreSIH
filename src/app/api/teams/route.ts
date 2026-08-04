@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   const domain = url.searchParams.get("domain");
   const genderNeed = url.searchParams.get("gender_need");
   const minExperience = url.searchParams.get("min_experience");
-  const skillsNeeded = url.searchParams.getAll("skills_needed[]"); // multiple skills
+  const skillsNeeded = url.searchParams.getAll("skills_needed[]");
 
   const where: any = {};
   if (status && (status === "open" || status === "full")) {
@@ -50,103 +50,118 @@ export async function GET(request: NextRequest) {
     where.skills_needed = { hasSome: skillsNeeded };
   }
 
-  const teams = await prisma.team.findMany({
-    where,
-    orderBy: { created_at: "desc" },
-    include: {
-      leader: {
-        select: {
-          id: true,
-          name: true,
-          phone_number: true,
-          whatsapp_number: true,
-          linkedin_url: true,
-          // Leader's contact is public to logged in users (enforced by design)
+  try {
+    const teams = await prisma.team.findMany({
+      where,
+      orderBy: { created_at: "desc" },
+      include: {
+        leader: {
+          select: {
+            id: true,
+            name: true,
+            phone_number: true,
+            whatsapp_number: true,
+            linkedin_url: true,
+          },
         },
-      },
-      memberships: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              department: true,
-              verification_status: true,
-              skills: { select: { skill: true, proficiency: true } },
-              // Exclude non-leader contact info strictly
+        memberships: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                department: true,
+                verification_status: true,
+                skills: { select: { skill: true, proficiency: true } },
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  return NextResponse.json({ teams });
+    return NextResponse.json({ teams });
+  } catch (err) {
+    console.error("[GET /api/teams] Unexpected error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
-  if (authErr || !authUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const currentUser = await prisma.user.findUnique({
-    where: { auth_user_id: authUser.id },
-    select: { id: true, counts_toward_female_quota: true },
-  });
-  if (!currentUser) return NextResponse.json({ error: "User profile not found" }, { status: 404 });
-
-  let body: any;
   try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    const supabase = await createClient();
+    const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
+    if (authErr || !authUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const currentUser = await prisma.user.findUnique({
+      where: { auth_user_id: authUser.id },
+      select: { id: true, counts_toward_female_quota: true },
+    });
+    if (!currentUser) {
+      return NextResponse.json({ error: "User profile not found. Please complete your profile first." }, { status: 404 });
+    }
+
+    let body: any;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+    }
+
+    const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode } = body;
+
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return NextResponse.json({ error: "Team name is required" }, { status: 400 });
+    }
+
+    const event = await getDefaultEvent();
+
+    // Compute initial needed female count:
+    // if the creator counts toward the female quota, they satisfy 1 spot.
+    const initialFemaleCount = currentUser.counts_toward_female_quota ? 1 : 0;
+    const neededFemaleCount = Math.max(0, event.min_female_required - initialFemaleCount);
+
+    const newTeam = await prisma.$transaction(async (tx) => {
+      const team = await tx.team.create({
+        data: {
+          name: name.trim(),
+          description: description ?? null,
+          domain_interest: domain_interest || null,
+          skills_needed: Array.isArray(skills_needed) ? skills_needed : [],
+          min_experience_required: min_experience_required != null ? parseInt(min_experience_required, 10) : null,
+          succession_mode: (succession_mode as SuccessionMode) || "manual",
+          event_id: event.id,
+          leader_id: currentUser.id,
+          needed_female_count: neededFemaleCount,
+          status: "open",
+        },
+      });
+
+      await tx.teamMembership.create({
+        data: {
+          team_id: team.id,
+          user_id: currentUser.id,
+          role: "leader",
+        },
+      });
+
+      // Force leader's contact visibility to public_to_logged_in
+      // FIX: field name is preferred_contact_visibility, not contact_visibility
+      await tx.user.update({
+        where: { id: currentUser.id },
+        data: { preferred_contact_visibility: "public_to_logged_in" },
+      });
+
+      return team;
+    });
+
+    return NextResponse.json({ team: newTeam }, { status: 201 });
+  } catch (err: any) {
+    // Catch ALL unhandled exceptions so we ALWAYS return JSON — never an HTML 500 page.
+    console.error("[POST /api/teams] Unhandled error:", err);
+    const message = err?.message ?? "Failed to create team";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode } = body;
-
-  if (!name || typeof name !== "string") {
-    return NextResponse.json({ error: "Team name is required" }, { status: 400 });
-  }
-
-  const event = await getDefaultEvent();
-
-  // Compute initial needed female count
-  // If the creator is female (counts towards quota), they satisfy 1 spot
-  const initialFemaleCount = currentUser.counts_toward_female_quota ? 1 : 0;
-  const neededFemaleCount = Math.max(0, event.min_female_required - initialFemaleCount);
-
-  const newTeam = await prisma.$transaction(async (tx) => {
-    const team = await tx.team.create({
-      data: {
-        name,
-        description,
-        domain_interest,
-        skills_needed: Array.isArray(skills_needed) ? skills_needed : [],
-        min_experience_required: min_experience_required ? parseInt(min_experience_required, 10) : null,
-        succession_mode: (succession_mode as SuccessionMode) || "manual",
-        event_id: event.id,
-        leader_id: currentUser.id,
-        needed_female_count: neededFemaleCount,
-        status: "open",
-      },
-    });
-
-    await tx.teamMembership.create({
-      data: {
-        team_id: team.id,
-        user_id: currentUser.id,
-        role: "leader",
-      },
-    });
-
-    // Force leader's contact visibility to public_to_logged_in
-    await tx.user.update({
-      where: { id: currentUser.id },
-      data: { contact_visibility: "public_to_logged_in" },
-    });
-
-    return team;
-  });
-
-  return NextResponse.json({ team: newTeam }, { status: 201 });
 }

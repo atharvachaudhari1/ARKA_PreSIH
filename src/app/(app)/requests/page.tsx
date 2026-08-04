@@ -3,6 +3,16 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import EmptyState from "@/components/EmptyState";
+
+function IconInbox() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+    </svg>
+  );
+}
 
 export default function RequestsPage() {
   const supabase = createClient();
@@ -11,6 +21,12 @@ export default function RequestsPage() {
   const [teamRequests, setTeamRequests] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"my" | "team">("my");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
+
+  const showToast = (text: string, type: "success" | "error" = "success") => {
+    setToastMessage({ text, type });
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -47,7 +63,12 @@ export default function RequestsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ opinion })
     });
-    if (res.ok) fetchRequests();
+    if (res.ok) {
+      showToast(`Opinion recorded: ${opinion}`);
+      fetchRequests();
+    } else {
+      showToast("Failed to record opinion", "error");
+    }
   }
 
   async function handleDecision(requestId: string, decision: "accept" | "reject") {
@@ -57,40 +78,45 @@ export default function RequestsPage() {
       body: JSON.stringify({ decision })
     });
     if (res.ok) {
+      showToast(`Applicant ${decision}ed successfully!`);
       fetchRequests();
     } else {
       const error = await res.json();
-      alert(error.error || "Failed to make decision");
+      showToast(error.error || "Failed to make decision", "error");
     }
   }
 
   return (
     <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 800 }}>
       <div style={{ marginBottom: "2rem" }}>
-        <p className="section-title" style={{ marginBottom: "0.4rem" }}>$ tail -f requests.log</p>
-        <h1 style={{ fontSize: "1.75rem", fontWeight: 800 }}>Join Requests</h1>
+      <p className="section-title" style={{ marginBottom: "0.4rem" }}>Requests</p>
+        <h1 style={{ fontSize: "1.75rem", fontWeight: 900, letterSpacing: "-0.02em" }}>Join <span className="gradient-text">Requests</span></h1>
       </div>
 
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "1.5rem", borderBottom: "1px solid var(--color-border)" }}>
+      {toastMessage && (
+        <div style={{ 
+          marginBottom: "1.5rem", 
+          padding: "1rem", 
+          borderRadius: "var(--radius-md)", 
+          background: toastMessage.type === "success" ? "rgba(52, 211, 153, 0.15)" : "rgba(246, 70, 104, 0.15)", 
+          border: `1px solid ${toastMessage.type === "success" ? "rgba(52, 211, 153, 0.3)" : "rgba(246, 70, 104, 0.3)"}`,
+          color: toastMessage.type === "success" ? "#34d399" : "var(--ember-coral)",
+          display: "flex", alignItems: "center", gap: "0.5rem", fontWeight: 500
+        }}>
+          {toastMessage.type === "success" ? "✓" : "✕"} {toastMessage.text}
+        </div>
+      )}
+
+      <div className="tab-bar" style={{ marginBottom: "1.5rem" }}>
         <button
           onClick={() => setActiveTab("my")}
-          style={{
-            padding: "0.75rem 1rem", background: "none", border: "none",
-            borderBottom: activeTab === "my" ? "2px solid var(--color-brand)" : "2px solid transparent",
-            color: activeTab === "my" ? "var(--color-brand-light)" : "var(--color-text-secondary)",
-            fontWeight: activeTab === "my" ? 700 : 500, cursor: "pointer"
-          }}
+          className={`tab-btn${activeTab === "my" ? " active" : ""}`}
         >
           My Requests ({myRequests.length})
         </button>
         <button
           onClick={() => setActiveTab("team")}
-          style={{
-            padding: "0.75rem 1rem", background: "none", border: "none",
-            borderBottom: activeTab === "team" ? "2px solid var(--color-brand)" : "2px solid transparent",
-            color: activeTab === "team" ? "var(--color-brand-light)" : "var(--color-text-secondary)",
-            fontWeight: activeTab === "team" ? 700 : 500, cursor: "pointer"
-          }}
+          className={`tab-btn${activeTab === "team" ? " active" : ""}`}
         >
           Team Requests ({teamRequests.length})
         </button>
@@ -103,9 +129,13 @@ export default function RequestsPage() {
       ) : activeTab === "my" ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {myRequests.length === 0 ? (
-            <p style={{ color: "var(--color-text-muted)", padding: "2rem", textAlign: "center", border: "1px dashed var(--color-border)" }}>
-              No pending requests.
-            </p>
+            <EmptyState
+              icon={<IconInbox />}
+              title="No pending requests"
+              description="You haven't sent any join requests yet. Browse teams to find a match!"
+              ctaText="Browse Teams"
+              ctaHref="/teams"
+            />
           ) : (
             myRequests.map((req) => (
               <div key={req.id} className="card" style={{ padding: "1.5rem" }}>
@@ -120,8 +150,8 @@ export default function RequestsPage() {
                   <span
                     style={{
                       padding: "2px 8px", borderRadius: "4px", fontSize: "0.75rem", fontWeight: 600,
-                      background: req.status === "pending" ? "rgba(245,158,11,0.15)" : req.status === "accepted" ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
-                      color: req.status === "pending" ? "#f59e0b" : req.status === "accepted" ? "#10b981" : "#ef4444",
+                      background: req.status === "pending" ? "rgba(254,150,119,0.12)" : req.status === "accepted" ? "rgba(52,211,153,0.12)" : "rgba(246,70,104,0.12)",
+                      color: req.status === "pending" ? "var(--ember-peach)" : req.status === "accepted" ? "#34d399" : "var(--ember-coral)",
                     }}
                   >
                     {req.status.toUpperCase()}
@@ -135,9 +165,11 @@ export default function RequestsPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           {teamRequests.length === 0 ? (
-            <p style={{ color: "var(--color-text-muted)", padding: "2rem", textAlign: "center", border: "1px dashed var(--color-border)" }}>
-              No pending applications to your team.
-            </p>
+            <EmptyState
+              icon={<IconInbox />}
+              title="No pending applications"
+              description="No one has applied to join your team yet."
+            />
           ) : (
             teamRequests.map((req) => {
               const myOpinion = req.opinions.find((o: any) => o.member.id === currentUserId);
@@ -163,14 +195,12 @@ export default function RequestsPage() {
                   {req.requester.skills.length > 0 && (
                     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "1rem" }}>
                       {req.requester.skills.map((s: any) => (
-                        <span key={s.skill} style={{ background: "rgba(99,102,241,0.1)", color: "var(--color-brand-light)", padding: "2px 6px", borderRadius: "4px", fontSize: "0.75rem" }}>
-                          {s.skill}
-                        </span>
+                        <span key={s.skill} className="skill-chip">{s.skill}</span>
                       ))}
                     </div>
                   )}
 
-                  <div style={{ background: "var(--color-bg-elevated)", padding: "1rem", borderRadius: "var(--radius-md)" }}>
+                  <div style={{ background: "var(--color-bg-elevated)", padding: "1rem", borderRadius: "var(--radius-md)", border: "1px solid var(--color-border)" }}>
                     <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginBottom: "0.5rem", textTransform: "uppercase" }}>Member Opinions</div>
                     <div style={{ display: "flex", gap: "1rem", marginBottom: "1rem" }}>
                       <button 
@@ -195,10 +225,10 @@ export default function RequestsPage() {
                     
                     {/* Leader actions (Simulated for all team members for now, API enforces role check) */}
                     <div style={{ borderTop: "1px solid var(--color-border)", paddingTop: "1rem", display: "flex", gap: "0.5rem" }}>
-                      <button onClick={() => handleDecision(req.id, "accept")} className="btn btn-primary btn-sm" style={{ background: "#10b981", borderColor: "#10b981" }}>
+                      <button onClick={() => handleDecision(req.id, "accept")} className="btn btn-primary btn-sm">
                         Accept Applicant
                       </button>
-                      <button onClick={() => handleDecision(req.id, "reject")} className="btn btn-secondary btn-sm" style={{ color: "#ef4444" }}>
+                      <button onClick={() => handleDecision(req.id, "reject")} className="btn btn-danger btn-sm">
                         Reject Applicant
                       </button>
                     </div>

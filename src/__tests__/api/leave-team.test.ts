@@ -50,7 +50,7 @@ describe('Leave Team API', () => {
 
       await testApiHandler({
         appHandler: leaveTeamHandler,
-        params: { id: 'team1' },
+        params: { id: 'team1' } as any,
         test: async ({ fetch }) => {
           const res = await fetch({ method: 'POST' });
           expect(res.status).toBe(200);
@@ -83,7 +83,7 @@ describe('Leave Team API', () => {
 
       await testApiHandler({
         appHandler: leaveTeamHandler,
-        params: { id: 'team1' },
+        params: { id: 'team1' } as any,
         test: async ({ fetch }) => {
           const res = await fetch({ method: 'POST' });
           expect(res.status).toBe(200);
@@ -120,7 +120,7 @@ describe('Leave Team API', () => {
 
       await testApiHandler({
         appHandler: leaveTeamHandler,
-        params: { id: 'team1' },
+        params: { id: 'team1' } as any,
         test: async ({ fetch }) => {
           const res = await fetch({ method: 'POST' });
           expect(res.status).toBe(200);
@@ -156,7 +156,7 @@ describe('Leave Team API', () => {
 
       await testApiHandler({
         appHandler: leaveTeamHandler,
-        params: { id: 'team1' },
+        params: { id: 'team1' } as any,
         test: async ({ fetch }) => {
           await fetch({ method: 'POST' });
           
