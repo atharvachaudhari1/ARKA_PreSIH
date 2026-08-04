@@ -194,7 +194,7 @@ export default function NotificationsPage() {
             boxShadow: "2px 2px 0px #5b5fc7",
           }}
         >
-          $ WATCH --NOTIFICATIONS --LIVE
+          > SYSTEM.NOTIFICATIONS
         </div>
         <div
           style={{
@@ -229,7 +229,7 @@ export default function NotificationsPage() {
               >
                 {unreadCount > 0
                   ? `[ ${unreadCount} UNREAD SIGNAL${unreadCount > 1 ? "S" : ""} ]`
-                  : "[ ALL CLEAR — NO UNREAD SIGNALS ]"}
+                  : "[ ALL CLEAR // NO UNREAD SIGNALS ]"}
               </p>
             )}
           </div>
