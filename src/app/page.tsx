@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Metadata } from "next";
+import BrandLogo from "@/components/BrandLogo";
 import { 
   IconTerminalPrompt, 
   IconDashboardGrid, 
@@ -48,18 +49,8 @@ export default function HomePage() {
           gap: "0.5rem"
         }}
       >
-        <div
-          style={{
-            fontWeight: 900,
-            fontSize: "1.25rem",
-            color: "#1a1a1a",
-            letterSpacing: "-0.02em",
-            whiteSpace: "nowrap"
-          }}
-        >
-          <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
-          TeamUp
-          <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
+        <div>
+          <BrandLogo size="sm" />
         </div>
         <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "nowrap" }}>
           <Link
@@ -117,47 +108,6 @@ export default function HomePage() {
           boxSizing: "border-box"
         }}
       >
-        {/* Eyebrow */}
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "0.5rem",
-            background: "#fffce8",
-            border: "1.5px solid #1a1a1a",
-            boxShadow: "3px 3px 0px #1a1a1a",
-            borderRadius: "20px",
-            padding: "0.4rem 1rem",
-            marginBottom: "2rem",
-            maxWidth: "100%",
-            boxSizing: "border-box",
-            flexWrap: "wrap",
-            justifyContent: "center"
-          }}
-        >
-          <span
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background: "#10b981",
-              border: "1px solid #1a1a1a",
-              display: "inline-block",
-            }}
-          />
-          <span
-            style={{
-              fontSize: "0.78rem",
-              color: "#1a1a1a",
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.04em",
-            }}
-          >
-            SIH 2026 · Team formation is open
-          </span>
-        </div>
-
         {/* Headline */}
         <h1
           style={{
@@ -742,17 +692,8 @@ export default function HomePage() {
         }}
       >
         <div style={{ maxWidth: "1050px", margin: "0 auto" }}>
-          <div
-            style={{
-              fontWeight: 900,
-              fontSize: "1.15rem",
-              marginBottom: "0.5rem",
-              color: "#1a1a1a",
-            }}
-          >
-            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
-            TeamUp
-            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
+          <div style={{ marginBottom: "0.75rem" }}>
+            <BrandLogo size="md" />
           </div>
           <p style={{ fontWeight: 600 }}>
             Built for SIH 2026 · Semi-anonymous team matching · All verified

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import BrandLogo from "@/components/BrandLogo";
 import { IconDashboardGrid, IconTerminalPrompt } from "@/components/TerminalIcons";
 
 export default function SignupPage() {
@@ -152,19 +153,8 @@ export default function SignupPage() {
       <div style={{ width: "100%", maxWidth: "460px", animation: "fade-up 0.4s ease forwards" }}>
         {/* Logo + back */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <Link
-            href="/"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontWeight: 700,
-              fontSize: "1.5rem",
-              color: "#1a1a1a",
-              textDecoration: "none",
-            }}
-          >
-            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
-            TeamUp
-            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
+          <Link href="/" style={{ textDecoration: "none", display: "inline-block" }}>
+            <BrandLogo size="lg" />
           </Link>
           <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
             <span
@@ -447,19 +437,8 @@ function PathSelectionScreen({
       }}
     >
       <div style={{ textAlign: "center" }}>
-        <Link
-          href="/"
-          style={{
-            fontFamily: "var(--font-mono)",
-            fontWeight: 700,
-            fontSize: "1.5rem",
-            color: "#1a1a1a",
-            textDecoration: "none",
-          }}
-        >
-          <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
-          TeamUp
-          <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
+        <Link href="/" style={{ textDecoration: "none", display: "inline-block" }}>
+          <BrandLogo size="lg" />
         </Link>
         <h1
           style={{
