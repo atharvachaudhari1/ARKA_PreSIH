@@ -160,6 +160,7 @@ export async function GET() {
       linkedin_url: true,
       preferred_contact_visibility: true,
       led_teams: { select: { id: true }, take: 1 },
+      team_memberships: { select: { team_id: true }, take: 1 },
       skills: {
         select: { skill: true, proficiency: true },
       },
@@ -180,6 +181,7 @@ export async function GET() {
   return NextResponse.json({ 
     profile: {
       ...profileData,
+      led_teams,
       effective_visibility
     } 
   });
@@ -244,6 +246,7 @@ export async function PATCH(request: NextRequest) {
       presentation_skill_rating: true, phone_number: true, whatsapp_number: true,
       linkedin_url: true, preferred_contact_visibility: true,
       led_teams: { select: { id: true }, take: 1 },
+      team_memberships: { select: { team_id: true }, take: 1 },
       skills: { select: { skill: true, proficiency: true } },
       updated_at: true,
     },
@@ -256,6 +259,7 @@ export async function PATCH(request: NextRequest) {
   return NextResponse.json({ 
     profile: {
       ...profileData,
+      led_teams,
       effective_visibility
     } 
   });
