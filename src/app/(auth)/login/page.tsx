@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import BrandLogo from "@/components/BrandLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -65,23 +66,12 @@ export default function LoginPage() {
         }}
       >
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <Link
-            href="/"
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontWeight: 700,
-              fontSize: "1.5rem",
-              color: "#1a1a1a",
-              textDecoration: "none",
-            }}
-          >
-            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
-            TeamUp
-            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
+        <div style={{ textAlign: "center", marginBottom: "2.25rem" }}>
+          <Link href="/" style={{ textDecoration: "none", display: "inline-block" }}>
+            <BrandLogo size="lg" />
           </Link>
-          <p style={{ marginTop: "0.5rem", color: "#1a1a1a", fontSize: "0.9rem" }}>
-            Welcome back
+          <p style={{ marginTop: "1rem", color: "#1a1a1a", fontSize: "0.95rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
+            Welcome back // Secure Login
           </p>
         </div>
 

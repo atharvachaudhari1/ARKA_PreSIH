@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import NotificationCenter from "./NotificationCenter";
+import BrandLogo from "./BrandLogo";
 import { 
   IconTerminalPrompt, 
   IconDashboardGrid, 
@@ -65,9 +66,7 @@ export default function AppNavbar({ userEmail }: { userEmail: string }) {
             letterSpacing: "-0.5px",
           }}
         >
-          <span style={{ color: "#5b5fc7" }}>{"<"}</span>
-          TeamUp
-          <span style={{ color: "#5b5fc7" }}>{"/>"}</span>
+          <BrandLogo size="sm" />
         </Link>
 
         {/* Desktop nav links */}
