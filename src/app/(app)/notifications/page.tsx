@@ -194,7 +194,7 @@ export default function NotificationsPage() {
             boxShadow: "2px 2px 0px #5b5fc7",
           }}
         >
-          > SYSTEM.NOTIFICATIONS
+          {">"} SYSTEM.NOTIFICATIONS
         </div>
         <div
           style={{
