@@ -21,7 +21,7 @@ export async function PATCH(
   let body: any;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { decision } = body;
+  const { decision, slot_id } = body;
   if (!decision || !["accept", "reject"].includes(decision)) {
     return NextResponse.json({ error: "Invalid decision. Must be accept or reject." }, { status: 400 });
   }
@@ -101,6 +101,15 @@ export async function PATCH(
         if (!freshTeam) throw new Error("Team not found");
         if (freshTeam.status === "full") throw new Error("Your team is already full.");
 
+        // 0.5 Fetch fresh user state to prevent 1-team rule race condition
+        const freshUser = await tx.user.findUnique({
+          where: { id: joinRequest.requester_id },
+          include: { team_memberships: { select: { id: true } } }
+        });
+        if (!freshUser || freshUser.team_memberships.length > 0) {
+           throw new Error("This user has already joined another team.");
+        }
+
         // Check if this accept would make it mathematically impossible to meet the female quota
         const currentCount = freshTeam.memberships.length;
         const maxCount = freshTeam.event.team_size_max;
@@ -140,6 +149,26 @@ export async function PATCH(
             role: "member",
           }
         });
+
+        // 2.5 Claim a slot
+        let targetSlot = null;
+        if (slot_id) {
+          targetSlot = await tx.teamSlot.findUnique({ where: { id: slot_id } });
+          if (targetSlot && (targetSlot.team_id !== joinRequest.team_id || targetSlot.is_filled)) {
+            targetSlot = null;
+          }
+        }
+        if (!targetSlot) {
+          targetSlot = await tx.teamSlot.findFirst({
+            where: { team_id: joinRequest.team_id, is_filled: false }
+          });
+        }
+        if (targetSlot) {
+          await tx.teamSlot.update({
+            where: { id: targetSlot.id },
+            data: { is_filled: true, filled_by_user_id: joinRequest.requester_id }
+          });
+        }
 
         // 3. Cascade-expire all other pending requests FOR THIS USER
         const userOtherRequests = await tx.joinRequest.findMany({

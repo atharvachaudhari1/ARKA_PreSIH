@@ -167,7 +167,6 @@ model User {
   reports_made         Report[]           @relation("Reporter")
   reports_received     Report[]           @relation("ReportedUser")
   ocr_attempts         OcrVerificationAttempt[]
-  team_slots           TeamSlot[]
 
   @@map("users")
 }
@@ -256,7 +255,6 @@ model Team {
   notifications   Notification[]
   chat_messages   ChatMessage[]
   reports_received Report[]
-  slots           TeamSlot[]
 
   @@map("teams")
 }
@@ -274,21 +272,6 @@ model TeamMembership {
 
   @@unique([team_id, user_id])
   @@map("team_memberships")
-}
-
-model TeamSlot {
-  id                String   @id @default(cuid())
-  team_id           String
-  role_title        String?
-  gender            String   @default("any") // "male", "female", "any"
-  skills            String[]
-  is_filled         Boolean  @default(false)
-  filled_by_user_id String?
-
-  team              Team     @relation(fields: [team_id], references: [id], onDelete: Cascade)
-  user              User?    @relation(fields: [filled_by_user_id], references: [id])
-
-  @@map("team_slots")
 }
 
 // ─────────────────────────────────────────────

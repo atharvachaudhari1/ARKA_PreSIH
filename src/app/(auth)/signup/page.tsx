@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -8,6 +8,14 @@ import BrandLogo from "@/components/BrandLogo";
 import { IconDashboardGrid, IconTerminalPrompt } from "@/components/TerminalIcons";
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center", fontFamily: "var(--font-mono)" }}>Loading...</div>}>
+      <SignupContent />
+    </Suspense>
+  );
+}
+
+function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();

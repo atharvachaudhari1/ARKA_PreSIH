@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { href: "/notifications", label: "Alerts", icon: <IconConsoleAlert size={20} color="#d97706" /> },
 ];
 
-export default function AppNavbar({ userEmail, isAdmin = false }: { userEmail: string, isAdmin?: boolean }) {
+export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false }: { userEmail: string, isAdmin?: boolean, hasTeam?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -170,34 +170,36 @@ export default function AppNavbar({ userEmail, isAdmin = false }: { userEmail: s
           <NotificationCenter />
 
           {/* Desktop Create Button */}
-          <Link
-            href="/teams/create"
-            className="desktop-only"
-            id="nav-create-team"
-            style={{ 
-              display: "flex",
-              alignItems: "center",
-              gap: "0.4rem",
-              padding: "0.5rem 1rem", 
-              fontSize: "0.85rem", 
-              fontWeight: 800,
-              textDecoration: "none",
-              background: "#5b5fc7",
-              color: "#ffffff",
-              border: "2px solid #1a1a1a",
-              boxShadow: "3px 3px 0px #1a1a1a",
-              borderRadius: "4px",
-              fontFamily: "var(--font-mono)",
-              textTransform: "uppercase",
-              letterSpacing: "0.5px",
-              transition: "all 0.15s ease"
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.background = "#4a4fb5"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "4px 4px 0px #1a1a1a"; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = "#5b5fc7"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "3px 3px 0px #1a1a1a"; }}
-          >
-            <IconRocketDeploy size={18} color="#ffffff" style={{ filter: "drop-shadow(1px 1px 0px #000)" }} />
-            Create Team
-          </Link>
+          {!hasTeam && (
+            <Link
+              href="/teams/create"
+              className="desktop-only"
+              id="nav-create-team"
+              style={{ 
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                padding: "0.5rem 1rem", 
+                fontSize: "0.85rem", 
+                fontWeight: 800,
+                textDecoration: "none",
+                background: "#5b5fc7",
+                color: "#ffffff",
+                border: "2px solid #1a1a1a",
+                boxShadow: "3px 3px 0px #1a1a1a",
+                borderRadius: "4px",
+                fontFamily: "var(--font-mono)",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                transition: "all 0.15s ease"
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = "#4a4fb5"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "4px 4px 0px #1a1a1a"; }}
+              onMouseOut={(e) => { e.currentTarget.style.background = "#5b5fc7"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "3px 3px 0px #1a1a1a"; }}
+            >
+              <IconRocketDeploy size={18} color="#ffffff" style={{ filter: "drop-shadow(1px 1px 0px #000)" }} />
+              Create Team
+            </Link>
+          )}
 
           {/* User menu (Desktop only) */}
           <div style={{ position: "relative" }} className="desktop-only">

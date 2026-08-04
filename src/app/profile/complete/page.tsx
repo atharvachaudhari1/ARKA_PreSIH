@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
@@ -10,6 +10,14 @@ import Link from "next/link";
  * They skip the signup form so need to provide profile details here.
  */
 export default function ProfileCompletePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center", fontFamily: "var(--font-mono)" }}>Loading...</div>}>
+      <ProfileCompleteContent />
+    </Suspense>
+  );
+}
+
+function ProfileCompleteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();

@@ -55,6 +55,7 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { created_at: "desc" },
       include: {
+        slots: true,
         leader: {
           select: {
             id: true,
@@ -97,10 +98,13 @@ export async function POST(request: NextRequest) {
 
     const currentUser = await prisma.user.findUnique({
       where: { auth_user_id: authUser.id },
-      select: { id: true, counts_toward_female_quota: true },
+      select: { id: true, counts_toward_female_quota: true, team_memberships: { select: { id: true } } },
     });
     if (!currentUser) {
       return NextResponse.json({ error: "User profile not found. Please complete your profile first." }, { status: 404 });
+    }
+    if (currentUser.team_memberships.length > 0) {
+      return NextResponse.json({ error: "You are already in a team. You must leave your current team before creating a new one." }, { status: 400 });
     }
 
     let body: any;
@@ -110,7 +114,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode, event_id } = body;
+    const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode, event_id, slots } = body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Team name is required" }, { status: 400 });
@@ -124,10 +128,13 @@ export async function POST(request: NextRequest) {
       event = await getDefaultEvent();
     }
 
-    // Compute initial needed female count:
-    // if the creator counts toward the female quota, they satisfy 1 spot.
+    // Compute initial needed female count from the old logic (can still keep it for simplicity)
     const initialFemaleCount = currentUser.counts_toward_female_quota ? 1 : 0;
     const neededFemaleCount = Math.max(0, event.min_female_required - initialFemaleCount);
+
+    if (Array.isArray(slots) && slots.length > (event.team_size_max - 1)) {
+      return NextResponse.json({ error: `You can only define up to ${event.team_size_max - 1} open slots for this event.` }, { status: 400 });
+    }
 
     const newTeam = await prisma.$transaction(async (tx) => {
       const team = await tx.team.create({
@@ -152,6 +159,32 @@ export async function POST(request: NextRequest) {
           role: "leader",
         },
       });
+      
+      // Create a filled slot for the leader
+      await tx.teamSlot.create({
+        data: {
+          team_id: team.id,
+          role_title: "Team Leader",
+          gender: "any",
+          skills: [],
+          is_filled: true,
+          filled_by_user_id: currentUser.id
+        }
+      });
+
+      if (Array.isArray(slots) && slots.length > 0) {
+        for (const slot of slots) {
+          await tx.teamSlot.create({
+            data: {
+              team_id: team.id,
+              role_title: slot.role_title || "Open Position",
+              gender: slot.gender || "any",
+              skills: Array.isArray(slot.skills) ? slot.skills : [],
+              is_filled: false
+            }
+          });
+        }
+      }
 
       // Force leader's contact visibility to public_to_logged_in
       // FIX: field name is preferred_contact_visibility, not contact_visibility

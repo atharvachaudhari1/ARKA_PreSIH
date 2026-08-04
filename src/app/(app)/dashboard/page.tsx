@@ -34,6 +34,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 export default function DashboardPage() {
   const { data, isLoading: loading } = useSWR("/api/users/profile", fetcher);
   const profile = data?.profile || null;
+  const hasTeam = profile?.team_memberships && profile.team_memberships.length > 0;
 
   return (
     <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 1000 }}>
@@ -105,19 +106,21 @@ export default function DashboardPage() {
               </div>
             </Link>
 
-            <Link href="/teams/create" style={{ 
-              display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem",
-              background: "#ffffff", border: "2px solid #1a1a1a", borderRadius: "4px", boxShadow: "2px 2px 0px #1a1a1a",
-              transition: "all 0.15s ease", color: "var(--text-primary)"
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.borderColor = "#5b5fc7"; e.currentTarget.style.boxShadow = "4px 4px 0px #5b5fc7"; e.currentTarget.style.transform = "translateY(-2px)"; }}
-            onMouseOut={(e) => { e.currentTarget.style.borderColor = "#1a1a1a"; e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a"; e.currentTarget.style.transform = "translateY(0)"; }}>
-              <div style={{ color: "#1a1a1a" }}><IconPlus /></div>
-              <div style={{ textAlign: "left" }}>
-                <div style={{ fontWeight: 800, fontFamily: "var(--font-sans)", letterSpacing: "-0.01em" }}>Create a Team</div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>Start your own hackathon project</div>
-              </div>
-            </Link>
+            {!hasTeam && (
+              <Link href="/teams/create" style={{ 
+                display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem",
+                background: "#ffffff", border: "2px solid #1a1a1a", borderRadius: "4px", boxShadow: "2px 2px 0px #1a1a1a",
+                transition: "all 0.15s ease", color: "var(--text-primary)"
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.borderColor = "#5b5fc7"; e.currentTarget.style.boxShadow = "4px 4px 0px #5b5fc7"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseOut={(e) => { e.currentTarget.style.borderColor = "#1a1a1a"; e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a"; e.currentTarget.style.transform = "translateY(0)"; }}>
+                <div style={{ color: "#1a1a1a" }}><IconPlus /></div>
+                <div style={{ textAlign: "left" }}>
+                  <div style={{ fontWeight: 800, fontFamily: "var(--font-sans)", letterSpacing: "-0.01em" }}>Create a Team</div>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", fontWeight: 500 }}>Start your own hackathon project</div>
+                </div>
+              </Link>
+            )}
 
             <Link href="/requests" style={{ 
               display: "flex", justifyContent: "flex-start", padding: "1rem", textDecoration: "none", gap: "1rem",

@@ -31,6 +31,7 @@ interface TeamData {
   min_experience_required: number | null;
   leader: TeamLeader;
   memberships: { user: TeamMember }[];
+  slots?: { id: string; role_title: string; gender: string; skills: string[]; is_filled: boolean }[];
 }
 
 export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hideCTA?: boolean }) {
@@ -184,30 +185,34 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
         </div>
       </div>
 
-      {/* ── Skills Needed ── */}
-      {team.skills_needed.length > 0 && (
+      {/* ── Open Member Slots ── */}
+      {team.slots && team.slots.filter(s => !s.is_filled).length > 0 && (
         <div>
           <div style={{ fontSize: "0.7rem", color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 800, fontFamily: "var(--font-mono)", marginBottom: "0.5rem" }}>
-            [REQUIRED TECHNOLOGIES]
+            [OPEN MEMBER SLOTS]
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-            {team.skills_needed.map((skill) => (
-              <span
-                key={skill}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+            {team.slots.filter(s => !s.is_filled).map((slot) => (
+              <div
+                key={slot.id}
                 style={{
                   background: "#ffffff", 
                   border: "1.5px solid #1a1a1a",
                   boxShadow: "1.5px 1.5px 0px #1a1a1a",
                   borderRadius: "3px", 
-                  padding: "3px 8px", 
-                  fontSize: "0.75rem", 
-                  fontWeight: 700,
-                  fontFamily: "var(--font-mono)",
-                  color: "#1a1a1a"
+                  padding: "6px 10px", 
+                  fontSize: "0.8rem", 
+                  color: "#1a1a1a",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.25rem"
                 }}
               >
-                ⚡ {skill}
-              </span>
+                <div style={{ fontWeight: 800 }}>⚡ {slot.role_title}</div>
+                <div style={{ fontSize: "0.7rem", color: "#666", fontWeight: 600, fontFamily: "var(--font-mono)" }}>
+                  Req: {slot.gender.toUpperCase()} {slot.skills.length > 0 && `| ${slot.skills.join(", ")}`}
+                </div>
+              </div>
             ))}
           </div>
         </div>

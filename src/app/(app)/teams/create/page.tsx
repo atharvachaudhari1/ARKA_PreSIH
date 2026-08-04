@@ -98,23 +98,24 @@ function CreateTeamForm() {
     succession_mode: "manual",
   });
 
-  const [skills, setSkills] = useState<string[]>([]);
-  const [newSkill, setNewSkill] = useState("");
+  const [slots, setSlots] = useState<{ role_title: string; gender: string; skills: string[] }[]>([]);
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
   }
 
-  function handleAddSkill() {
-    const trimmed = newSkill.trim();
-    if (trimmed && !skills.includes(trimmed)) {
-      setSkills([...skills, trimmed]);
-      setNewSkill("");
-    }
+  function addSlot() {
+    setSlots([...slots, { role_title: "", gender: "any", skills: [] }]);
   }
 
-  function handleRemoveSkill(skillToRemove: string) {
-    setSkills(skills.filter((s) => s !== skillToRemove));
+  function removeSlot(index: number) {
+    setSlots(slots.filter((_, i) => i !== index));
+  }
+
+  function updateSlot(index: number, field: string, value: any) {
+    const newSlots = [...slots];
+    newSlots[index] = { ...newSlots[index], [field]: value };
+    setSlots(newSlots);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -133,7 +134,8 @@ function CreateTeamForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
-        skills_needed: skills,
+        skills_needed: Array.from(new Set(slots.flatMap(s => s.skills))),
+        slots,
         event_id: eventId,
       }),
     });
@@ -263,117 +265,42 @@ function CreateTeamForm() {
             </p>
           </div>
 
-          {/* Skills */}
+          {/* Member Slots */}
           <div>
             <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
-              Required Technologies &amp; Skill Gaps
+              Required Member Slots
             </label>
-            {skills.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
-                {skills.map((s) => (
-                  <div
-                    key={s}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: "0.5rem",
-                      background: "#eef0ff",
-                      border: "1.5px solid #5b5fc7",
-                      boxShadow: "1.5px 1.5px 0px #1a1a1a",
-                      borderRadius: "3px", padding: "4px 10px",
-                      fontFamily: "var(--font-mono)", fontSize: "0.8rem",
-                      color: "#1a1a1a", fontWeight: 700
-                    }}
-                  >
-                    <IconZap /> {s}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveSkill(s)}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: "1rem", fontWeight: 900, padding: 0, lineHeight: 1, display: "flex", alignItems: "center" }}
-                    >
-                      <IconX />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div style={{ position: "relative" }}>
-              <div className="responsive-stack" style={{ display: "flex", gap: "0.75rem" }}>
-                <input
-                  style={{ ...fieldStyle, flex: 1 }}
-                  placeholder="e.g. React, Next.js, AI/ML, Figma"
-                  value={newSkill}
-                  onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddSkill();
-                    }
-                  }}
-                  {...fieldHover}
-                />
-                <button
-                  type="button"
-                  onClick={handleAddSkill}
-                  disabled={!newSkill.trim()}
-                  className="btn-mobile-full"
-                  style={{
-                    padding: "0.65rem 1.25rem",
-                    background: "#f8f6f0",
-                    color: "#1a1a1a",
-                    border: "2px solid #1a1a1a",
-                    boxShadow: "2.5px 2.5px 0px #1a1a1a",
-                    borderRadius: "4px",
-                    fontWeight: 800,
-                    fontFamily: "var(--font-mono)",
-                    cursor: newSkill.trim() ? "pointer" : "not-allowed",
-                    minHeight: "44px",
-                    transition: "all 0.15s ease",
-                    opacity: newSkill.trim() ? 1 : 0.6,
-                  }}
-                  onMouseOver={(e) => {
-                    if (newSkill.trim()) {
-                      e.currentTarget.style.borderColor = "#5b5fc7";
-                      e.currentTarget.style.boxShadow = "3px 3px 0px #5b5fc7";
-                      e.currentTarget.style.transform = "translateY(-1px)";
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.borderColor = "#1a1a1a";
-                    e.currentTarget.style.boxShadow = "2.5px 2.5px 0px #1a1a1a";
-                    e.currentTarget.style.transform = "translateY(0)";
-                  }}
-                >
-                  + Add Skill
-                </button>
-              </div>
-              
-              {/* Dropdown for suggestions */}
-              {newSkill.trim() && COMMON_SKILLS.filter(s => s.toLowerCase().includes(newSkill.toLowerCase()) && !skills.includes(s)).length > 0 && (
-                <div style={{
-                  position: "absolute", top: "100%", left: 0, width: "calc(100% - 130px)", 
-                  background: "#ffffff", border: "2px solid #1a1a1a", borderRadius: "4px",
-                  boxShadow: "4px 4px 0px #1a1a1a", zIndex: 10, marginTop: "4px",
-                  maxHeight: "150px", overflowY: "auto"
-                }}>
-                  {COMMON_SKILLS.filter(s => s.toLowerCase().includes(newSkill.toLowerCase()) && !skills.includes(s)).map(s => (
-                    <div
-                      key={s}
-                      onClick={() => {
-                        setSkills([...skills, s]);
-                        setNewSkill("");
-                      }}
-                      style={{
-                        padding: "0.5rem 0.85rem", cursor: "pointer", borderBottom: "1px solid #eae5dc",
-                        fontWeight: 600, fontSize: "0.9rem", color: "#1a1a1a"
-                      }}
-                      onMouseOver={(e) => e.currentTarget.style.background = "#f4f4f4"}
-                      onMouseOut={(e) => e.currentTarget.style.background = "transparent"}
-                    >
-                      {s}
+            <p style={{ fontSize: "0.78rem", color: "#666", marginTop: "0", marginBottom: "1rem", fontWeight: 600 }}>
+              <IconLightbulb /> Define specific roles, gender requirements, and skills for each member you need.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1rem" }}>
+              {slots.map((slot, i) => (
+                <div key={i} style={{ background: "#f8f6f0", border: "2px solid #1a1a1a", borderRadius: "4px", padding: "1rem", position: "relative" }}>
+                  <button type="button" onClick={() => removeSlot(i)} style={{ position: "absolute", top: "0.5rem", right: "0.5rem", background: "none", border: "none", cursor: "pointer", color: "#dc2626" }}><IconX /></button>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>Role Title</label>
+                      <input placeholder="e.g. Frontend Dev" value={slot.role_title} onChange={e => updateSlot(i, "role_title", e.target.value)} style={{...fieldStyle, padding: "0.4rem 0.6rem", minHeight: "36px"}} />
                     </div>
-                  ))}
+                    <div>
+                      <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>Gender Req</label>
+                      <select value={slot.gender} onChange={e => updateSlot(i, "gender", e.target.value)} style={{...fieldStyle, padding: "0.4rem 0.6rem", minHeight: "36px"}}>
+                        <option value="any">Any</option>
+                        <option value="female">Female</option>
+                        <option value="male">Male</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>Skills (comma separated)</label>
+                    <input placeholder="e.g. React, UI/UX" value={slot.skills.join(", ")} onChange={e => updateSlot(i, "skills", e.target.value.split(",").map(s => s.trim()).filter(Boolean))} style={{...fieldStyle, padding: "0.4rem 0.6rem", minHeight: "36px"}} />
+                  </div>
                 </div>
-              )}
+              ))}
             </div>
+            <button type="button" onClick={addSlot} style={{ padding: "0.65rem 1.25rem", background: "#ffffff", color: "#1a1a1a", border: "2px dashed #1a1a1a", borderRadius: "4px", fontWeight: 800, cursor: "pointer", width: "100%" }}>
+              + Add Member Slot
+            </button>
           </div>
 
           {error && (
