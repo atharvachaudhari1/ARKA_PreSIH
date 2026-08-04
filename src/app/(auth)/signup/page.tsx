@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { IconDashboardGrid, IconTerminalPrompt } from "@/components/TerminalIcons";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -141,27 +142,13 @@ export default function SignupPage() {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--color-bg-base)",
+        background: "#f7f4ee",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "1.25rem",
       }}
     >
-      <div
-        style={{
-          position: "fixed",
-          top: "20%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 600,
-          height: 600,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.07) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
-
       <div style={{ width: "100%", maxWidth: "460px", animation: "fade-up 0.4s ease forwards" }}>
         {/* Logo + back */}
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
@@ -171,25 +158,25 @@ export default function SignupPage() {
               fontFamily: "var(--font-mono)",
               fontWeight: 700,
               fontSize: "1.5rem",
-              color: "var(--color-text-primary)",
+              color: "#1a1a1a",
               textDecoration: "none",
             }}
           >
-            <span style={{ color: "var(--color-brand-light)" }}>{"<"}</span>
+            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
             TeamUp
-            <span style={{ color: "var(--color-brand-light)" }}>{"/>"}</span>
+            <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
           </Link>
           <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
             <span
               style={{
-                background: selectedPath === "join" ? "rgba(99,102,241,0.15)" : "rgba(245,158,11,0.12)",
-                border: `1px solid ${selectedPath === "join" ? "rgba(99,102,241,0.3)" : "rgba(245,158,11,0.3)"}`,
-                borderRadius: "var(--radius-full)",
+                background: selectedPath === "join" ? "rgba(91,95,199,0.1)" : "rgba(217,119,6,0.1)",
+                border: `1.5px solid ${selectedPath === "join" ? "#5b5fc7" : "#d97706"}`,
+                borderRadius: "2px",
                 padding: "0.25rem 0.85rem",
                 fontSize: "0.75rem",
                 fontFamily: "var(--font-mono)",
-                color: selectedPath === "join" ? "var(--color-brand-light)" : "var(--color-amber)",
-                fontWeight: 500,
+                color: selectedPath === "join" ? "#5b5fc7" : "#d97706",
+                fontWeight: 700,
               }}
             >
               {selectedPath === "join" ? "// joining a team" : "// creating a team"}
@@ -199,9 +186,11 @@ export default function SignupPage() {
               style={{
                 background: "none",
                 border: "none",
-                color: "var(--color-text-muted)",
+                color: "#1a1a1a",
                 cursor: "pointer",
                 fontSize: "0.75rem",
+                textDecoration: "underline",
+                fontWeight: 600
               }}
             >
               change
@@ -209,14 +198,13 @@ export default function SignupPage() {
           </div>
         </div>
 
-        <div className="card" style={{ padding: "2rem", border: "1px solid var(--color-border-hover)" }}>
+        <div className="card" style={{ padding: "2rem", border: "1.5px solid #1a1a1a", background: "#ffffff", boxShadow: "3px 3px 0px #1a1a1a", borderRadius: "2px" }}>
           {/* Google */}
           <button
             id="btn-google-signup"
             onClick={handleGoogleSignup}
             disabled={googleLoading || loading}
-            className="btn btn-secondary"
-            style={{ width: "100%", gap: "0.75rem", marginBottom: "1.5rem" }}
+            style={{ width: "100%", gap: "0.75rem", marginBottom: "1.5rem", background: "#f7f4ee", color: "#1a1a1a", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.75rem", cursor: "pointer" }}
           >
             {googleLoading ? (
               <span style={{ opacity: 0.7 }}>Redirecting…</span>
@@ -233,12 +221,12 @@ export default function SignupPage() {
             )}
           </button>
 
-          <div className="divider" style={{ marginBottom: "1.5rem" }}>or create account</div>
+          <div className="divider" style={{ marginBottom: "1.5rem", textAlign: "center", color: "#1a1a1a", fontWeight: "bold" }}>or create account</div>
 
           <form onSubmit={handleSignup} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label htmlFor="signup-name" className="input-label">Full name</label>
+            <div className="responsive-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="signup-name" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Full name</label>
                 <input
                   id="signup-name"
                   type="text"
@@ -246,12 +234,12 @@ export default function SignupPage() {
                   value={form.name}
                   onChange={(e) => update("name", e.target.value)}
                   placeholder="Aarav Sharma"
-                  className="input-field"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
                 />
               </div>
 
-              <div>
-                <label htmlFor="signup-email" className="input-label">Email</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="signup-email" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Email</label>
                 <input
                   id="signup-email"
                   type="email"
@@ -259,20 +247,19 @@ export default function SignupPage() {
                   value={form.email}
                   onChange={(e) => update("email", e.target.value)}
                   placeholder="you@college.ac.in"
-                  className="input-field"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
                   autoComplete="email"
                 />
               </div>
 
-              <div>
-                <label htmlFor="signup-gender" className="input-label">Gender</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="signup-gender" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Gender</label>
                 <select
                   id="signup-gender"
                   required
                   value={form.gender}
                   onChange={(e) => update("gender", e.target.value)}
-                  className="input-field"
-                  style={{ cursor: "pointer" }}
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box", cursor: "pointer" }}
                 >
                   <option value="">Select…</option>
                   <option value="male">Male</option>
@@ -280,8 +267,8 @@ export default function SignupPage() {
                 </select>
               </div>
 
-              <div>
-                <label htmlFor="signup-college" className="input-label">College</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="signup-college" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>College</label>
                 <input
                   id="signup-college"
                   type="text"
@@ -289,12 +276,12 @@ export default function SignupPage() {
                   value={form.college}
                   onChange={(e) => update("college", e.target.value)}
                   placeholder="IIT Bombay"
-                  className="input-field"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
                 />
               </div>
 
-              <div>
-                <label htmlFor="signup-dept" className="input-label">Department</label>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="signup-dept" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Department</label>
                 <input
                   id="signup-dept"
                   type="text"
@@ -302,12 +289,12 @@ export default function SignupPage() {
                   value={form.department}
                   onChange={(e) => update("department", e.target.value)}
                   placeholder="CSE"
-                  className="input-field"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
                 />
               </div>
 
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label htmlFor="signup-password" className="input-label">Password</label>
+              <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="signup-password" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Password</label>
                 <input
                   id="signup-password"
                   type="password"
@@ -316,13 +303,13 @@ export default function SignupPage() {
                   value={form.password}
                   onChange={(e) => update("password", e.target.value)}
                   placeholder="Minimum 8 characters"
-                  className="input-field"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
                   autoComplete="new-password"
                 />
               </div>
 
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label htmlFor="signup-confirm-password" className="input-label">Confirm password</label>
+              <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="signup-confirm-password" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Confirm password</label>
                 <input
                   id="signup-confirm-password"
                   type="password"
@@ -330,28 +317,28 @@ export default function SignupPage() {
                   value={form.confirmPassword}
                   onChange={(e) => update("confirmPassword", e.target.value)}
                   placeholder="••••••••"
-                  className="input-field"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
                   autoComplete="new-password"
                 />
               </div>
 
               {/* ID Card upload — mandatory */}
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label htmlFor="signup-id-card" className="input-label">
+              <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="signup-id-card" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>
                   College ID card{" "}
-                  <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>
+                  <span style={{ color: "#444", fontWeight: 400 }}>
                     (required for verification)
                   </span>
                 </label>
                 <div
                   style={{
-                    border: `2px dashed ${idCard ? "var(--color-brand)" : "var(--color-border-hover)"}`,
-                    borderRadius: "var(--radius-md)",
+                    border: `1.5px dashed #1a1a1a`,
+                    borderRadius: "2px",
                     padding: "1.25rem",
                     textAlign: "center",
                     cursor: "pointer",
                     transition: "all 0.18s ease",
-                    background: idCard ? "rgba(99,102,241,0.05)" : "transparent",
+                    background: idCard ? "#f7f4ee" : "#ffffff",
                     position: "relative",
                   }}
                   onClick={() => document.getElementById("signup-id-card")?.click()}
@@ -366,26 +353,26 @@ export default function SignupPage() {
                   {idCard ? (
                     <div>
                       <div style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>✅</div>
-                      <div style={{ fontSize: "0.875rem", color: "var(--color-text-primary)", fontWeight: 500 }}>
+                      <div style={{ fontSize: "0.875rem", color: "#1a1a1a", fontWeight: 700 }}>
                         {idCard.name}
                       </div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#444", marginTop: "0.2rem" }}>
                         {(idCard.size / 1024).toFixed(0)} KB · Click to change
                       </div>
                     </div>
                   ) : (
                     <div>
                       <div style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>🪪</div>
-                      <div style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)", fontWeight: 500 }}>
+                      <div style={{ fontSize: "0.875rem", color: "#1a1a1a", fontWeight: 700 }}>
                         Upload your college ID
                       </div>
-                      <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.2rem" }}>
+                      <div style={{ fontSize: "0.75rem", color: "#444", marginTop: "0.2rem" }}>
                         JPG, PNG, PDF · Max 5 MB
                       </div>
                     </div>
                   )}
                 </div>
-                <p style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginTop: "0.4rem" }}>
+                <p style={{ fontSize: "0.72rem", color: "#444", marginTop: "0.4rem" }}>
                   🔒 Only seen by our automated verification system. Never shown to other users.
                 </p>
               </div>
@@ -395,11 +382,12 @@ export default function SignupPage() {
               <div
                 style={{
                   background: "rgba(239,68,68,0.1)",
-                  border: "1px solid rgba(239,68,68,0.25)",
-                  borderRadius: "var(--radius-md)",
+                  border: "1.5px solid #1a1a1a",
+                  borderRadius: "2px",
                   padding: "0.75rem 1rem",
-                  color: "#f87171",
+                  color: "#ef4444",
                   fontSize: "0.875rem",
+                  fontWeight: 600
                 }}
               >
                 {error}
@@ -410,8 +398,7 @@ export default function SignupPage() {
               id="btn-create-account"
               type="submit"
               disabled={loading || googleLoading}
-              className="btn btn-primary"
-              style={{ width: "100%", marginTop: "0.25rem" }}
+              style={{ width: "100%", marginTop: "0.5rem", background: "#5b5fc7", color: "#fff", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", padding: "0.75rem", cursor: "pointer" }}
             >
               {loading ? "Creating account…" : "Create account"}
             </button>
@@ -422,14 +409,15 @@ export default function SignupPage() {
           style={{
             textAlign: "center",
             marginTop: "1.5rem",
-            color: "var(--color-text-muted)",
+            color: "#1a1a1a",
             fontSize: "0.875rem",
+            fontWeight: 500,
           }}
         >
           Already have an account?{" "}
           <Link
             href="/login"
-            style={{ color: "var(--color-brand-light)", textDecoration: "none", fontWeight: 500 }}
+            style={{ color: "#5b5fc7", textDecoration: "none", fontWeight: 700 }}
           >
             Sign in
           </Link>
@@ -449,7 +437,7 @@ function PathSelectionScreen({
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--color-bg-base)",
+        background: "#f7f4ee",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -458,20 +446,6 @@ function PathSelectionScreen({
         gap: "2.5rem",
       }}
     >
-      <div
-        style={{
-          position: "fixed",
-          top: "20%",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 800,
-          height: 800,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99,102,241,0.06) 0%, transparent 70%)",
-          pointerEvents: "none",
-        }}
-      />
-
       <div style={{ textAlign: "center" }}>
         <Link
           href="/"
@@ -479,13 +453,13 @@ function PathSelectionScreen({
             fontFamily: "var(--font-mono)",
             fontWeight: 700,
             fontSize: "1.5rem",
-            color: "var(--color-text-primary)",
+            color: "#1a1a1a",
             textDecoration: "none",
           }}
         >
-          <span style={{ color: "var(--color-brand-light)" }}>{"<"}</span>
+          <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"<"}</span>
           TeamUp
-          <span style={{ color: "var(--color-brand-light)" }}>{"/>"}</span>
+          <span style={{ color: "#5b5fc7", fontWeight: 900 }}>{"/>"}</span>
         </Link>
         <h1
           style={{
@@ -493,6 +467,7 @@ function PathSelectionScreen({
             fontSize: "clamp(1.75rem, 4vw, 2.5rem)",
             fontWeight: 800,
             lineHeight: 1.2,
+            color: "#1a1a1a"
           }}
         >
           What are you here to do?
@@ -500,7 +475,8 @@ function PathSelectionScreen({
         <p
           style={{
             marginTop: "0.75rem",
-            color: "var(--color-text-secondary)",
+            color: "#1a1a1a",
+            fontWeight: 500,
             fontSize: "1rem",
           }}
         >
@@ -522,53 +498,53 @@ function PathSelectionScreen({
           id="path-join-team"
           onClick={() => onSelect("join")}
           style={{
-            background: "var(--color-bg-card)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-xl)",
+            background: "#ffffff",
+            border: "2px solid #1a1a1a",
+            boxShadow: "4px 4px 0px #1a1a1a",
+            borderRadius: "2px",
             padding: "2.5rem 2rem",
             cursor: "pointer",
             textAlign: "left",
             transition: "all 0.2s ease",
-            color: "inherit",
+            color: "#1a1a1a",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-brand)";
-            (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-3px)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "var(--shadow-brand)";
+            (e.currentTarget as HTMLButtonElement).style.transform = "translate(-2px, -2px)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "6px 6px 0px #1a1a1a";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
-            (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+            (e.currentTarget as HTMLButtonElement).style.transform = "translate(0px, 0px)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "4px 4px 0px #1a1a1a";
           }}
         >
           <div
             style={{
               width: 56,
               height: 56,
-              borderRadius: "var(--radius-lg)",
-              background: "rgba(99,102,241,0.12)",
+              borderRadius: "2px",
+              border: "1.5px solid #1a1a1a",
+              background: "#e0e7ff",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               marginBottom: "1.5rem",
-              fontSize: "1.75rem",
+              boxShadow: "2px 2px 0px #1a1a1a"
             }}
           >
-            🔍
+            <IconDashboardGrid size={32} color="#5b5fc7" />
           </div>
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "0.6rem" }}>
+          <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "0.6rem" }}>
             Join a Team
           </h2>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "0.9rem", lineHeight: 1.6 }}>
+          <p style={{ color: "#444", fontSize: "0.9rem", lineHeight: 1.6 }}>
             Browse open teams, check their skill gaps, and request to join — your
             profile is only shared with the teams you apply to.
           </p>
           <div
             style={{
               marginTop: "1.5rem",
-              color: "var(--color-brand-light)",
-              fontWeight: 600,
+              color: "#5b5fc7",
+              fontWeight: 800,
               fontSize: "0.9rem",
               display: "flex",
               alignItems: "center",
@@ -584,53 +560,53 @@ function PathSelectionScreen({
           id="path-create-team"
           onClick={() => onSelect("create")}
           style={{
-            background: "var(--color-bg-card)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "var(--radius-xl)",
+            background: "#ffffff",
+            border: "2px solid #1a1a1a",
+            boxShadow: "4px 4px 0px #1a1a1a",
+            borderRadius: "2px",
             padding: "2.5rem 2rem",
             cursor: "pointer",
             textAlign: "left",
             transition: "all 0.2s ease",
-            color: "inherit",
+            color: "#1a1a1a",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-amber)";
-            (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-3px)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 24px rgba(245,158,11,0.2)";
+            (e.currentTarget as HTMLButtonElement).style.transform = "translate(-2px, -2px)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "6px 6px 0px #1a1a1a";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--color-border)";
-            (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+            (e.currentTarget as HTMLButtonElement).style.transform = "translate(0px, 0px)";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "4px 4px 0px #1a1a1a";
           }}
         >
           <div
             style={{
               width: 56,
               height: 56,
-              borderRadius: "var(--radius-lg)",
-              background: "rgba(245,158,11,0.1)",
+              borderRadius: "2px",
+              border: "1.5px solid #1a1a1a",
+              background: "#fef3c7",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               marginBottom: "1.5rem",
-              fontSize: "1.75rem",
+              boxShadow: "2px 2px 0px #1a1a1a"
             }}
           >
-            ⚡
+            <IconTerminalPrompt size={32} color="#5b5fc7" />
           </div>
-          <h2 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "0.6rem" }}>
+          <h2 style={{ fontSize: "1.25rem", fontWeight: 800, marginBottom: "0.6rem" }}>
             Create a Team
           </h2>
-          <p style={{ color: "var(--color-text-secondary)", fontSize: "0.9rem", lineHeight: 1.6 }}>
+          <p style={{ color: "#444", fontSize: "0.9rem", lineHeight: 1.6 }}>
             Start a team and become the leader. Define what skills you need, invite
             people or let them find you — you make the final call on who joins.
           </p>
           <div
             style={{
               marginTop: "1.5rem",
-              color: "var(--color-amber)",
-              fontWeight: 600,
+              color: "#d97706",
+              fontWeight: 800,
               fontSize: "0.9rem",
               display: "flex",
               alignItems: "center",
@@ -644,15 +620,16 @@ function PathSelectionScreen({
 
       <p
         style={{
-          color: "var(--color-text-muted)",
+          color: "#1a1a1a",
           fontSize: "0.875rem",
           marginTop: "1.5rem",
+          fontWeight: 500
         }}
       >
         Already have an account?{" "}
         <Link
           href="/login"
-          style={{ color: "var(--color-brand-light)", textDecoration: "none", fontWeight: 500 }}
+          style={{ color: "#5b5fc7", textDecoration: "none", fontWeight: 700 }}
         >
           Sign in
         </Link>

@@ -21,9 +21,9 @@ export default async function AppLayout({
 
   if (!user) redirect("/login");
 
-  // Check if profile exists
+  // Check if profile exists and get is_admin status
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?auth_user_id=eq.${user.id}&select=id`,
+    `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/users?auth_user_id=eq.${user.id}&select=id,is_admin`,
     {
       headers: {
         apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -38,9 +38,11 @@ export default async function AppLayout({
     redirect("/profile/complete");
   }
 
+  const isAdmin = hasProfile ? rows[0].is_admin === true : false;
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}>
-      <AppNavbar userEmail={user.email ?? ""} />
+      <AppNavbar userEmail={user.email ?? ""} isAdmin={isAdmin} />
       {children}
     </div>
   );

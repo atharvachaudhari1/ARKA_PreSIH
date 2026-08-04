@@ -57,37 +57,84 @@ export default function CreateTeamPage() {
     });
 
     if (res.ok) {
-      const data = await res.json();
-      router.push(`/teams/${data.team.id}`);
+      router.push(`/dashboard`);
       router.refresh();
     } else {
-      const data = await res.json();
-      setError(data.error || "Failed to create team.");
+      let errorMessage = "Failed to create team.";
+      try {
+        const data = await res.json();
+        if (data.error) errorMessage = data.error;
+      } catch (err) {
+        // Fallback for body-less 500 errors
+      }
+      setError(errorMessage);
       setLoading(false);
     }
   }
 
   return (
-    <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 600 }}>
+    <div className="page-container" style={{ padding: "2.5rem 1.25rem", maxWidth: "680px", margin: "0 auto", boxSizing: "border-box" }}>
       <div style={{ marginBottom: "2rem" }}>
-      <p className="section-title" style={{ marginBottom: "0.4rem" }}>Create</p>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: 900, letterSpacing: "-0.02em" }}>Create a <span className="gradient-text">Team</span></h1>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: "0.875rem", marginTop: "0.25rem" }}>
-          You will automatically be assigned as the team leader.
+        <div style={{
+          display: "inline-block",
+          background: "#1a1a1a",
+          color: "#ffffff",
+          padding: "0.3rem 0.75rem",
+          fontSize: "0.75rem",
+          fontFamily: "var(--font-mono)",
+          fontWeight: 800,
+          borderRadius: "3px",
+          marginBottom: "0.75rem",
+          letterSpacing: "1px",
+          boxShadow: "2px 2px 0px #5b5fc7"
+        }}>
+          $ MKDIR ./NEW_TEAM --INIT
+        </div>
+        <h1 style={{ fontSize: "2.25rem", fontWeight: 900, color: "#1a1a1a", letterSpacing: "-0.03em", margin: "0 0 0.4rem" }}>
+          Deploy a New Squad
+        </h1>
+        <p style={{ color: "#5a5a5a", fontSize: "0.95rem", fontWeight: 500, margin: 0 }}>
+          Initialize your team profile. You will automatically be assigned as the executive squad leader.
         </p>
       </div>
 
-      <div className="card" style={{ padding: "2rem" }}>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+      <div 
+        style={{ 
+          background: "#ffffff", 
+          border: "2px solid #1a1a1a", 
+          boxShadow: "5px 5px 0px #1a1a1a", 
+          borderRadius: "6px", 
+          padding: "2rem",
+          boxSizing: "border-box"
+        }}
+        className="card"
+      >
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           <div>
-            <label htmlFor="team-name" className="input-label">Team Name <span style={{ color: "#ef4444" }}>*</span></label>
-            <input id="team-name" required value={form.name} onChange={(e) => update("name", e.target.value)} placeholder="e.g. Code Blooded" className="input-field" />
+            <label htmlFor="team-name" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              Squad Designation <span style={{ color: "#dc2626" }}>*</span>
+            </label>
+            <input 
+              id="team-name" 
+              required 
+              value={form.name} 
+              onChange={(e) => update("name", e.target.value)} 
+              placeholder="e.g. Cybernauts / Code Blooded" 
+              style={{ border: "2px solid #1a1a1a", borderRadius: "4px", padding: "0.65rem 0.85rem", background: "#fdfbfa", color: "#1a1a1a", fontWeight: 700, fontSize: "0.95rem", width: "100%", boxSizing: "border-box", minHeight: "44px" }} 
+            />
           </div>
 
           <div>
-            <label htmlFor="team-domain" className="input-label">Domain Interest</label>
-            <select id="team-domain" value={form.domain_interest} onChange={(e) => update("domain_interest", e.target.value)} className="input-field" style={{ cursor: "pointer" }}>
-              <option value="">Select a theme…</option>
+            <label htmlFor="team-domain" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              Target Hackathon Domain
+            </label>
+            <select 
+              id="team-domain" 
+              value={form.domain_interest} 
+              onChange={(e) => update("domain_interest", e.target.value)} 
+              style={{ border: "2px solid #1a1a1a", borderRadius: "4px", padding: "0.65rem 0.85rem", background: "#fdfbfa", color: "#1a1a1a", fontWeight: 700, fontSize: "0.95rem", width: "100%", boxSizing: "border-box", cursor: "pointer", minHeight: "44px" }}
+            >
+              <option value="">Select an SIH theme / sector…</option>
               {SIH_THEMES.map(theme => (
                 <option key={theme} value={theme}>{theme}</option>
               ))}
@@ -95,56 +142,71 @@ export default function CreateTeamPage() {
           </div>
 
           <div>
-            <label htmlFor="team-desc" className="input-label">Description <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>(optional)</span></label>
-            <textarea id="team-desc" value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="What are you building? What's your team's vibe?" className="input-field" rows={3} style={{ resize: "vertical" }} />
+            <label htmlFor="team-desc" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              Mission Objective <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+            </label>
+            <textarea 
+              id="team-desc" 
+              value={form.description} 
+              onChange={(e) => update("description", e.target.value)} 
+              placeholder="What problem statement are you tackling? What is the technical vibe of your team?" 
+              rows={4} 
+              style={{ border: "2px solid #1a1a1a", borderRadius: "4px", padding: "0.65rem 0.85rem", background: "#fdfbfa", color: "#1a1a1a", fontWeight: 500, fontSize: "0.95rem", width: "100%", boxSizing: "border-box", resize: "vertical" }} 
+            />
           </div>
 
           <div>
-            <label htmlFor="team-exp" className="input-label">Minimum Hackathons Experience Required</label>
-            <input id="team-exp" type="number" min="0" value={form.min_experience_required} onChange={(e) => update("min_experience_required", e.target.value)} className="input-field" />
-            <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: "0.25rem" }}>
-              Filter out applicants who have less than this many past hackathons.
+            <label htmlFor="team-exp" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              Minimum Hackathons Experience Filter
+            </label>
+            <input 
+              id="team-exp" 
+              type="number" 
+              min="0" 
+              value={form.min_experience_required} 
+              onChange={(e) => update("min_experience_required", e.target.value)} 
+              style={{ border: "2px solid #1a1a1a", borderRadius: "4px", padding: "0.65rem 0.85rem", background: "#fdfbfa", color: "#1a1a1a", fontWeight: 700, fontSize: "0.95rem", width: "100%", boxSizing: "border-box", minHeight: "44px" }} 
+            />
+            <p style={{ fontSize: "0.78rem", color: "#666", marginTop: "0.35rem", fontWeight: 600 }}>
+              💡 Only applicants matching or exceeding this hackathon count will appear in priority filtering.
             </p>
           </div>
 
           <div>
-            <label htmlFor="team-succession" className="input-label">Succession Mode</label>
-            <select id="team-succession" value={form.succession_mode} onChange={(e) => update("succession_mode", e.target.value)} className="input-field" style={{ cursor: "pointer" }}>
-              <option value="manual">Manual (Leader must manually transfer leadership)</option>
-              <option value="auto_promote">Auto Promote (Next oldest member becomes leader if you leave)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="input-label">Skills Needed</label>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
-              {skills.map((s) => (
-                <div
-                  key={s}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: "0.5rem",
-                    background: "rgba(246,70,104,0.10)",
-                    border: "1px solid rgba(246,70,104,0.25)",
-                    borderRadius: "var(--radius-full)", padding: "3px 11px",
-                    fontFamily: "var(--font-mono)", fontSize: "0.78rem",
-                    color: "var(--ember-peach)", fontWeight: 500
-                  }}
-                >
-                  {s}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSkill(s)}
-                    style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-muted)", fontSize: "0.75rem", padding: 0, lineHeight: 1 }}
+            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              Required Technologies & Skill Gaps
+            </label>
+            {skills.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                {skills.map((s) => (
+                  <div
+                    key={s}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: "0.5rem",
+                      background: "#eef0ff",
+                      border: "1.5px solid #5b5fc7",
+                      boxShadow: "1.5px 1.5px 0px #1a1a1a",
+                      borderRadius: "3px", padding: "4px 10px",
+                      fontFamily: "var(--font-mono)", fontSize: "0.8rem",
+                      color: "#1a1a1a", fontWeight: 700
+                    }}
                   >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
+                    ⚡ {s}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSkill(s)}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "#dc2626", fontSize: "1rem", fontWeight: 900, padding: 0, lineHeight: 1 }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="responsive-stack" style={{ display: "flex", gap: "0.75rem" }}>
               <input
-                className="input-field"
-                placeholder="e.g. React, UX Design"
+                style={{ flex: 1, border: "2px solid #1a1a1a", borderRadius: "4px", padding: "0.65rem 0.85rem", background: "#fdfbfa", color: "#1a1a1a", fontWeight: 600, fontSize: "0.95rem", boxSizing: "border-box", minHeight: "44px" }}
+                placeholder="e.g. React, Next.js, AI/ML, Figma"
                 value={newSkill}
                 onChange={(e) => setNewSkill(e.target.value)}
                 onKeyDown={(e) => {
@@ -154,21 +216,57 @@ export default function CreateTeamPage() {
                   }
                 }}
               />
-              <button type="button" onClick={handleAddSkill} disabled={!newSkill.trim()} className="btn btn-secondary btn-sm" style={{ padding: "0 1rem" }}>
-                Add
+              <button 
+                type="button" 
+                onClick={handleAddSkill} 
+                disabled={!newSkill.trim()} 
+                className="btn-mobile-full"
+                style={{ 
+                  padding: "0.65rem 1.25rem", 
+                  background: "#f8f6f0", 
+                  color: "#1a1a1a", 
+                  border: "2px solid #1a1a1a", 
+                  boxShadow: "2.5px 2.5px 0px #1a1a1a", 
+                  borderRadius: "4px", 
+                  fontWeight: 800, 
+                  fontFamily: "var(--font-mono)", 
+                  cursor: "pointer",
+                  minHeight: "44px"
+                }}
+              >
+                + Add Skill
               </button>
             </div>
           </div>
 
           {error && (
-            <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#f87171", fontSize: "0.875rem" }}>
-              {error}
+            <div style={{ background: "#fef2f2", border: "2px solid #dc2626", borderRadius: "4px", padding: "0.85rem", color: "#dc2626", fontWeight: 700, fontSize: "0.9rem", fontFamily: "var(--font-mono)" }}>
+              ⚠️ [ERROR]: {error}
             </div>
           )}
 
           <div style={{ marginTop: "1rem" }}>
-            <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: "100%" }}>
-              {loading ? "Creating…" : "Create Team"}
+            <button 
+              type="submit" 
+              disabled={loading} 
+              style={{ 
+                width: "100%", 
+                padding: "0.95rem",
+                background: "#5b5fc7", 
+                color: "#ffffff", 
+                border: "2px solid #1a1a1a", 
+                boxShadow: "4px 4px 0px #1a1a1a",
+                borderRadius: "4px", 
+                fontWeight: 800, 
+                fontSize: "1.05rem",
+                fontFamily: "var(--font-mono)",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+                cursor: "pointer",
+                minHeight: "48px"
+              }}
+            >
+              {loading ? "Deploying Squad Profile…" : "🚀 Confirm & Deploy Team"}
             </button>
           </div>
         </form>
