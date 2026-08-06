@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { SkillSelector } from "@/components/SkillSelector";
+import { UserSearchAutocomplete } from "@/components/UserSearchAutocomplete";
 import { SIH_THEMES } from "@/lib/constants";
 
 // Shared hover handlers for form fields
@@ -97,9 +98,24 @@ function CreateTeamForm() {
     domain_interest: "",
     min_experience_required: "0",
     succession_mode: "manual",
+    leaderBio: "",
   });
 
-  const [slots, setSlots] = useState<{ role_title: string; gender: string; skills: string[] }[]>([]);
+  const [leaderSkills, setLeaderSkills] = useState<string[]>([]);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const [hasExistingResume, setHasExistingResume] = useState(false);
+
+
+  useEffect(() => {
+    fetch("/api/users/profile").then(r => r.json()).then(data => {
+      if (data.profile?.resume_storage_path) {
+        setHasExistingResume(true);
+      }
+    });
+  }, []);
+
+  const [slots, setSlots] = useState<{ role_title: string; gender: string; skills: string[]; prefill_user_id?: string; prefill_user_name?: string }[]>([]);
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -113,10 +129,12 @@ function CreateTeamForm() {
     setSlots(slots.filter((_, i) => i !== index));
   }
 
-  function updateSlot(index: number, field: string, value: any) {
-    const newSlots = [...slots];
-    newSlots[index] = { ...newSlots[index], [field]: value };
-    setSlots(newSlots);
+  function updateSlot(index: number, updates: Partial<{ role_title: string; gender: string; skills: string[]; prefill_user_id?: string; prefill_user_name?: string }>) {
+    setSlots(prev => {
+      const newSlots = [...prev];
+      newSlots[index] = { ...newSlots[index], ...updates };
+      return newSlots;
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -130,11 +148,30 @@ function CreateTeamForm() {
       return;
     }
 
+    if (slots.length !== 5) {
+      setError("You must define exactly 5 member slots (for a total squad of 6) to deploy the team.");
+      setLoading(false);
+      return;
+    }
+
+    if (resumeFile) {
+      const formData = new FormData();
+      formData.append("resume", resumeFile);
+      const rRes = await fetch("/api/users/resume", { method: "POST", body: formData });
+      if (!rRes.ok) {
+        const errData = await rRes.json().catch(() => ({}));
+        setError("Failed to upload resume: " + (errData.error || "Unknown error"));
+        setLoading(false);
+        return;
+      }
+    }
+
     const res = await fetch("/api/teams", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        leaderSkills,
         skills_needed: Array.from(new Set(slots.flatMap(s => s.skills))),
         slots,
         event_id: eventId,
@@ -190,10 +227,102 @@ function CreateTeamForm() {
           boxShadow: "5px 5px 0px #1a1a1a",
           borderRadius: "6px",
           padding: "2rem",
+          marginBottom: "2rem",
           boxSizing: "border-box"
         }}
         className="card"
       >
+        <div style={{ fontSize: "0.72rem", color: "#1a1a1a", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>
+          [YOUR LEADER PROFILE]
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          <div>
+            <label htmlFor="leader-bio" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              Your Bio / Description <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+            </label>
+            <textarea
+              id="leader-bio"
+              value={form.leaderBio}
+              onChange={(e) => update("leaderBio", e.target.value)}
+              placeholder="A brief intro about yourself..."
+              rows={3}
+              style={{ ...fieldStyle, fontWeight: 500, minHeight: "auto", resize: "vertical" }}
+              {...fieldHover}
+            />
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              Your Skills
+            </label>
+            <SkillSelector selectedSkills={leaderSkills} onChange={setLeaderSkills} />
+          </div>
+
+          {!hasExistingResume && (
+            <div style={{ background: "#f8f6f0", border: "2px dashed #1a1a1a", padding: "1.25rem", borderRadius: "4px" }}>
+              <label htmlFor="leader-resume" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                Resume <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+              </label>
+              <p style={{ fontSize: "0.8rem", color: "#4a4a4a", marginBottom: "0.75rem", fontWeight: 500 }}>
+                Add a resume so applicants can evaluate your leadership recommended!
+              </p>
+              <input
+                id="leader-resume"
+                type="file"
+                accept="application/pdf"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) {
+                    setResumeFile(null);
+                    setResumeError(null);
+                    return;
+                  }
+                  if (file.size > 2 * 1024 * 1024) {
+                    setResumeError("Resume file is too large (max 2MB). Please upload a smaller PDF.");
+                    setResumeFile(null);
+                    e.target.value = "";
+                    return;
+                  }
+                  setResumeError(null);
+                  setResumeFile(file);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById("leader-resume")?.click()}
+                style={{ padding: "0.6rem 1rem", background: "#ffffff", border: "2px solid #1a1a1a", borderRadius: "4px", fontWeight: 800, cursor: "pointer", fontFamily: "var(--font-mono)" }}
+              >
+                {resumeFile ? `📄 ${resumeFile.name} (Change)` : "📄 Upload PDF"}
+              </button>
+              {resumeError && (
+                <div style={{ color: "#dc2626", fontSize: "0.8rem", fontWeight: 700, marginTop: "0.5rem" }}>
+                  ⚠️ {resumeError}
+                </div>
+              )}
+            </div>
+          )}
+          {hasExistingResume && (
+            <div style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", padding: "0.75rem 1rem", borderRadius: "4px", color: "#10b981", fontSize: "0.85rem", fontWeight: 600 }}>
+              ✅ You already have a resume attached to your profile.
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: "#ffffff",
+          border: "2px solid #1a1a1a",
+          boxShadow: "5px 5px 0px #1a1a1a",
+          borderRadius: "6px",
+          padding: "2rem",
+          boxSizing: "border-box"
+        }}
+        className="card"
+      >
+        <div style={{ fontSize: "0.72rem", color: "#1a1a1a", marginBottom: "1rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>
+          [TEAM SPECIFICATIONS]
+        </div>
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {/* Team Name */}
           <div>
@@ -233,10 +362,11 @@ function CreateTeamForm() {
           {/* Mission Objective */}
           <div>
             <label htmlFor="team-desc" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
-              Mission Objective <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+              Mission Objective <span style={{ color: "#dc2626" }}>*</span>
             </label>
             <textarea
               id="team-desc"
+              required
               value={form.description}
               onChange={(e) => update("description", e.target.value)}
               placeholder="What problem statement are you tackling? What is the technical vibe of your team?"
@@ -268,12 +398,20 @@ function CreateTeamForm() {
 
           {/* Member Slots */}
           <div>
-            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
-              Required Member Slots
-            </label>
-            <p style={{ fontSize: "0.78rem", color: "#666", marginTop: "0", marginBottom: "1rem", fontWeight: 600 }}>
-              <IconLightbulb /> Define specific roles, gender requirements, and skills for each member you need.
-            </p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", fontFamily: "var(--font-mono)", textTransform: "uppercase", margin: 0 }}>
+                Required Member Slots
+              </label>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, fontFamily: "var(--font-mono)", background: slots.length === 5 ? "#ecfdf5" : "#eef0ff", border: `2px solid ${slots.length === 5 ? "#059669" : "#5b5fc7"}`, padding: "0.25rem 0.6rem", borderRadius: "3px", color: slots.length === 5 ? "#059669" : "#5b5fc7", boxShadow: "2px 2px 0px #1a1a1a" }}>
+                SQUAD SIZE: {1 + slots.length} / 6
+              </div>
+            </div>
+            <div style={{ background: "#fef2f2", border: "1.5px solid #dc2626", borderRadius: "4px", padding: "0.65rem 0.85rem", marginBottom: "1rem", color: "#dc2626", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+              <span style={{ fontSize: "1rem", lineHeight: 1 }}>⚠️</span>
+              <span style={{ fontFamily: "var(--font-mono)" }}>
+                IMPORTANT: You must define all 5 remaining member slots (either by inviting known teammates or specifying open requirements) to reach a full 6-member squad before you can submit.
+              </span>
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1rem" }}>
               {slots.map((slot, i) => (
                 <div key={i} style={{ background: "#f8f6f0", border: "2px solid #1a1a1a", borderRadius: "4px", padding: "1rem", position: "relative" }}>
@@ -281,27 +419,57 @@ function CreateTeamForm() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem", marginBottom: "0.75rem" }}>
                     <div>
                       <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>Role Title</label>
-                      <input placeholder="e.g. Frontend Dev" value={slot.role_title} onChange={e => updateSlot(i, "role_title", e.target.value)} style={{...fieldStyle, padding: "0.4rem 0.6rem", minHeight: "36px"}} />
+                      <input placeholder="e.g. Frontend Dev" value={slot.role_title} onChange={e => updateSlot(i, { role_title: e.target.value })} style={{...fieldStyle, padding: "0.4rem 0.6rem", minHeight: "36px"}} />
                     </div>
                     <div>
                       <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>Gender Req</label>
-                      <select value={slot.gender} onChange={e => updateSlot(i, "gender", e.target.value)} style={{...fieldStyle, padding: "0.4rem 0.6rem", minHeight: "36px"}}>
+                      <select value={slot.gender} onChange={e => updateSlot(i, { gender: e.target.value })} style={{...fieldStyle, padding: "0.4rem 0.6rem", minHeight: "36px"}}>
                         <option value="any">Any</option>
                         <option value="female">Female</option>
                         <option value="male">Male</option>
                       </select>
                     </div>
                   </div>
+                  <div style={{ marginBottom: "0.75rem" }}>
+                    <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem", textTransform: "uppercase" }}>
+                      Invite Known Teammate (Optional)
+                    </label>
+                    {slot.prefill_user_name ? (
+                      <div 
+                        onClick={() => updateSlot(i, { prefill_user_id: undefined, prefill_user_name: undefined })}
+                        style={{
+                          background: "#e0e7ff",
+                          border: "2px solid #5b5fc7",
+                          padding: "0.5rem 0.75rem",
+                          borderRadius: "4px",
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          color: "#5b5fc7",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          cursor: "pointer",
+                          fontFamily: "var(--font-mono)"
+                        }}
+                      >
+                        ✅ {slot.prefill_user_name} 
+                        <span style={{ marginLeft: "0.5rem", color: "#dc2626", fontSize: "0.7rem", textDecoration: "underline" }}>Remove</span>
+                      </div>
+                    ) : (
+                      <UserSearchAutocomplete onSelect={(user) => updateSlot(i, { prefill_user_id: user.id, prefill_user_name: user.name })} />
+                    )}
+                  </div>
                   <div>
                     <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.25rem" }}>Required Skills</label>
-                    <SkillSelector selectedSkills={slot.skills} onChange={skills => updateSlot(i, "skills", skills)} />
+                    <SkillSelector selectedSkills={slot.skills} onChange={skills => updateSlot(i, { skills })} />
                   </div>
                 </div>
               ))}
             </div>
-            <button type="button" onClick={addSlot} style={{ padding: "0.65rem 1.25rem", background: "#ffffff", color: "#1a1a1a", border: "2px dashed #1a1a1a", borderRadius: "4px", fontWeight: 800, cursor: "pointer", width: "100%" }}>
-              + Add Member Slot
-            </button>
+            {slots.length < 5 && (
+              <button type="button" onClick={addSlot} style={{ padding: "0.65rem 1.25rem", background: "#ffffff", color: "#1a1a1a", border: "2px dashed #1a1a1a", borderRadius: "4px", fontWeight: 800, cursor: "pointer", width: "100%" }}>
+                + Add Member Slot
+              </button>
+            )}
           </div>
 
           {error && (

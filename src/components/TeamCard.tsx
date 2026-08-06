@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Target, Crown, UserCircle2, Zap, Flag } from "lucide-react";
 import ReportModal from "./ReportModal";
+import { isStrongMatch } from "@/lib/recommendation";
 
 interface TeamMember {
   id: string;
@@ -11,6 +12,11 @@ interface TeamMember {
   department: string | null;
   verification_status: "pending" | "verified" | "rejected";
   skills: { skill: string; proficiency: string }[];
+  linkedin_url?: string | null;
+  github_url?: string | null;
+  phone_number?: string | null;
+  whatsapp_number?: string | null;
+  bio?: string | null;
 }
 
 interface TeamLeader {
@@ -19,6 +25,10 @@ interface TeamLeader {
   phone_number: string | null;
   whatsapp_number: string | null;
   linkedin_url: string | null;
+  github_url?: string | null;
+  resume_storage_path?: string | null;
+  bio?: string | null;
+  skills?: { skill: string }[];
 }
 
 interface TeamData {
@@ -33,12 +43,26 @@ interface TeamData {
   leader: TeamLeader;
   memberships: { user: TeamMember }[];
   slots?: { id: string; role_title: string; gender: string; skills: string[]; is_filled: boolean }[];
+  join_requests?: { requester: TeamMember }[];
 }
 
-export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hideCTA?: boolean }) {
+export default function TeamCard({ team, hideCTA = false, currentUserSkills = [] }: { team: TeamData, hideCTA?: boolean, currentUserSkills?: string[] }) {
   const [showReport, setShowReport] = useState(false);
-  const vacancy = 6 - team.memberships.length;
+  const activeMembersCount = team.memberships.length;
+  const invitedMembersCount = team.join_requests?.length || 0;
+  const totalSquadSize = activeMembersCount + invitedMembersCount;
+  const vacancy = 6 - totalSquadSize;
   const isFull = team.status === "full" || vacancy <= 0;
+
+  const unfilledSlotSkills = team.slots 
+    ? team.slots.filter(s => !s.is_filled).flatMap(s => s.skills)
+    : [];
+  const strongMatch = isStrongMatch(unfilledSlotSkills, currentUserSkills);
+
+  const squadMembers = [
+    ...team.memberships.filter(m => m.user.id !== team.leader.id).map(m => ({ ...m.user, isInvited: false })),
+    ...(team.join_requests || []).map(jr => ({ ...jr.requester, isInvited: true }))
+  ];
 
   return (
     <>
@@ -74,6 +98,26 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
             >
               <Flag size={16} strokeWidth={1.75} />
             </button>
+            
+            {strongMatch && (
+              <span
+                style={{
+                  fontSize: "0.7rem", 
+                  fontWeight: 800, 
+                  fontFamily: "var(--font-mono)",
+                  padding: "3px 8px", 
+                  borderRadius: "3px",
+                  background: "#fffbeb",
+                  color: "#d97706", 
+                  border: "1.5px solid #d97706",
+                  boxShadow: "1.5px 1.5px 0px #1a1a1a",
+                  letterSpacing: "0.5px"
+                }}
+              >
+                🔥 STRONG MATCH
+              </span>
+            )}
+            
             <span
               style={{
                 fontSize: "0.7rem", 
@@ -183,8 +227,28 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
             {team.leader.linkedin_url && (
               <a href={team.leader.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "none", borderBottom: "1.5px solid #2563eb", paddingBottom: "1px" }}>in LinkedIn</a>
             )}
+            {team.leader.github_url && (
+              <a href={team.leader.github_url} target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a", textDecoration: "none", borderBottom: "1.5px solid #1a1a1a", paddingBottom: "1px" }}>git GitHub</a>
+            )}
+            {team.leader.resume_storage_path && (
+              <a href={`/api/users/resume?path=${encodeURIComponent(team.leader.resume_storage_path)}`} target="_blank" rel="noopener noreferrer" style={{ color: "#dc2626", textDecoration: "none", borderBottom: "1.5px solid #dc2626", paddingBottom: "1px" }}>📄 Resume</a>
+            )}
           </div>
         </div>
+        {(team.leader.bio || (team.leader.skills && team.leader.skills.length > 0)) && (
+          <div style={{ marginTop: "0.75rem", padding: "0.75rem", background: "#ffffff", border: "1.5px solid #eae6df", borderRadius: "4px" }}>
+            {team.leader.bio && (
+              <p style={{ margin: "0 0 0.5rem", fontSize: "0.85rem", color: "#4a4a4a", fontWeight: 500, fontStyle: "italic" }}>
+                "{team.leader.bio}"
+              </p>
+            )}
+            {team.leader.skills && team.leader.skills.length > 0 && (
+              <div style={{ color: "#5b5fc7", fontSize: "0.75rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
+                {team.leader.skills.map((s: any) => s.skill).join(", ")}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Open Member Slots ── */}
@@ -223,24 +287,68 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
       {/* ── Members Preview ── */}
       <div>
         <div style={{ fontSize: "0.7rem", color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 800, fontFamily: "var(--font-mono)", marginBottom: "0.5rem" }}>
-          [CURRENT SQUAD ({team.memberships.length}/6)]
+          [CURRENT SQUAD ({totalSquadSize}/6)]
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-          {team.memberships.map((m) => (
-            <div key={m.user.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.85rem", borderBottom: "1.5px solid #eae6df", paddingBottom: "0.4rem" }}>
-              <div>
-                <span style={{ fontWeight: 700, color: "#1a1a1a" }}>• {m.user.name}</span>
-                <span style={{ color: "#6b7280", marginLeft: "0.5rem", fontWeight: 500, fontSize: "0.8rem" }}>
-                  ({m.user.department || "Dept N/A"})
-                  {m.user.verification_status !== "verified" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+          {squadMembers.length === 0 && (
+            <div style={{ fontSize: "0.85rem", color: "#6b7280", fontStyle: "italic", padding: "0.5rem 0" }}>
+              No other members yet.
+            </div>
+          )}
+          {squadMembers.map((m) => (
+            <div key={m.id} style={{ 
+              background: m.isInvited ? "#fffbeb" : "#fafafa", 
+              border: m.isInvited ? "1.5px dashed #f59e0b" : "1.5px solid #d1d5db", 
+              borderRadius: "4px", 
+              padding: "0.85rem", 
+              boxShadow: m.isInvited ? "none" : "2px 2px 0px #d1d5db",
+              opacity: m.isInvited ? 0.9 : 1
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+                <div style={{ fontWeight: 800, color: "#4b5563", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <UserCircle2 size={16} strokeWidth={1.75} color="#4b5563" /> {m.name}
+                  {m.isInvited && (
+                    <span style={{ fontSize: "0.65rem", padding: "1px 5px", background: "#fef3c7", color: "#b45309", border: "1px solid #b45309", borderRadius: "2px", marginLeft: "4px", fontWeight: 800 }}>INVITED</span>
+                  )}
+                  <span style={{ color: "#6b7280", marginLeft: "0.25rem", fontWeight: 600, fontSize: "0.75rem" }}>
+                    ({m.department || "Dept N/A"})
+                  </span>
+                  {m.verification_status !== "verified" && (
                     <span style={{ fontSize: "0.65rem", padding: "1px 5px", background: "#fffbeb", color: "#d97706", border: "1px solid #d97706", borderRadius: "2px", marginLeft: "6px", fontWeight: 800 }}>Unverified</span>
                   )}
-                </span>
+                </div>
+                <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.75rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
+                  {m.phone_number && (
+                    <a href={`tel:${m.phone_number}`} style={{ color: "#4b5563", textDecoration: "none", borderBottom: "1.5px solid #4b5563", paddingBottom: "1px" }}>📞 Call</a>
+                  )}
+                  {m.whatsapp_number && (
+                    <a href={`https://wa.me/${m.whatsapp_number.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ color: "#059669", textDecoration: "none", borderBottom: "1.5px solid #059669", paddingBottom: "1px" }}>💬 WA</a>
+                  )}
+                  {m.linkedin_url && (
+                    <a href={m.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "none", borderBottom: "1.5px solid #2563eb", paddingBottom: "1px" }}>in LinkedIn</a>
+                  )}
+                  {m.github_url && (
+                    <a href={m.github_url} target="_blank" rel="noopener noreferrer" style={{ color: "#4b5563", textDecoration: "none", borderBottom: "1.5px solid #4b5563", paddingBottom: "1px" }}>git GitHub</a>
+                  )}
+                  {(m as any).resume_storage_path && (
+                    <a href={`/api/users/resume?path=${encodeURIComponent((m as any).resume_storage_path)}`} target="_blank" rel="noopener noreferrer" style={{ color: "#dc2626", textDecoration: "none", borderBottom: "1.5px solid #dc2626", paddingBottom: "1px" }}>📄 Resume</a>
+                  )}
+                </div>
               </div>
-              <div style={{ color: "#5b5fc7", fontSize: "0.75rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
-                {m.user.skills.slice(0, 2).map((s) => s.skill).join(", ")}
-                {m.user.skills.length > 2 && " +"}
-              </div>
+              {(m.bio || (m.skills && m.skills.length > 0)) && (
+                <div style={{ marginTop: "0.6rem", padding: "0.6rem", background: "#ffffff", border: "1px solid #e5e7eb", borderRadius: "3px" }}>
+                  {m.bio && (
+                    <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#6b7280", fontWeight: 500, fontStyle: "italic" }}>
+                      "{m.bio}"
+                    </p>
+                  )}
+                  {m.skills && m.skills.length > 0 && (
+                    <div style={{ color: "#6b7280", fontSize: "0.7rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
+                      {m.skills.map((s: any) => s.skill).join(", ")}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -15,6 +15,7 @@ export async function GET(
   const team = await prisma.team.findUnique({
     where: { id: id },
     include: {
+      slots: true,
       leader: {
         select: {
           id: true,
@@ -22,6 +23,11 @@ export async function GET(
           phone_number: true,
           whatsapp_number: true,
           linkedin_url: true,
+          github_url: true,
+          resume_storage_path: true,
+          bio: true,
+          preferred_contact_visibility: true,
+          skills: { select: { skill: true } }
         },
       },
       memberships: {
@@ -33,6 +39,37 @@ export async function GET(
               department: true,
               verification_status: true,
               skills: { select: { skill: true, proficiency: true } },
+              linkedin_url: true,
+              github_url: true,
+              phone_number: true,
+              whatsapp_number: true,
+              preferred_contact_visibility: true,
+              bio: true,
+              resume_storage_path: true,
+            },
+          },
+        },
+      },
+      join_requests: {
+        where: {
+          direction: "team_to_user",
+          status: "pending",
+        },
+        include: {
+          requester: {
+            select: {
+              id: true,
+              name: true,
+              department: true,
+              verification_status: true,
+              skills: { select: { skill: true, proficiency: true } },
+              linkedin_url: true,
+              github_url: true,
+              phone_number: true,
+              whatsapp_number: true,
+              preferred_contact_visibility: true,
+              bio: true,
+              resume_storage_path: true,
             },
           },
         },
@@ -43,6 +80,28 @@ export async function GET(
   if (!team) {
     return NextResponse.json({ error: "Team not found" }, { status: 404 });
   }
+
+  // Server-side visibility filtering
+  const isTeammate = team.memberships.some(m => m.user_id === user.id);
+  
+  // Note: Leader contact and social links are always visible to logged-in users.
+  // Delete visibility field from payload
+  delete (team.leader as any).preferred_contact_visibility;
+
+  // Filter Members
+  team.memberships = team.memberships.map(m => {
+    const isThisUserLeader = m.user.id === team.leader_id;
+    // Teammate skills/github/linkedin/bio visible to teammates and applicants (everyone logged in who views the team)
+    // But phone/whatsapp are private unless allowed, isTeammate, OR is the Leader
+    if (!isTeammate && !isThisUserLeader) {
+      if (m.user.preferred_contact_visibility !== "public_to_logged_in") {
+        m.user.phone_number = null;
+        m.user.whatsapp_number = null;
+      }
+    }
+    delete (m.user as any).preferred_contact_visibility;
+    return m;
+  });
 
   return NextResponse.json({ team });
 }

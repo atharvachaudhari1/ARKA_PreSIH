@@ -110,6 +110,73 @@ describe("PATCH /api/users/profile", () => {
       },
     });
   });
+
+  test("edit department on a verified profile flips status to pending", async () => {
+    mockAuthGetUser.mockResolvedValue({ data: { user: { id: "user1" } }, error: null });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ 
+      id: "db_user1", 
+      name: "Old Name", 
+      college: "Old College", 
+      department: "Old Dept", 
+      verification_status: "verified" 
+    });
+    
+    const mockUpdatedUser = { id: "db_user1", name: "Old Name", led_teams: [] };
+    (prisma.user.update as jest.Mock).mockResolvedValue(mockUpdatedUser);
+
+    await testApiHandler({
+      appHandler,
+      test: async ({ fetch }) => {
+        const res = await fetch({
+          method: "PATCH",
+          body: JSON.stringify({ department: "New Dept" }),
+        });
+        expect(res.status).toBe(200);
+        
+        expect(prisma.user.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              department: "New Dept",
+              verification_status: "pending",
+            })
+          })
+        );
+      },
+    });
+  });
+
+  test("edit bio on a verified profile keeps status verified", async () => {
+    mockAuthGetUser.mockResolvedValue({ data: { user: { id: "user1" } }, error: null });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ 
+      id: "db_user1", 
+      name: "Old Name", 
+      college: "Old College", 
+      department: "Old Dept", 
+      verification_status: "verified" 
+    });
+    
+    const mockUpdatedUser = { id: "db_user1", name: "Old Name", led_teams: [] };
+    (prisma.user.update as jest.Mock).mockResolvedValue(mockUpdatedUser);
+
+    await testApiHandler({
+      appHandler,
+      test: async ({ fetch }) => {
+        const res = await fetch({
+          method: "PATCH",
+          body: JSON.stringify({ bio: "New Bio" }),
+        });
+        expect(res.status).toBe(200);
+        
+        expect(prisma.user.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.not.objectContaining({
+              verification_status: expect.anything()
+            })
+          })
+        );
+      },
+    });
+  });
 });
 
 describe("POST /api/users/profile (OCR Verification)", () => {
@@ -127,11 +194,12 @@ describe("POST /api/users/profile (OCR Verification)", () => {
 
   const validPayload = {
     name: "John Doe",
-    gender: "Male",
+    gender: "male",
     college: "State University",
     department: "Computer Science",
-    past_hackathons_count: 1,
     id_card_storage_path: "path/to/id.jpg",
+    bio: "Test bio",
+    whatsapp_number: "+919876543210",
     intent: "join",
   };
 

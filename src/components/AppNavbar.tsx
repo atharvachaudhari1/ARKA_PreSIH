@@ -11,14 +11,16 @@ import {
   IconDashboardGrid, 
   IconConsoleAlert, 
   IconSquadUsers,
-  IconRocketDeploy 
+  IconRocketDeploy,
+  IconRequestsUsers,
+  IconAlertsBell
 } from "./TerminalIcons";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Home", icon: <IconTerminalPrompt size={20} /> },
   { href: "/teams", label: "Browse", icon: <IconDashboardGrid size={20} /> },
-  { href: "/requests", label: "Requests", icon: <IconConsoleAlert size={20} /> },
-  { href: "/notifications", label: "Alerts", icon: <IconConsoleAlert size={20} color="#d97706" /> },
+  { href: "/requests", label: "Requests", icon: <IconRequestsUsers size={20} /> },
+  { href: "/notifications", label: "Alerts", icon: <IconAlertsBell size={20} /> },
 ];
 
 export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false }: { userEmail: string, isAdmin?: boolean, hasTeam?: boolean }) {
@@ -392,7 +394,7 @@ export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false 
           paddingBottom: "env(safe-area-inset-bottom)"
         }}
       >
-        {NAV_LINKS.filter(l => l.label !== "Alerts").map((link) => {
+        {NAV_LINKS.map((link) => {
           const active = pathname === link.href;
           return (
             <Link
@@ -439,38 +441,44 @@ export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false 
           );
         })}
         
+      </div>
+
+      {/* ── Mobile FAB for Create Team ── */}
+      {!hasTeam && (
         <Link
           href="/teams/create"
+          className="mobile-only"
           style={{
+            position: "fixed",
+            bottom: "85px",
+            right: "20px",
+            zIndex: 48,
+            background: "#5b5fc7",
+            color: "#ffffff",
+            width: "60px",
+            height: "60px",
+            borderRadius: "50%",
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: "0.2rem",
+            border: "2px solid #1a1a1a",
+            boxShadow: "4px 4px 0px #1a1a1a",
             textDecoration: "none",
-            color: pathname === "/teams/create" ? "#5b5fc7" : "#5a5a5a",
-            width: "60px",
-            height: "100%"
+            transition: "transform 0.1s"
+          }}
+          onClick={(e) => {
+            const el = e.currentTarget;
+            el.style.transform = "translate(2px, 2px)";
+            el.style.boxShadow = "2px 2px 0px #1a1a1a";
+            setTimeout(() => {
+              el.style.transform = "translate(0, 0)";
+              el.style.boxShadow = "4px 4px 0px #1a1a1a";
+            }, 150);
           }}
         >
-          <div style={{ 
-            background: pathname === "/teams/create" ? "#eef0ff" : "transparent",
-            padding: "0.3rem 1rem",
-            borderRadius: "16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.15s ease",
-            border: pathname === "/teams/create" ? "2px solid #5b5fc7" : "2px solid transparent",
-            boxShadow: pathname === "/teams/create" ? "1.5px 1.5px 0px #5b5fc7" : "none"
-          }}>
-            <IconRocketDeploy size={20} />
-          </div>
-          <span style={{ fontSize: "0.6rem", fontWeight: pathname === "/teams/create" ? 800 : 600, fontFamily: "var(--font-mono)" }}>
-            Create
-          </span>
+          <IconRocketDeploy size={26} color="#ffffff" />
         </Link>
-      </div>
+      )}
 
       {/* Mobile Profile Slide-up/Dropdown */}
       {profileOpen && (

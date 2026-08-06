@@ -182,16 +182,20 @@ function SignupContent() {
             <button
               onClick={() => { setSelectedPath(null); setStep("path"); }}
               style={{
-                background: "none",
-                border: "none",
+                background: "#f7f4ee",
+                border: "1.5px solid #1a1a1a",
+                borderRadius: "2px",
+                padding: "0.25rem 0.5rem",
                 color: "#1a1a1a",
                 cursor: "pointer",
                 fontSize: "0.75rem",
-                textDecoration: "underline",
-                fontWeight: 600
+                fontWeight: 700,
+                textDecoration: "none",
+                boxShadow: "1px 1px 0px #1a1a1a",
+                fontFamily: "var(--font-mono)"
               }}
             >
-              change
+              change back
             </button>
           </div>
         </div>
@@ -244,7 +248,7 @@ function SignupContent() {
                   required
                   value={form.email}
                   onChange={(e) => update("email", e.target.value)}
-                  placeholder="you@college.ac.in"
+                  placeholder="personal/college email"
                   style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
                   autoComplete="email"
                 />

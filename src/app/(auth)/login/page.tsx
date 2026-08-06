@@ -12,6 +12,8 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +23,48 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    // 1. Verify Password via Custom Backend Route
+    const res = await fetch("/api/auth/verify-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error || "Invalid email or password");
+      setLoading(false);
+      return;
+    }
+
+    // 2. Password is correct. Dispatch OTP via Supabase.
+    const { error: otpErr } = await supabase.auth.signInWithOtp({ 
+      email,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      }
+    });
+
+    if (otpErr) {
+      setError(otpErr.message);
+    } else {
+      setOtpSent(true);
+    }
+    setLoading(false);
+  }
+
+  async function handleOtpSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: "email"
+    });
+
     if (error) {
       setError(error.message);
       setLoading(false);
@@ -57,7 +100,6 @@ export default function LoginPage() {
         padding: "1.25rem",
       }}
     >
-      {/* Background glow removed for clean paper style */}
       <div
         style={{
           width: "100%",
@@ -65,7 +107,6 @@ export default function LoginPage() {
           animation: "fade-up 0.4s ease forwards",
         }}
       >
-        {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "2.25rem" }}>
           <Link href="/" style={{ textDecoration: "none", display: "inline-block" }}>
             <BrandLogo size="lg" />
@@ -84,7 +125,7 @@ export default function LoginPage() {
             id="btn-google-login"
             onClick={handleGoogleLogin}
             disabled={googleLoading || loading}
-            style={{ width: "100%", gap: "0.75rem", marginBottom: "1.5rem", background: "#f7f4ee", color: "#1a1a1a", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.75rem" }}
+            style={{ width: "100%", gap: "0.75rem", marginBottom: "1.5rem", background: "#f7f4ee", color: "#1a1a1a", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.75rem", cursor: "pointer" }}
           >
             {googleLoading ? (
               <span style={{ opacity: 0.7 }}>Redirecting…</span>
@@ -103,59 +144,113 @@ export default function LoginPage() {
 
           <div className="divider" style={{ marginBottom: "1.5rem", textAlign: "center", color: "#1a1a1a", fontWeight: "bold" }}>or</div>
 
-          {/* Email / password form */}
-          <form onSubmit={handleEmailLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-              <label htmlFor="login-email" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Email</label>
-              <input
-                id="login-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@college.ac.in"
-                style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%" }}
-                autoComplete="email"
-              />
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-              <label htmlFor="login-password" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Password</label>
-              <input
-                id="login-password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%" }}
-                autoComplete="current-password"
-              />
-            </div>
-
-            {error && (
-              <div
-                style={{
-                  background: "rgba(239,68,68,0.1)",
-                  border: "1px solid rgba(239,68,68,0.25)",
-                  borderRadius: "var(--radius-md)",
-                  padding: "0.75rem 1rem",
-                  color: "#f87171",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {error}
+          {/* Email / OTP form */}
+          {!otpSent ? (
+            <form onSubmit={handleEmailLogin} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="login-email" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Email Address</label>
+                <input
+                  id="login-email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="personal/college email"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
+                  autoComplete="email"
+                />
               </div>
-            )}
 
-            <button
-              id="btn-email-login"
-              type="submit"
-              disabled={loading || googleLoading}
-              style={{ width: "100%", marginTop: "0.5rem", background: "#5b5fc7", color: "#fff", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", padding: "0.75rem", cursor: "pointer" }}
-            >
-              {loading ? "Signing in…" : "Sign in"}
-            </button>
-          </form>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="login-password" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Password</label>
+                <input
+                  id="login-password"
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", boxSizing: "border-box" }}
+                  autoComplete="current-password"
+                />
+              </div>
+
+              {error && (
+                <div
+                  style={{
+                    background: "rgba(239,68,68,0.1)",
+                    border: "1px solid rgba(239,68,68,0.25)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "0.75rem 1rem",
+                    color: "#f87171",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              <button
+                id="btn-email-login"
+                type="submit"
+                disabled={loading || googleLoading}
+                style={{ width: "100%", marginTop: "0.5rem", background: "#5b5fc7", color: "#fff", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", padding: "0.75rem", cursor: "pointer" }}
+              >
+                {loading ? "Verifying..." : "Login"}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleOtpSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                <label htmlFor="login-otp" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>Enter 6-Digit OTP</label>
+                <p style={{ fontSize: "0.8rem", color: "#444", marginBottom: "0.5rem" }}>
+                  A secure code has been sent to <strong>{email}</strong>.
+                </p>
+                <input
+                  id="login-otp"
+                  type="text"
+                  required
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="123456"
+                  style={{ border: "1.5px solid #1a1a1a", borderRadius: "2px", padding: "0.6rem 0.85rem", backgroundColor: "#ffffff", color: "#1a1a1a", boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.05)", width: "100%", letterSpacing: "0.5rem", fontSize: "1.25rem", textAlign: "center", boxSizing: "border-box", fontWeight: 700 }}
+                  autoComplete="one-time-code"
+                />
+              </div>
+
+              {error && (
+                <div
+                  style={{
+                    background: "rgba(239,68,68,0.1)",
+                    border: "1px solid rgba(239,68,68,0.25)",
+                    borderRadius: "var(--radius-md)",
+                    padding: "0.75rem 1rem",
+                    color: "#f87171",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
+              <button
+                id="btn-otp-submit"
+                type="submit"
+                disabled={loading || otp.length < 6}
+                style={{ width: "100%", marginTop: "0.5rem", background: "#5b5fc7", color: "#fff", border: "1.5px solid #1a1a1a", boxShadow: "2px 2px 0px #1a1a1a", borderRadius: "2px", fontWeight: 700, fontFamily: "var(--font-mono)", padding: "0.75rem", cursor: "pointer" }}
+              >
+                {loading ? "Verifying OTP..." : "Confirm Login"}
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => setOtpSent(false)}
+                style={{ background: "none", border: "none", color: "#1a1a1a", textDecoration: "underline", fontSize: "0.85rem", cursor: "pointer", fontFamily: "var(--font-mono)", marginTop: "0.5rem" }}
+              >
+                Cancel / Back
+              </button>
+            </form>
+          )}
         </div>
 
         <p

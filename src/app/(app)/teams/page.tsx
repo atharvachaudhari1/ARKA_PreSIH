@@ -28,6 +28,9 @@ export default function DashboardPage() {
   const { data, isLoading: loading } = useSWR(`/api/teams?${params.toString()}`, fetcher, { keepPreviousData: true });
   const teams = data?.teams || [];
 
+  const { data: profileData } = useSWR("/api/users/profile", fetcher);
+  const userSkills = profileData?.profile?.skills?.map((s: any) => s.skill.toLowerCase()) || [];
+
   const resetFilters = () => {
     setStatus("open");
     setDomain("");
@@ -406,7 +409,7 @@ export default function DashboardPage() {
       ) : (
         <div className="responsive-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.75rem" }}>
           {teams.map((team: any) => (
-            <TeamCard key={team.id} team={team} />
+            <TeamCard key={team.id} team={team} currentUserSkills={userSkills} />
           ))}
         </div>
       )}

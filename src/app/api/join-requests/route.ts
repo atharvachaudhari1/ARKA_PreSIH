@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   const currentUser = await prisma.user.findUnique({
     where: { auth_user_id: authUser.id },
-    include: { team_memberships: true }
+    include: { team_memberships: { where: { team: { status: { not: 'dissolved' } } } } }
   });
   if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const myRequests = await prisma.joinRequest.findMany({
     where: { requester_id: currentUser.id },
     include: {
-      team: { select: { id: true, name: true, domain_interest: true } },
+      team: { select: { id: true, name: true, domain_interest: true, skills_needed: true, slots: true } },
     },
     orderBy: { created_at: "desc" },
   });
@@ -29,13 +29,14 @@ export async function GET(request: NextRequest) {
   let outboundInvites: any[] = [];
 
   if (currentUser.team_memberships.length > 0) {
-    const membership = currentUser.team_memberships[0];
-    const teamId = membership.team_id;
+    const teamIds = currentUser.team_memberships.map(m => m.team_id);
+    const leaderTeamIds = currentUser.team_memberships.filter(m => m.role === "leader").map(m => m.team_id);
     
-    // Inbound applications
+    // Inbound applications (for any team the user is in)
     teamRequests = await prisma.joinRequest.findMany({
-      where: { team_id: teamId, direction: "user_to_team" },
+      where: { team_id: { in: teamIds }, direction: "user_to_team" },
       include: {
+        team: { include: { slots: true } },
         requester: {
           select: {
             id: true,
@@ -45,7 +46,9 @@ export async function GET(request: NextRequest) {
             past_hackathons_count: true,
             skills: { select: { skill: true, proficiency: true } },
             presentation_skill_rating: true,
-            // Contact info hidden until accepted (identity reveal rule)
+            bio: true,
+            phone_number: true,
+            whatsapp_number: true,
           }
         },
         opinions: {
@@ -57,11 +60,12 @@ export async function GET(request: NextRequest) {
       orderBy: { created_at: "desc" },
     });
 
-    // Outbound invites (leader only)
-    if (membership.role === "leader") {
+    // Outbound invites (for teams where user is a leader)
+    if (leaderTeamIds.length > 0) {
       outboundInvites = await prisma.joinRequest.findMany({
-        where: { team_id: teamId, direction: "team_to_user" },
+        where: { team_id: { in: leaderTeamIds }, direction: "team_to_user" },
         include: {
+          team: { include: { slots: true } },
           requester: {
             select: {
               id: true,
@@ -71,6 +75,9 @@ export async function GET(request: NextRequest) {
               past_hackathons_count: true,
               skills: { select: { skill: true, proficiency: true } },
               presentation_skill_rating: true,
+              bio: true,
+              phone_number: true,
+              whatsapp_number: true,
             }
           }
         },
@@ -89,14 +96,14 @@ export async function POST(request: NextRequest) {
 
   const currentUser = await prisma.user.findUnique({
     where: { auth_user_id: authUser.id },
-    include: { team_memberships: true }
+    include: { team_memberships: { where: { team: { status: { not: 'dissolved' } } } } }
   });
   if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
   let body: any;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { team_id, user_id, direction = "user_to_team" } = body;
+  const { team_id, user_id, direction = "user_to_team", applicantBio, applicantSkills } = body;
 
   if (direction === "user_to_team") {
     if (!team_id) return NextResponse.json({ error: "team_id is required" }, { status: 400 });
@@ -111,6 +118,10 @@ export async function POST(request: NextRequest) {
     if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
     if (team.status === "full") return NextResponse.json({ error: "This team is already full." }, { status: 400 });
 
+    if (!applicantBio || typeof applicantBio !== "string" || !applicantBio.trim()) {
+      return NextResponse.json({ error: "Your bio/description is required to join a team." }, { status: 400 });
+    }
+
     // Ensure no pending request exists
     const existing = await prisma.joinRequest.findFirst({
       where: { team_id, requester_id: currentUser.id, status: "pending" }
@@ -118,6 +129,28 @@ export async function POST(request: NextRequest) {
     if (existing) return NextResponse.json({ error: "You already have a pending request for this team." }, { status: 409 });
 
     const newRequest = await prisma.$transaction(async (tx) => {
+      // Update bio and skills if provided
+      if (typeof applicantBio === "string") {
+        await tx.user.update({
+          where: { id: currentUser.id },
+          data: { bio: applicantBio.trim() }
+        });
+      }
+      
+      if (Array.isArray(applicantSkills)) {
+        await tx.userSkill.deleteMany({ where: { user_id: currentUser.id } });
+        if (applicantSkills.length > 0) {
+          await tx.userSkill.createMany({
+            data: applicantSkills.map((skill: string) => ({
+              user_id: currentUser.id,
+              skill,
+              proficiency: "intermediate"
+            })),
+            skipDuplicates: true
+          });
+        }
+      }
+
       const req = await tx.joinRequest.create({
         data: {
           team_id,

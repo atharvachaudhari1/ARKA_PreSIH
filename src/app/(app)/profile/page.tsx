@@ -23,8 +23,11 @@ interface Profile {
   phone_number: string | null;
   whatsapp_number: string | null;
   linkedin_url: string | null;
+  github_url: string | null;
+  resume_storage_path: string | null;
   contact_visibility: string;
   skills: Skill[];
+  led_teams: any[];
 }
 
 const PROFICIENCY_COLORS: Record<Proficiency, string> = {
@@ -74,6 +77,23 @@ export default function ProfilePage() {
   async function handleSave() {
     setSaving(true);
     setSaveMsg(null);
+
+    if (form.github_url && !form.github_url.match(/^https?:\/\/(www\.)?github\.com\/.+/)) {
+      setSaveMsg("Error: Invalid GitHub URL");
+      setSaving(false);
+      return;
+    }
+    if (form.linkedin_url && !form.linkedin_url.match(/^https?:\/\/(www\.)?linkedin\.com\/.+/)) {
+      setSaveMsg("Error: Invalid LinkedIn URL");
+      setSaving(false);
+      return;
+    }
+    if (form.whatsapp_number && !form.whatsapp_number.match(/^\+?[1-9]\d{1,14}$/)) {
+      setSaveMsg("Error: Invalid WhatsApp number");
+      setSaving(false);
+      return;
+    }
+
     const res = await fetch("/api/users/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -81,7 +101,7 @@ export default function ProfilePage() {
         name: form.name, gender: form.gender, bio: form.bio, college: form.college, department: form.department,
         past_hackathons_count: form.past_hackathons_count, presentation_skill_rating: form.presentation_skill_rating,
         phone_number: form.phone_number, whatsapp_number: form.whatsapp_number,
-        linkedin_url: form.linkedin_url, contact_visibility: form.contact_visibility,
+        linkedin_url: form.linkedin_url, github_url: form.github_url, contact_visibility: form.contact_visibility,
       }),
     });
     if (res.ok) {
@@ -142,6 +162,13 @@ export default function ProfilePage() {
   const verificationLabel = profile.verification_status === "verified" ? "✓ Verified"
     : profile.verification_status === "rejected" ? "✗ Rejected" : "⏳ Pending";
 
+  const isVerified = profile.verification_status === "verified";
+  const verifiedFieldsEdited = isVerified && (
+    form.name !== profile.name ||
+    form.college !== profile.college ||
+    form.department !== profile.department
+  );
+
   return (
     <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 800 }}>
       {/* ── Header ── */}
@@ -197,6 +224,11 @@ export default function ProfilePage() {
           Basic Information
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
+          {editing && verifiedFieldsEdited && (
+            <div style={{ gridColumn: "1 / -1", background: "rgba(245,158,11,0.1)", color: "#d97706", border: "1px solid rgba(245,158,11,0.3)", padding: "0.75rem 1rem", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 600 }}>
+              ⚠️ Changing your Name, College, or Department will require re-verification of your college ID.
+            </div>
+          )}
           {editing ? (
             <>
               <div>
@@ -387,14 +419,19 @@ export default function ProfilePage() {
                 <input className="input-field" placeholder="+91 XXXXX XXXXX" value={form.phone_number ?? ""} onChange={(e) => update("phone_number", e.target.value)} />
               </div>
               <div>
-                <label className="input-label">LinkedIn URL</label>
+                <label className="input-label">LinkedIn URL <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>(optional)</span></label>
                 <input className="input-field" placeholder="https://linkedin.com/in/…" value={form.linkedin_url ?? ""} onChange={(e) => update("linkedin_url", e.target.value)} />
+              </div>
+              <div>
+                <label className="input-label">GitHub URL <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>(optional)</span></label>
+                <input className="input-field" placeholder="https://github.com/…" value={form.github_url ?? ""} onChange={(e) => update("github_url", e.target.value)} />
               </div>
             </>
           ) : (
             <>
               <InfoRow label="Phone" value={profile.phone_number ?? <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
               <InfoRow label="LinkedIn" value={profile.linkedin_url ? <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ember-peach)" }}>View profile</a> : <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
+              <InfoRow label="GitHub" value={profile.github_url ? <a href={profile.github_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ember-peach)" }}>View profile</a> : <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
               <InfoRow label="Visibility" value={
                 ({ private: "🔒 Private", team_only: "👥 Team members only", public_to_logged_in: "🌐 All logged-in users" } as any)[profile.contact_visibility] ?? profile.contact_visibility
               } />
@@ -407,6 +444,65 @@ export default function ProfilePage() {
           </p>
         )}
       </div>
+
+      {/* Resume Upload Section (Leader Only) */}
+      {profile.led_teams.length > 0 && (
+        <div className="card" style={{ padding: "1.5rem", border: "1.5px solid #1a1a1a", boxShadow: "3px 3px 0px #1a1a1a", borderRadius: "4px", background: "#fdfbfa", marginTop: "1.5rem" }}>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#1a1a1a", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+            Leader Resume
+          </h3>
+          <p style={{ fontSize: "0.85rem", color: "#4a4a4a", marginBottom: "1rem" }}>
+            Upload your resume so applicants can verify your skills and background. (PDF only, max 5MB)
+          </p>
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap" }}>
+            <input 
+              type="file" 
+              accept="application/pdf" 
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) {
+                  alert("File is too large (max 5MB).");
+                  return;
+                }
+                const formData = new FormData();
+                formData.append("resume", file);
+                const res = await fetch("/api/users/resume", {
+                  method: "POST",
+                  body: formData
+                });
+                if (res.ok) {
+                  alert("Resume uploaded successfully!");
+                  window.location.reload();
+                } else {
+                  const data = await res.json();
+                  alert(data.error || "Upload failed");
+                }
+              }} 
+              style={{ fontSize: "0.85rem" }}
+            />
+            {profile.resume_storage_path && (
+              <a 
+                href={`/api/users/resume?path=${encodeURIComponent(profile.resume_storage_path)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  padding: "0.5rem 1rem",
+                  background: "#1a1a1a",
+                  color: "#ffffff",
+                  fontSize: "0.8rem",
+                  fontWeight: 800,
+                  textDecoration: "none",
+                  borderRadius: "3px",
+                  boxShadow: "2px 2px 0px #5b5fc7"
+                }}
+              >
+                View Current Resume
+              </a>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -13,8 +13,10 @@ export default defineConfig({
   schema: "./prisma/schema.prisma",
   datasource: {
     url: process.env.DATABASE_URL!,
-    // @ts-ignore: Supabase connection pooling requires directUrl, types might not reflect it yet
+    // @ts-ignore
     directUrl: process.env.DIRECT_URL,
+    // @ts-ignore
+    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
   },
   migrations: {
     seed: "npx tsx ./prisma/seed.ts",

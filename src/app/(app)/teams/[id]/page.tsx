@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import TeamCard from "@/components/TeamCard";
+import { SkillSelector } from "@/components/SkillSelector";
 import { createClient } from "@/lib/supabase/client";
 
 export default function TeamDetailsPage() {
@@ -16,6 +17,8 @@ export default function TeamDetailsPage() {
   const [message, setMessage] = useState<{ type: "error" | "success"; text: string } | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
   const [selectedNewLeaderId, setSelectedNewLeaderId] = useState("");
+  const [applicantBio, setApplicantBio] = useState("");
+  const [applicantSkills, setApplicantSkills] = useState<string[]>([]);
   
   useEffect(() => {
     async function fetchTeamAndProfile() {
@@ -30,6 +33,10 @@ export default function TeamDetailsPage() {
       if (resProfile.ok) {
         const data = await resProfile.json();
         setCurrentUserProfile(data.profile);
+        if (data.profile) {
+          setApplicantBio(data.profile.bio || "");
+          setApplicantSkills(data.profile.skills?.map((s: any) => s.skill) || []);
+        }
       }
       setLoading(false);
     }
@@ -57,12 +64,16 @@ export default function TeamDetailsPage() {
   }, [params.id, supabase]);
 
   async function handleRequestToJoin() {
+    if (!applicantBio.trim()) {
+      setMessage({ type: "error", text: "Please provide a bio or description." });
+      return;
+    }
     setRequestLoading(true);
     setMessage(null);
     const res = await fetch(`/api/join-requests`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ team_id: team.id, direction: "user_to_team" }),
+      body: JSON.stringify({ team_id: team.id, direction: "user_to_team", applicantBio, applicantSkills }),
     });
 
     if (res.ok) {
@@ -74,31 +85,40 @@ export default function TeamDetailsPage() {
     setRequestLoading(false);
   }
 
-  async function handleTransferLeadership() {
-    if (!selectedNewLeaderId) {
-      setMessage({ type: "error", text: "Please select a member to transfer leadership to." });
-      return;
-    }
+  const isLeader = currentUserProfile?.id && team?.leader?.id === currentUserProfile?.id;
+  const isTeammate = currentUserProfile?.id && team?.memberships?.some((m: any) => m.user.id === currentUserProfile.id);
+  const isMemberOnly = isTeammate && !isLeader;
+  const teamMembers = team?.memberships?.map((m: any) => m.user).filter((u: any) => u.id !== currentUserProfile?.id) || [];
+
+  async function handleLeaveTeam() {
+    if (!confirm("Are you sure you want to leave this team?")) return;
     setTransferLoading(true);
     setMessage(null);
-    const res = await fetch(`/api/teams/${team.id}/transfer`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ new_leader_id: selectedNewLeaderId }),
-    });
-
+    const res = await fetch(`/api/teams/${team.id}/leave`, { method: "POST" });
     if (res.ok) {
-      setMessage({ type: "success", text: "Leadership transferred successfully!" });
+      setMessage({ type: "success", text: "You have left the team." });
+      setTimeout(() => window.location.href = "/dashboard", 1500);
+    } else {
+      const data = await res.json();
+      setMessage({ type: "error", text: data.error || "Failed to leave team." });
+      setTransferLoading(false);
+    }
+  }
+
+  async function handleDissolveTeam() {
+    if (!confirm("Are you sure you want to DISSOLVE this team? All members will be removed and requests cancelled. This is irreversible.")) return;
+    setTransferLoading(true);
+    setMessage(null);
+    const res = await fetch(`/api/teams/${team.id}/dissolve`, { method: "POST" });
+    if (res.ok) {
+      setMessage({ type: "success", text: "Team dissolved successfully." });
       setTimeout(() => window.location.reload(), 1500);
     } else {
       const data = await res.json();
-      setMessage({ type: "error", text: data.error || "Failed to transfer leadership." });
+      setMessage({ type: "error", text: data.error || "Failed to dissolve team." });
+      setTransferLoading(false);
     }
-    setTransferLoading(false);
   }
-
-  const isLeader = currentUserProfile?.id && team?.leader?.id === currentUserProfile?.id;
-  const teamMembers = team?.memberships?.map((m: any) => m.user).filter((u: any) => u.id !== currentUserProfile?.id) || [];
 
 
   if (loading) {
@@ -151,124 +171,141 @@ export default function TeamDetailsPage() {
           Comprehensive architectural and personnel report for this SIH squad profile.
         </p>
       </div>
+      
+      {team.status === 'dissolved' && (
+        <div style={{ marginBottom: "2rem", padding: "1.25rem", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "4px 4px 0px #dc2626", borderRadius: "6px" }}>
+          <h2 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#991b1b", margin: "0 0 0.5rem" }}>⚠️ TEAM DISSOLVED</h2>
+          <p style={{ color: "#991b1b", margin: 0, fontWeight: 500, fontSize: "0.95rem" }}>This team has been dissolved by the leader. It is no longer active.</p>
+        </div>
+      )}
 
       <TeamCard team={team} hideCTA />
 
-      <div 
-        style={{ 
-          marginTop: "2rem", 
-          background: "#ffffff", 
-          border: "2px solid #1a1a1a", 
-          boxShadow: "5px 5px 0px #1a1a1a", 
-          borderRadius: "6px", 
-          padding: "2rem",
-          boxSizing: "border-box"
-        }}
-      >
-        <div style={{ fontSize: "0.72rem", color: "#1a1a1a", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>
-          [APPLICATION REQUISITION]
-        </div>
-        <h3 style={{ fontSize: "1.4rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>
-          Interested in joining this squad?
-        </h3>
-        <p style={{ color: "#4a4a4a", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
-          By requesting to join, existing squad members will review your academic qualifications and skill gaps. Your personal phone and WhatsApp contact info remains strictly encrypted and hidden until your enlistment is officially approved!
-        </p>
-
-        {message && (
-          <div style={{ 
-            marginBottom: "1.25rem", 
-            padding: "0.85rem 1.1rem", 
-            borderRadius: "4px", 
-            fontSize: "0.9rem",
-            fontWeight: 700,
-            fontFamily: "var(--font-mono)",
-            background: message.type === "success" ? "#d1fae5" : "#fef2f2",
-            border: `2px solid ${message.type === "success" ? "#065f46" : "#dc2626"}`,
-            boxShadow: `3px 3px 0px ${message.type === "success" ? "#065f46" : "#dc2626"}`,
-            color: message.type === "success" ? "#065f46" : "#dc2626"
-          }}>
-            {message.type === "success" ? "🎉 [SUCCESS]: " : "⚠️ [ERROR]: "}{message.text}
-          </div>
-        )}
-
-        <button 
-          onClick={handleRequestToJoin} 
-          disabled={requestLoading || team.status === "full"}
-          style={{ 
-            width: "100%", 
-            padding: "0.95rem",
-            background: team.status === "full" ? "#e5e7eb" : "#5b5fc7", 
-            color: team.status === "full" ? "#6b7280" : "#ffffff", 
-            border: team.status === "full" ? "2px solid #9ca3af" : "2px solid #1a1a1a", 
-            boxShadow: team.status === "full" ? "none" : "4px 4px 0px #1a1a1a", 
-            borderRadius: "4px",
-            fontWeight: 800,
-            fontSize: "1.05rem",
-            fontFamily: "var(--font-mono)",
-            textTransform: "uppercase",
-            letterSpacing: "0.5px",
-            cursor: team.status === "full" ? "not-allowed" : "pointer",
-            transition: "all 0.15s ease",
-            minHeight: "48px"
-          }}
-        >
-          {requestLoading ? "Submitting Application Dossier..." : team.status === "full" ? "⚠️ Team Capacity Reached (Full)" : "📨 Submit Enlistment Application"}
-        </button>
-      </div>
-
-      {/* Transfer Leadership Section for Leader */}
-      {isLeader && teamMembers.length > 0 && (
+      {/* Application Section */}
+      {team.status !== 'dissolved' && !isTeammate && (
         <div 
           style={{ 
-            marginTop: "1.5rem", 
-            background: "#fffbeb", 
-            border: "2px solid #d97706", 
-            boxShadow: "5px 5px 0px #d97706", 
+            marginTop: "2rem", 
+            background: "#ffffff", 
+            border: "2px solid #1a1a1a", 
+            boxShadow: "5px 5px 0px #1a1a1a", 
             borderRadius: "6px", 
             padding: "2rem",
             boxSizing: "border-box"
           }}
         >
-          <div style={{ fontSize: "0.72rem", color: "#b45309", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>
-            [LEADER ACTIONS]
+          <div style={{ fontSize: "0.72rem", color: "#1a1a1a", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>
+            [APPLICATION REQUISITION]
           </div>
-          <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#92400e", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>
-            Transfer Leadership
+          <h3 style={{ fontSize: "1.4rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>
+            Interested in joining this squad?
           </h3>
-          <p style={{ color: "#92400e", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
-            Pass your leadership role to another team member. This action cannot be undone unless they transfer it back to you.
+          <p style={{ color: "#4a4a4a", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
+            By requesting to join, existing squad members will review your academic qualifications and skill gaps. Your personal phone and WhatsApp contact info remains strictly encrypted and hidden until your enlistment is officially approved!
           </p>
-          <div style={{ display: "flex", gap: "1rem" }}>
-            <select
-              value={selectedNewLeaderId}
-              onChange={(e) => setSelectedNewLeaderId(e.target.value)}
-              style={{
-                flex: 1, padding: "0.75rem", fontFamily: "var(--font-mono)", fontSize: "0.9rem",
-                background: "#ffffff", border: "2px solid #b45309", borderRadius: "4px", outline: "none", cursor: "pointer"
-              }}
-            >
-              <option value="">Select a member...</option>
-              {teamMembers.map((member: any) => (
-                <option key={member.id} value={member.id}>
-                  {member.name} ({member.department})
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={handleTransferLeadership}
-              disabled={transferLoading || !selectedNewLeaderId}
-              style={{
-                padding: "0.75rem 1.5rem", background: "#d97706", color: "#ffffff",
-                border: "2px solid #78350f", boxShadow: "3px 3px 0px #78350f", borderRadius: "4px",
-                fontWeight: 800, fontFamily: "var(--font-mono)", textTransform: "uppercase",
-                cursor: transferLoading || !selectedNewLeaderId ? "not-allowed" : "pointer",
-                opacity: transferLoading || !selectedNewLeaderId ? 0.6 : 1, transition: "all 0.15s ease"
-              }}
-            >
-              {transferLoading ? "Transferring..." : "Transfer Role"}
-            </button>
+
+          {message && (
+            <div style={{ 
+              marginBottom: "1.25rem", 
+              padding: "0.85rem 1.1rem", 
+              borderRadius: "4px", 
+              fontSize: "0.9rem",
+              fontWeight: 700,
+              fontFamily: "var(--font-mono)",
+              background: message.type === "success" ? "#d1fae5" : "#fef2f2",
+              border: `2px solid ${message.type === "success" ? "#065f46" : "#dc2626"}`,
+              boxShadow: `3px 3px 0px ${message.type === "success" ? "#065f46" : "#dc2626"}`,
+              color: message.type === "success" ? "#065f46" : "#dc2626"
+            }}>
+              {message.type === "success" ? "🎉 [SUCCESS]: " : "⚠️ [ERROR]: "}{message.text}
+            </div>
+          )}
+
+          
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "1.5rem" }}>
+            <div>
+              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                Your Bio / Description <span style={{ color: "#dc2626" }}>*</span>
+              </label>
+              <textarea
+                value={applicantBio}
+                onChange={(e) => setApplicantBio(e.target.value)}
+                placeholder="Tell the team about yourself, why you'd be a good fit, etc..."
+                rows={3}
+                style={{
+                  border: "2px solid #1a1a1a",
+                  borderRadius: "4px",
+                  padding: "0.65rem 0.85rem",
+                  background: "#fdfbfa",
+                  color: "#1a1a1a",
+                  fontWeight: 500,
+                  fontSize: "0.95rem",
+                  width: "100%",
+                  boxSizing: "border-box",
+                  minHeight: "80px",
+                  outline: "none",
+                  resize: "vertical"
+                }}
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                Your Skills
+              </label>
+              <SkillSelector selectedSkills={applicantSkills} onChange={setApplicantSkills} />
+            </div>
           </div>
+
+          <button 
+            onClick={handleRequestToJoin} 
+            disabled={requestLoading || team.status === "full"}
+            style={{ 
+              width: "100%", 
+              padding: "0.95rem",
+              background: team.status === "full" ? "#e5e7eb" : "#5b5fc7", 
+              color: team.status === "full" ? "#6b7280" : "#ffffff", 
+              border: team.status === "full" ? "2px solid #9ca3af" : "2px solid #1a1a1a", 
+              boxShadow: team.status === "full" ? "none" : "4px 4px 0px #1a1a1a", 
+              borderRadius: "4px",
+              fontWeight: 800,
+              fontSize: "1.05rem",
+              fontFamily: "var(--font-mono)",
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              cursor: team.status === "full" ? "not-allowed" : "pointer",
+              transition: "all 0.15s ease",
+              minHeight: "48px"
+            }}
+          >
+            {requestLoading ? "Submitting Application Dossier..." : team.status === "full" ? "⚠️ Team Capacity Reached (Full)" : "📨 Submit Enlistment Application"}
+          </button>
+        </div>
+      )}
+
+      {/* Action Section for Teammates */}
+      {isLeader && team.status !== 'dissolved' && (
+        <div style={{ marginTop: "1.5rem", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "5px 5px 0px #dc2626", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
+          <div style={{ fontSize: "0.72rem", color: "#991b1b", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>[LEADER ACTIONS]</div>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#991b1b", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>Dissolve Team</h3>
+          <p style={{ color: "#991b1b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
+            This action is irreversible. All current members will be removed, pending requests will be cancelled, and the team will be permanently marked as dissolved.
+          </p>
+          <button onClick={handleDissolveTeam} disabled={transferLoading} style={{ padding: "0.75rem 1.5rem", background: "#dc2626", color: "#ffffff", border: "2px solid #7f1d1d", boxShadow: "3px 3px 0px #7f1d1d", borderRadius: "4px", fontWeight: 800, fontFamily: "var(--font-mono)", textTransform: "uppercase", cursor: transferLoading ? "not-allowed" : "pointer", opacity: transferLoading ? 0.6 : 1 }}>
+            {transferLoading ? "Dissolving..." : "Dissolve Team"}
+          </button>
+        </div>
+      )}
+
+      {isMemberOnly && team.status !== 'dissolved' && (
+        <div style={{ marginTop: "1.5rem", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "5px 5px 0px #dc2626", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
+          <div style={{ fontSize: "0.72rem", color: "#991b1b", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>[MEMBER ACTIONS]</div>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#991b1b", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>Leave Team</h3>
+          <p style={{ color: "#991b1b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
+            You will be removed from this team and your spot will become available. You will be free to join another team.
+          </p>
+          <button onClick={handleLeaveTeam} disabled={transferLoading} style={{ padding: "0.75rem 1.5rem", background: "#dc2626", color: "#ffffff", border: "2px solid #7f1d1d", boxShadow: "3px 3px 0px #7f1d1d", borderRadius: "4px", fontWeight: 800, fontFamily: "var(--font-mono)", textTransform: "uppercase", cursor: transferLoading ? "not-allowed" : "pointer", opacity: transferLoading ? 0.6 : 1 }}>
+            {transferLoading ? "Leaving..." : "Leave Team"}
+          </button>
         </div>
       )}
     </div>

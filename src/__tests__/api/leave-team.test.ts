@@ -4,21 +4,22 @@ import * as leaveTeamHandler from '@/app/api/teams/[id]/leave/route';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/lib/supabase/server';
 
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    user: { findUnique: jest.fn() },
-    team: { 
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn()
-    },
-    teamMembership: {
-      update: jest.fn(),
-      delete: jest.fn()
-    },
-    $transaction: jest.fn((callback) => callback(prisma)),
-  },
-}));
+jest.mock("@/lib/prisma", () => {
+  const mockP = {
+    user: { findUnique: jest.fn(), update: jest.fn() },
+    team: { findUnique: jest.fn(), update: jest.fn(), create: jest.fn(), findMany: jest.fn(), delete: jest.fn() },
+    teamMembership: { create: jest.fn(), findUnique: jest.fn(), delete: jest.fn(), update: jest.fn(), findMany: jest.fn() },
+    teamSlot: { create: jest.fn(), updateMany: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
+    event: { findFirst: jest.fn(), create: jest.fn() },
+    joinRequest: { findFirst: jest.fn(), create: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
+    joinRequestOpinion: { upsert: jest.fn() },
+    notification: { create: jest.fn() },
+    chatMessage: { findMany: jest.fn(), create: jest.fn() },
+    report: { findMany: jest.fn() },
+  };
+  mockP.$transaction = jest.fn((callback) => callback(mockP));
+  return { prisma: mockP };
+});
 
 jest.mock('@/lib/supabase/server', () => ({
   createClient: jest.fn(),
@@ -67,7 +68,7 @@ describe('Leave Team API', () => {
       });
     });
 
-    test('leader leaves, next eligible member is promoted to leader', async () => {
+    test('leader attempts to leave, gets 400', async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'auth_user_1' } }, error: null });
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'leader1' });
 
@@ -76,9 +77,7 @@ describe('Leave Team API', () => {
         status: 'open',
         memberships: [
           { id: 'mem1', user_id: 'leader1', role: 'leader' },
-          // nextLeader should be the first in the sorted array provided by prisma
-          { id: 'mem2', user_id: 'user2', role: 'member' },
-          { id: 'mem3', user_id: 'user3', role: 'member' }
+          { id: 'mem2', user_id: 'user2', role: 'member' }
         ]
       });
 
@@ -87,53 +86,10 @@ describe('Leave Team API', () => {
         params: { id: 'team1' } as any,
         test: async ({ fetch }) => {
           const res = await fetch({ method: 'POST' });
-          expect(res.status).toBe(200);
-
-          // Auto-promote
-          expect(prisma.teamMembership.update).toHaveBeenCalledWith({
-            where: { id: 'mem2' },
-            data: { role: 'leader' }
-          });
-          expect(prisma.team.update).toHaveBeenCalledWith({
-            where: { id: 'team1' },
-            data: { leader_id: 'user2' }
-          });
-
-          // Delete leaving leader's membership
-          expect(prisma.teamMembership.delete).toHaveBeenCalledWith({
-            where: { id: 'mem1' }
-          });
-        }
-      });
-    });
-
-    test('leader leaves, no other members, team is deleted', async () => {
-      mockAuthGetUser.mockResolvedValue({ data: { user: { id: 'auth_user_1' } }, error: null });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'leader1' });
-
-      (prisma.team.findUnique as jest.Mock).mockResolvedValue({
-        id: 'team1',
-        status: 'open',
-        memberships: [
-          { id: 'mem1', user_id: 'leader1', role: 'leader' }
-        ]
-      });
-
-      await testApiHandler({
-        appHandler: leaveTeamHandler,
-        params: { id: 'team1' } as any,
-        test: async ({ fetch }) => {
-          const res = await fetch({ method: 'POST' });
-          expect(res.status).toBe(200);
-
-          // Team deleted
-          expect(prisma.team.delete).toHaveBeenCalledWith({
-            where: { id: 'team1' }
-          });
+          expect(res.status).toBe(400);
           
-          // Should skip updating memberships or team status
-          expect(prisma.teamMembership.update).not.toHaveBeenCalled();
-          expect(prisma.teamMembership.delete).not.toHaveBeenCalled();
+          const json = await res.json();
+          expect(json.error).toBe('As leader, you must dissolve the team to leave.');
         }
       });
     });
@@ -147,9 +103,6 @@ describe('Leave Team API', () => {
         status: 'open',
         memberships: [
           { id: 'mem1', user_id: 'leader1', role: 'leader' },
-          // mem2 has a "worse" id lexically than mem3, but joined earlier.
-          // This proves we pick mem2 because of the array order (which simulates Prisma's orderBy),
-          // not because mem2 just happens to have the first string ID.
           { id: 'z_mem2', user_id: 'z_user2', role: 'member', joined_at: new Date('2024-01-01') },
           { id: 'a_mem3', user_id: 'a_user3', role: 'member', joined_at: new Date('2024-01-02') }
         ]
@@ -174,18 +127,6 @@ describe('Leave Team API', () => {
               })
             })
           );
-          
-          // Assert that the app actually acts on the returned array's order
-          // It should promote 'z_mem2' (the first eligible member in the array) to leader
-          expect(prisma.teamMembership.update).toHaveBeenCalledWith({
-            where: { id: 'z_mem2' },
-            data: { role: 'leader' }
-          });
-          
-          expect(prisma.team.update).toHaveBeenCalledWith({
-            where: { id: 'team1' },
-            data: { leader_id: 'z_user2' }
-          });
         }
       });
     });

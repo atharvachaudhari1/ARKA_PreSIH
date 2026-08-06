@@ -2,6 +2,7 @@
 import { testApiHandler } from "next-test-api-route-handler";
 import * as decisionHandler from "@/app/api/join-requests/[id]/decision/route";
 import * as cancelHandler from "@/app/api/join-requests/[id]/cancel/route";
+import * as requestsHandler from "@/app/api/join-requests/route";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
@@ -196,6 +197,50 @@ describe("Join Requests - Mixed Directions and Cancel Edges", () => {
               data: expect.objectContaining({ status: "cancelled" })
             })
           );
+        },
+      });
+    });
+  });
+
+  describe("GET /api/join-requests", () => {
+    test("fetches outbound invites when user is leader on the second membership (index 1)", async () => {
+      mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_multi" } }, error: null });
+      
+      // User with two memberships. Member of Team A, Leader of Team B.
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: "multi_user",
+        team_memberships: [
+          { team_id: "teamA", role: "member" }, // index 0 is not a leader
+          { team_id: "teamB", role: "leader" }  // index 1 IS a leader
+        ]
+      });
+
+      // Mock the outbound invites query to return something
+      (prisma.joinRequest.findMany as jest.Mock).mockImplementation((args) => {
+        if (args.where?.direction === "team_to_user" && args.where?.team_id?.in?.includes("teamB")) {
+          return Promise.resolve([{ id: "invite_team_b", team_id: "teamB", direction: "team_to_user" }]);
+        }
+        return Promise.resolve([]);
+      });
+
+      await testApiHandler({
+        appHandler: requestsHandler,
+        test: async ({ fetch }) => {
+          const res = await fetch({ method: "GET" });
+          expect(res.status).toBe(200);
+          const json = await res.json();
+          
+          expect(prisma.joinRequest.findMany).toHaveBeenCalledWith(
+            expect.objectContaining({
+              where: expect.objectContaining({
+                direction: "team_to_user",
+                team_id: { in: ["teamB"] }
+              })
+            })
+          );
+          
+          expect(json.outboundInvites).toHaveLength(1);
+          expect(json.outboundInvites[0].id).toBe("invite_team_b");
         },
       });
     });

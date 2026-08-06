@@ -4,15 +4,10 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest } from "next/server";
 
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: { findUnique: jest.fn() },
-    chatMessage: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-    },
-  },
-}));
+jest.mock("@/lib/prisma", () => {
+  const mockP = { user: { findUnique: jest.fn() }, chatMessage: { findMany: jest.fn(), create: jest.fn() }, report: { findMany: jest.fn().mockResolvedValue([]) } };
+  return { prisma: mockP };
+});
 
 jest.mock("@/lib/supabase/server", () => ({
   createClient: jest.fn(),
@@ -76,3 +71,4 @@ describe("Chat API", () => {
     });
   });
 });
+

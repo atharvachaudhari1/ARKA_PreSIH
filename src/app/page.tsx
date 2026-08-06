@@ -35,6 +35,7 @@ export default function HomePage() {
         .btn-nav-start:hover { transform: translateY(-1px) !important; box-shadow: 3px 3px 0px #1a1a1a !important; background: #4a4fb5 !important; }
         .btn-hero-join:hover { transform: translateY(-2px) !important; box-shadow: 6px 6px 0px #1a1a1a !important; background: #4a4fb5 !important; }
         .btn-hero-create:hover { transform: translateY(-2px) !important; box-shadow: 6px 6px 0px #1a1a1a !important; background: #fff9c4 !important; }
+        .maintainer-card:hover { transform: translateY(-2px) !important; box-shadow: 6px 6px 0px #1a1a1a !important; }
       `}</style>
       {/* ─── Nav ─── */}
       <nav
@@ -701,7 +702,7 @@ export default function HomePage() {
       <footer
         style={{
           borderTop: "2px solid #1a1a1a",
-          padding: "2rem 1.5rem",
+          padding: "4rem 1.5rem 3rem",
           textAlign: "center",
           background: "#eae5dc",
           color: "#4a4a4a",
@@ -710,6 +711,127 @@ export default function HomePage() {
         }}
       >
         <div style={{ maxWidth: "1050px", margin: "0 auto" }}>
+          
+          {/* Builders Section */}
+          <div style={{ marginBottom: "4rem", display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <h2 style={{
+              color: "#5b5fc7",
+              fontSize: "1.2rem",
+              fontWeight: 800,
+              marginBottom: "0.75rem",
+              textAlign: "center"
+            }}>
+              Minds behind the <span style={{ color: "#ca8a04" }}>light</span>, that shine <span style={{ color: "#ca8a04" }}>bright</span>
+            </h2>
+            <div style={{
+              background: "#1a1a1a",
+              color: "#fffce8",
+              padding: "0.35rem 0.85rem",
+              borderRadius: "3px",
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              display: "inline-block",
+              marginBottom: "1.5rem",
+              fontFamily: "var(--font-mono)"
+            }}>
+              $ meet --the-builders
+            </div>
+            
+            <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", justifyContent: "center" }}>
+              {/* Elish Mark */}
+              <a 
+                href="https://www.linkedin.com/in/elish-mark4444/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="maintainer-card"
+                style={{
+                  background: "#ffffff",
+                  border: "2px solid #1a1a1a",
+                  boxShadow: "4px 4px 0px #1a1a1a",
+                  borderRadius: "4px",
+                  padding: "1rem 1.25rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1.25rem",
+                  textDecoration: "none",
+                  color: "#1a1a1a",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                  width: "360px",
+                  boxSizing: "border-box",
+                  textAlign: "left"
+                }}
+              >
+                <div style={{
+                  width: "110px",
+                  height: "140px",
+                  borderRadius: "4px",
+                  border: "2px solid #1a1a1a",
+                  background: "#e0e7ff",
+                  overflow: "hidden",
+                  flexShrink: 0
+                }}>
+                  <img src="/assets/elish2.webp" alt="Elish Mark" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.2rem" }}>Elish Mark</div>
+                  <div style={{ color: "#ca8a04", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.4rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    SIH 25' Winner
+                  </div>
+                  <div style={{ color: "#5b5fc7", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    Connect on LinkedIn
+                  </div>
+                </div>
+              </a>
+
+              {/* Atharva Chaudhari */}
+              <a 
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="maintainer-card"
+                style={{
+                  background: "#ffffff",
+                  border: "2px solid #1a1a1a",
+                  boxShadow: "4px 4px 0px #1a1a1a",
+                  borderRadius: "4px",
+                  padding: "1rem 1.25rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1.25rem",
+                  textDecoration: "none",
+                  color: "#1a1a1a",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                  width: "360px",
+                  boxSizing: "border-box",
+                  textAlign: "left"
+                }}
+              >
+                <div style={{
+                  width: "110px",
+                  height: "140px",
+                  borderRadius: "4px",
+                  border: "2px solid #1a1a1a",
+                  background: "#fffce8",
+                  overflow: "hidden",
+                  flexShrink: 0
+                }}>
+                  <img src="/assets/atharva.webp" alt="Atharva Chaudhari" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.2rem" }}>Atharva Chaudhari</div>
+                  <div style={{ color: "#ca8a04", fontSize: "0.75rem", fontWeight: 800, marginBottom: "0.4rem", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    SIH 25' Winner
+                  </div>
+                  <div style={{ color: "#5b5fc7", fontSize: "0.85rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    Connect on LinkedIn
+                  </div>
+                </div>
+              </a>
+            </div>
+          </div>
+
           <div style={{ marginBottom: "0.75rem" }}>
             <BrandLogo size="md" />
           </div>

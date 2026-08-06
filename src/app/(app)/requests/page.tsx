@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 import useSWR, { mutate } from "swr";
+import { isStrongMatch } from "@/lib/recommendation";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -267,10 +268,32 @@ export default function RequestsPage() {
                       <div style={{ fontSize: "0.7rem", color: "#777", fontFamily: "var(--font-mono)", fontWeight: 800, letterSpacing: "1px", marginBottom: "0.25rem" }}>
                         [CANDIDATE DOSSIER]
                       </div>
-                      <h3 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#1a1a1a", margin: "0 0 0.2rem" }}>{req.requester.name}</h3>
-                      <p style={{ color: "#5a5a5a", fontSize: "0.85rem", fontWeight: 700, fontFamily: "var(--font-mono)", margin: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", margin: "0 0 0.2rem" }}>
+                        <h3 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#1a1a1a", margin: 0 }}>{req.requester.name}</h3>
+                        {(() => {
+                          const unfilledSlotSkills = req.team.slots
+                            ? req.team.slots.filter((s: any) => !s.is_filled).flatMap((s: any) => s.skills)
+                            : [];
+                          const userSkills = req.requester.skills?.map((s: any) => s.skill) || [];
+                          
+                          if (isStrongMatch(unfilledSlotSkills, userSkills)) {
+                            return (
+                              <span style={{ fontSize: "0.7rem", fontWeight: 800, fontFamily: "var(--font-mono)", padding: "2px 6px", borderRadius: "3px", background: "#fffbeb", color: "#d97706", border: "1px solid #d97706", letterSpacing: "0.5px" }}>
+                                🔥 STRONG MATCH
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
+                      <p style={{ color: "#5a5a5a", fontSize: "0.85rem", fontWeight: 700, fontFamily: "var(--font-mono)", margin: "0 0 0.25rem" }}>
                         🎓 {req.requester.department} • 👤 {req.requester.gender} • 🏅 {req.requester.past_hackathons_count} Past Hackathons • 🎤 {req.requester.presentation_skill_rating}/5 Presentation
                       </p>
+                      {(req.requester.whatsapp_number || req.requester.phone_number) && (
+                        <p style={{ color: "#2563eb", fontSize: "0.85rem", fontWeight: 700, fontFamily: "var(--font-mono)", margin: 0 }}>
+                          📞 Contact: {req.requester.whatsapp_number || req.requester.phone_number}
+                        </p>
+                      )}
                     </div>
                     <span
                       style={{
@@ -289,6 +312,19 @@ export default function RequestsPage() {
                       ⏳ PENDING REVIEW
                     </span>
                   </div>
+
+                  {req.requester.bio && (
+                    <div style={{ marginBottom: "1rem" }}>
+                      <div style={{ fontSize: "0.7rem", color: "#1a1a1a", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 800, fontFamily: "var(--font-mono)", marginBottom: "0.4rem" }}>
+                        [CANDIDATE DOSSIER EXTRACT]
+                      </div>
+                      <div style={{ background: "#fdfbf7", border: "1.5px solid #eae6df", padding: "0.85rem", borderRadius: "4px" }}>
+                        <p style={{ margin: 0, fontSize: "0.85rem", color: "#4a4a4a", fontWeight: 500, fontStyle: "italic", lineHeight: 1.5 }}>
+                          "{req.requester.bio}"
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   {req.requester.skills.length > 0 && (
                     <div style={{ marginBottom: "1.25rem" }}>
@@ -438,7 +474,7 @@ export default function RequestsPage() {
                   <div>
                     <h3 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#1a1a1a", margin: "0 0 0.25rem" }}>{req.requester.name}</h3>
                     <div style={{ display: "inline-block", background: "#eef0ff", color: "#1a1a1a", border: "1.5px solid #5b5fc7", padding: "2px 8px", borderRadius: "3px", fontSize: "0.75rem", fontFamily: "var(--font-mono)", fontWeight: 700, margin: "0.3rem 0 0.6rem" }}>
-                      🎓 {req.requester.department} • 👤 {req.requester.gender}
+                      🎓 {req.requester.department} • 👤 {req.requester.gender} {(req.requester.whatsapp_number || req.requester.phone_number) && `• 📞 ${req.requester.whatsapp_number || req.requester.phone_number}`}
                     </div>
                     <p style={{ fontSize: "0.8rem", color: "#666", fontWeight: 600, fontFamily: "var(--font-mono)", margin: 0 }}>
                       [SENT ON: {new Date(req.created_at).toLocaleDateString()}]

@@ -54,6 +54,28 @@ export default function DashboardPage() {
         }}>
           $ ./DASHBOARD_INIT.SH
         </div>
+        
+        {profile?.verification_status === "pending" && profile?.verification_method === null && (
+          <div style={{
+            background: "#fffbeb", border: "2px solid #f59e0b", borderRadius: "4px", padding: "1rem 1.5rem",
+            marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center",
+            boxShadow: "3px 3px 0px #f59e0b", animation: "fade-up 0.3s ease"
+          }}>
+            <div>
+              <h4 style={{ margin: 0, color: "#b45309", fontWeight: 800, fontSize: "1.05rem" }}>Action Required: Re-verify your Student ID</h4>
+              <p style={{ margin: "0.2rem 0 0", color: "#92400e", fontSize: "0.9rem", fontWeight: 500 }}>
+                Your profile is pending verification. Please verify via your institutional email or ID upload to unlock full access.
+              </p>
+            </div>
+            <Link href="/profile/complete" style={{
+              background: "#f59e0b", color: "#fff", padding: "0.5rem 1rem", borderRadius: "3px", textDecoration: "none",
+              fontWeight: 800, fontSize: "0.85rem", textTransform: "uppercase", border: "2px solid #b45309", boxShadow: "2px 2px 0px #b45309"
+            }}>
+              Verify Now
+            </Link>
+          </div>
+        )}
+
         <h1 style={{ fontSize: "2rem", fontWeight: 900, letterSpacing: "-0.02em" }}>
           Welcome back, <span className="gradient-text">{profile?.name ? profile.name.split(" ")[0] : "Hacker"}</span>
         </h1>
@@ -217,6 +239,31 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Past Teams History */}
+      {profile?.past_teams && profile.past_teams.length > 0 && (
+        <div style={{ marginTop: "1.5rem", background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "5px 5px 0px #1a1a1a", borderRadius: "6px", overflow: "hidden" }}>
+          <div style={{ background: "#1a1a1a", color: "#ffffff", padding: "0.65rem 1.25rem", fontSize: "0.8rem", fontFamily: "var(--font-mono)", fontWeight: 800, letterSpacing: "1px", borderBottom: "2px solid #1a1a1a" }}>
+            $ ./PAST_TEAMS_HISTORY.SH
+          </div>
+          <div style={{ padding: "1.5rem" }}>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#1a1a1a", marginBottom: "1rem" }}>Past Teams (Dissolved)</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              {profile.past_teams.map((team: any, i: number) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem", background: "#fdfbf7", border: "2px solid #e5e7eb", borderRadius: "4px" }}>
+                  <div>
+                    <div style={{ fontWeight: 800, color: "#4b5563", fontSize: "1.05rem" }}>{team.name}</div>
+                    <div style={{ fontSize: "0.8rem", color: "#6b7280", fontWeight: 600, marginTop: "0.2rem" }}>Role: {team.role.toUpperCase()}</div>
+                  </div>
+                  <span style={{ fontSize: "0.7rem", fontWeight: 800, fontFamily: "var(--font-mono)", padding: "3px 8px", borderRadius: "3px", background: "#fef2f2", color: "#dc2626", border: "1.5px solid #dc2626", boxShadow: "1.5px 1.5px 0px #1a1a1a" }}>
+                    DISSOLVED
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

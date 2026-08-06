@@ -49,37 +49,9 @@ export async function POST(
     }
 
     await prisma.$transaction(async (tx) => {
-      // If user is the leader, handle succession
+      // If user is the leader, they must dissolve
       if (membership.role === 'leader') {
-        const otherMembers = team.memberships.filter(m => m.user_id !== currentUser.id);
-        
-        if (otherMembers.length > 0) {
-          if (team.succession_mode === 'manual') {
-            throw new Error("MANUAL_SUCCESSION_REQUIRED");
-          }
-          
-          // Auto promote the next eligible member
-          // The array is already ordered by joined_at, user.created_at, user.id
-          const nextLeader = otherMembers[0];
-          
-          await tx.teamMembership.update({
-            where: { id: nextLeader.id },
-            data: { role: 'leader' }
-          });
-          
-          await tx.team.update({
-            where: { id: team.id },
-            data: { leader_id: nextLeader.user_id }
-          });
-        } else {
-          // No other members, delete the team
-          // Team deletion will cascade to TeamMembership, JoinRequest, ChatMessage, etc.
-          // Notification team_id will be set to NULL (onDelete: SetNull).
-          await tx.team.delete({
-            where: { id: team.id }
-          });
-          return; // Skip the rest, team is gone
-        }
+        throw new Error("LEADER_MUST_DISSOLVE");
       }
 
       // Delete the leaving user's membership
@@ -107,8 +79,8 @@ export async function POST(
 
   } catch (error: any) {
     console.error('Error leaving team:', error);
-    if (error.message === 'MANUAL_SUCCESSION_REQUIRED') {
-      return NextResponse.json({ error: 'You must transfer leadership manually before leaving, or change succession mode to auto-promote.' }, { status: 400 });
+    if (error.message === 'LEADER_MUST_DISSOLVE') {
+      return NextResponse.json({ error: 'As leader, you must dissolve the team to leave.' }, { status: 400 });
     }
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

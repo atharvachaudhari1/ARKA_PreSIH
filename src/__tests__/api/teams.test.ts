@@ -4,26 +4,22 @@ import * as teamsHandler from "@/app/api/teams/route";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    event: {
-      findFirst: jest.fn(),
-      create: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(),
-      update: jest.fn(),
-    },
-    team: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-    },
-    teamMembership: {
-      create: jest.fn(),
-    },
-    $transaction: jest.fn((callback) => callback(prisma)),
-  },
-}));
+jest.mock("@/lib/prisma", () => {
+  const mockP = {
+    user: { findUnique: jest.fn(), update: jest.fn() },
+    team: { findUnique: jest.fn(), update: jest.fn(), create: jest.fn(), findMany: jest.fn(), delete: jest.fn() },
+    teamMembership: { create: jest.fn(), findUnique: jest.fn(), delete: jest.fn(), update: jest.fn(), findMany: jest.fn() },
+    teamSlot: { create: jest.fn(), updateMany: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
+    event: { findFirst: jest.fn(), create: jest.fn() },
+    joinRequest: { findFirst: jest.fn(), create: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
+    joinRequestOpinion: { upsert: jest.fn() },
+    notification: { create: jest.fn() },
+    chatMessage: { findMany: jest.fn(), create: jest.fn() },
+    report: { findMany: jest.fn() },
+  };
+  mockP.$transaction = jest.fn((callback) => callback(mockP));
+  return { prisma: mockP };
+});
 
 jest.mock("@/lib/supabase/server", () => ({
   createClient: jest.fn(),
@@ -88,7 +84,7 @@ describe("Teams API", () => {
   describe("POST /api/teams", () => {
     test("creates a team and assigns leader", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "user1" } }, error: null });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "db_user1", counts_toward_female_quota: true });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "db_user1", counts_toward_female_quota: true, team_memberships: [] });
       (prisma.event.findFirst as jest.Mock).mockResolvedValue({ id: "event1", min_female_required: 1 });
       
       (prisma.team.create as jest.Mock).mockResolvedValue({ id: "team1", name: "New Team" });
@@ -100,6 +96,7 @@ describe("Teams API", () => {
             method: "POST",
             body: JSON.stringify({
               name: "New Team",
+              description: "A valid team description",
               domain_interest: "Web3",
               skills_needed: ["React"],
             }),
@@ -142,7 +139,7 @@ describe("Teams API", () => {
 
     test("returns JSON error response on validation failure (missing name)", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "user1" } }, error: null });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "db_user1", counts_toward_female_quota: true });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "db_user1", counts_toward_female_quota: true, team_memberships: [] });
       (prisma.event.findFirst as jest.Mock).mockResolvedValue({ id: "event1", min_female_required: 1 });
 
       await testApiHandler({
@@ -166,7 +163,7 @@ describe("Teams API", () => {
 
     test("returns JSON error response on unhandled exception", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "user1" } }, error: null });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "db_user1", counts_toward_female_quota: true });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "db_user1", counts_toward_female_quota: true, team_memberships: [] });
       (prisma.event.findFirst as jest.Mock).mockResolvedValue({ id: "event1", min_female_required: 1 });
       
       // Force an exception during creation
@@ -179,6 +176,7 @@ describe("Teams API", () => {
             method: "POST",
             body: JSON.stringify({
               name: "New Team",
+              description: "A valid team description",
               domain_interest: "Web3",
             }),
           });
@@ -192,3 +190,4 @@ describe("Teams API", () => {
     });
   });
 });
+

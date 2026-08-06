@@ -78,6 +78,23 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        join_requests: {
+          where: {
+            direction: "team_to_user",
+            status: "pending",
+          },
+          include: {
+            requester: {
+              select: {
+                id: true,
+                name: true,
+                department: true,
+                verification_status: true,
+                skills: { select: { skill: true, proficiency: true } },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -98,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     const currentUser = await prisma.user.findUnique({
       where: { auth_user_id: authUser.id },
-      select: { id: true, counts_toward_female_quota: true, team_memberships: { select: { id: true } } },
+      select: { id: true, counts_toward_female_quota: true, team_memberships: { where: { team: { status: { not: 'dissolved' } } }, select: { id: true } } },
     });
     if (!currentUser) {
       return NextResponse.json({ error: "User profile not found. Please complete your profile first." }, { status: 404 });
@@ -114,10 +131,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode, event_id, slots } = body;
+    const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode, event_id, slots, leaderBio, leaderSkills } = body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Team name is required" }, { status: 400 });
+    }
+
+    if (!description || typeof description !== "string" || !description.trim()) {
+      return NextResponse.json({ error: "Team description is required" }, { status: 400 });
     }
 
     let event;
@@ -176,22 +197,75 @@ export async function POST(request: NextRequest) {
         for (const slot of slots) {
           await tx.teamSlot.create({
             data: {
-              team_id: team.id,
-              role_title: slot.role_title || "Open Position",
-              gender: slot.gender || "any",
-              skills: Array.isArray(slot.skills) ? slot.skills : [],
-              is_filled: false
+               team_id: team.id,
+               role_title: slot.role_title || "Open Position",
+               gender: slot.gender || "any",
+               skills: Array.isArray(slot.skills) ? slot.skills : [],
+               is_filled: false
             }
           });
+
+          if (slot.prefill_user_id) {
+            // Create a pending invite (team_to_user) instead of direct membership
+            await tx.joinRequest.create({
+              data: {
+                team_id: team.id,
+                requester_id: slot.prefill_user_id,
+                direction: "team_to_user",
+                status: "pending"
+              }
+            });
+
+            // Notify the invited user in-app
+            await tx.notification.create({
+              data: {
+                user_id: slot.prefill_user_id,
+                team_id: team.id,
+                type: "new_join_request",
+                payload: { message: `You have been invited to join the new team: ${name.trim()}` }
+              }
+            });
+            
+            // Send email notification
+            const invitedUser = await tx.user.findUnique({
+              where: { id: slot.prefill_user_id },
+              select: { email: true }
+            });
+
+            if (invitedUser?.email && process.env.RESEND_API_KEY) {
+              const { Resend } = require("resend");
+              const resend = new Resend(process.env.RESEND_API_KEY);
+              await resend.emails.send({
+                from: "TeamUp <invites@teamup.arkalights.com>",
+                to: [invitedUser.email],
+                subject: "You've been invited to a team!",
+                html: `<p>Hello!</p><p>You have been invited to join the team <strong>${name.trim()}</strong> on TeamUp.</p><p>Log in to your dashboard to view and accept the invitation.</p>`
+              }).catch((e: any) => console.error("Email send failed:", e));
+            }
+          }
         }
       }
 
       // Force leader's contact visibility to public_to_logged_in
-      // FIX: field name is preferred_contact_visibility, not contact_visibility
       await tx.user.update({
         where: { id: currentUser.id },
-        data: { preferred_contact_visibility: "public_to_logged_in" },
+        data: { 
+          preferred_contact_visibility: "public_to_logged_in",
+          ...(leaderBio ? { bio: leaderBio } : {})
+        },
       });
+
+      if (Array.isArray(leaderSkills) && leaderSkills.length > 0) {
+        await tx.userSkill.deleteMany({ where: { user_id: currentUser.id } });
+        await tx.userSkill.createMany({
+          data: leaderSkills.map((skill: string) => ({
+            user_id: currentUser.id,
+            skill,
+            proficiency: "intermediate"
+          })),
+          skipDuplicates: true
+        });
+      }
 
       return team;
     });

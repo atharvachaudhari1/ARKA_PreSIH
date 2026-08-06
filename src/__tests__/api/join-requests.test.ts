@@ -6,35 +6,22 @@ import * as opinionHandler from "@/app/api/join-requests/[id]/opinion/route";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      findUnique: jest.fn(),
-    },
-    team: {
-      findUnique: jest.fn(),
-      update: jest.fn(),
-    },
-    joinRequest: {
-      findFirst: jest.fn(),
-      create: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-    },
-    joinRequestOpinion: {
-      upsert: jest.fn(),
-    },
-    teamMembership: {
-      create: jest.fn(),
-    },
-    notification: {
-      create: jest.fn(),
-    },
-    $transaction: jest.fn((callback) => callback(prisma)),
-  },
-}));
+jest.mock("@/lib/prisma", () => {
+  const mockP = {
+    user: { findUnique: jest.fn(), update: jest.fn() },
+    team: { findUnique: jest.fn(), update: jest.fn(), create: jest.fn(), findMany: jest.fn(), delete: jest.fn() },
+    teamMembership: { create: jest.fn(), findUnique: jest.fn(), delete: jest.fn(), update: jest.fn(), findMany: jest.fn() },
+    teamSlot: { create: jest.fn(), updateMany: jest.fn(), findFirst: jest.fn(), update: jest.fn() },
+    event: { findFirst: jest.fn(), create: jest.fn() },
+    joinRequest: { findFirst: jest.fn(), create: jest.fn(), findUnique: jest.fn(), findMany: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
+    joinRequestOpinion: { upsert: jest.fn() },
+    notification: { create: jest.fn() },
+    chatMessage: { findMany: jest.fn(), create: jest.fn() },
+    report: { findMany: jest.fn() },
+  };
+  mockP.$transaction = jest.fn((callback) => callback(mockP));
+  return { prisma: mockP };
+});
 
 jest.mock("@/lib/supabase/server", () => ({
   createClient: jest.fn(),
@@ -67,7 +54,7 @@ describe("Join Requests API", () => {
         test: async ({ fetch }) => {
           const res = await fetch({
             method: "POST",
-            body: JSON.stringify({ team_id: "team1", direction: "user_to_team" }),
+            body: JSON.stringify({ team_id: "team1", direction: "user_to_team", applicantBio: "I am a great hacker!" }),
           });
 
           expect(res.status).toBe(201);
@@ -99,7 +86,7 @@ describe("Join Requests API", () => {
         test: async ({ fetch }) => {
           const res = await fetch({
             method: "POST",
-            body: JSON.stringify({ team_id: "team1", direction: "user_to_team" }),
+            body: JSON.stringify({ team_id: "team1", direction: "user_to_team", applicantBio: "I am a great hacker!" }),
           });
           expect(res.status).toBe(409); // Conflict
           expect(prisma.joinRequest.create).not.toHaveBeenCalled();
@@ -129,7 +116,7 @@ describe("Join Requests API", () => {
             method: "PATCH",
             body: JSON.stringify({ opinion: "approve" }),
           });
-          expect(res.status).toBe(200);
+          const body = await res.clone().json().catch(()=>({})); console.log("Failed with body:", body); expect(res.status).toBe(200);
           expect(prisma.joinRequestOpinion.upsert).toHaveBeenCalledWith(
             expect.objectContaining({
               update: { opinion: "approve" },
@@ -143,10 +130,10 @@ describe("Join Requests API", () => {
   describe("PATCH /api/join-requests/:id/decision", () => {
     test("leader can accept a request and trigger cascade expirations", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: "leader1",
-        team_memberships: [{ team_id: "team1", role: "leader" }],
-      });
+      (prisma.user.findUnique as jest.Mock).mockImplementation(async (args) => {
+  if (args?.where?.id === "leader1" || args?.where?.auth_user_id === "auth_user_1") return { id: "leader1", team_memberships: [{ team_id: "team1", role: "leader" }] };
+  return { id: args?.where?.id, counts_toward_female_quota: true, verification_status: "verified", team_memberships: [] };
+});
       
       const mockTeam = {
         id: "team1",
@@ -178,7 +165,7 @@ describe("Join Requests API", () => {
             body: JSON.stringify({ decision: "accept" }),
           });
           
-          expect(res.status).toBe(200);
+          const body = await res.clone().json().catch(()=>({})); console.log("Failed with body:", body); expect(res.status).toBe(200);
           
           // Should update request status to accepted
           expect(prisma.joinRequest.update).toHaveBeenCalledWith(
@@ -245,7 +232,7 @@ describe("Join Requests API", () => {
             body: JSON.stringify({ decision: "accept" }),
           });
           
-          expect(res.status).toBe(200);
+          const body = await res.clone().json().catch(()=>({})); console.log("Failed with body:", body); expect(res.status).toBe(200);
           
           // Should update request status to accepted
           expect(prisma.joinRequest.update).toHaveBeenCalledWith(
@@ -266,10 +253,10 @@ describe("Join Requests API", () => {
     });
     test("rejects accept if it would leave remainingSlots < stillNeeded (general quota unreachable case)", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: "leader1",
-        team_memberships: [{ team_id: "team1", role: "leader" }],
-      });
+      (prisma.user.findUnique as jest.Mock).mockImplementation(async (args) => {
+  if (args?.where?.id === "leader1" || args?.where?.auth_user_id === "auth_user_1") return { id: "leader1", team_memberships: [{ team_id: "team1", role: "leader" }] };
+  return { id: args?.where?.id, counts_toward_female_quota: true, verification_status: "verified", team_memberships: [] };
+});
       
       const mockTeam = {
         id: "team1",
@@ -312,10 +299,10 @@ describe("Join Requests API", () => {
 
     test("rejects accept if it fills the last slot without meeting quota (original scenario)", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: "leader1",
-        team_memberships: [{ team_id: "team1", role: "leader" }],
-      });
+      (prisma.user.findUnique as jest.Mock).mockImplementation(async (args) => {
+  if (args?.where?.id === "leader1" || args?.where?.auth_user_id === "auth_user_1") return { id: "leader1", team_memberships: [{ team_id: "team1", role: "leader" }] };
+  return { id: args?.where?.id, counts_toward_female_quota: true, verification_status: "verified", team_memberships: [] };
+});
       
       const mockTeam = {
         id: "team1",
@@ -358,10 +345,10 @@ describe("Join Requests API", () => {
 
     test("accepts request if remainingSlots >= stillNeeded even if quota isn't met YET", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-        id: "leader1",
-        team_memberships: [{ team_id: "team1", role: "leader" }],
-      });
+      (prisma.user.findUnique as jest.Mock).mockImplementation(async (args) => {
+  if (args?.where?.id === "leader1" || args?.where?.auth_user_id === "auth_user_1") return { id: "leader1", team_memberships: [{ team_id: "team1", role: "leader" }] };
+  return { id: args?.where?.id, counts_toward_female_quota: true, verification_status: "verified", team_memberships: [] };
+});
       
       const mockTeam = {
         id: "team1",
@@ -396,7 +383,7 @@ describe("Join Requests API", () => {
         params: { id: "req1" } as any,
         test: async ({ fetch }) => {
           const res = await fetch({ method: "PATCH", body: JSON.stringify({ decision: "accept" }) });
-          expect(res.status).toBe(200); // Success!
+          const body = await res.clone().json().catch(()=>({})); console.log("Failed with body:", body); expect(res.status).toBe(200); // Success!
           expect(prisma.joinRequest.update).toHaveBeenCalledWith(
             expect.objectContaining({ data: expect.objectContaining({ status: "accepted" }) })
           );
@@ -405,3 +392,6 @@ describe("Join Requests API", () => {
     });
   });
 });
+
+
+
