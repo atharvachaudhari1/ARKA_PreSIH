@@ -64,6 +64,7 @@ enum RequestStatus {
   accepted
   rejected
   expired
+  cancelled
 }
 
 enum ExpiredReason {

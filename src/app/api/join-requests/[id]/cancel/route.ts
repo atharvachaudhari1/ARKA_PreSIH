@@ -42,9 +42,13 @@ export async function DELETE(
 
   if (!isAuthorized) return NextResponse.json({ error: "You are not authorized to cancel this request." }, { status: 403 });
 
-  // HARD DELETE the pending request
-  await prisma.joinRequest.delete({
-    where: { id: joinRequest.id }
+  // Soft-delete the pending request by changing status to cancelled
+  await prisma.joinRequest.update({
+    where: { id: joinRequest.id },
+    data: { 
+      status: "cancelled",
+      resolved_at: new Date()
+    }
   });
 
   return NextResponse.json({ success: true });
