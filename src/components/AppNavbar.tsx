@@ -145,19 +145,20 @@ export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false 
               >
                 <span style={{ display: "flex", alignItems: "center", position: "relative" }}>
                   {link.icon}
+                  {((link.label === "Alerts" && hasUnreadAlerts) || (link.label === "Requests" && hasUnreadRequests)) && (
+                    <span style={{
+                      position: "absolute",
+                      top: -2,
+                      right: -2,
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      background: link.label === "Alerts" ? "#d97706" : "#5b5fc7",
+                      border: "2px solid #ffffff",
+                    }} />
+                  )}
                 </span>
                 {link.label}
-                {((link.label === "Alerts" && hasUnreadAlerts) || (link.label === "Requests" && hasUnreadRequests)) && (
-                  <span style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: link.label === "Alerts" ? "#d97706" : "#5b5fc7",
-                    marginLeft: "auto",
-                    flexShrink: 0,
-                    boxShadow: "1px 1px 0px rgba(0,0,0,0.1)"
-                  }} />
-                )}
               </Link>
             );
           })}
@@ -421,13 +422,15 @@ export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false 
                 border: active ? "2px solid #5b5fc7" : "2px solid transparent",
                 boxShadow: active ? "1.5px 1.5px 0px #5b5fc7" : "none"
               }}>
-                {link.icon}
-                {link.label === "Requests" && hasUnreadRequests && (
-                  <span style={{
-                    position: "absolute", top: "8px", right: "12px", width: 8, height: 8,
-                    borderRadius: "50%", background: "#5b5fc7", border: "2px solid #fff"
-                  }} />
-                )}
+                <span style={{ display: "flex", alignItems: "center", position: "relative" }}>
+                  {link.icon}
+                  {link.label === "Requests" && hasUnreadRequests && (
+                    <span style={{
+                      position: "absolute", top: -2, right: -2, width: 10, height: 10,
+                      borderRadius: "50%", background: "#5b5fc7", border: "2px solid #fff"
+                    }} />
+                  )}
+                </span>
               </div>
               <span style={{ fontSize: "0.6rem", fontWeight: active ? 800 : 600, fontFamily: "var(--font-mono)" }}>
                 {link.label}
