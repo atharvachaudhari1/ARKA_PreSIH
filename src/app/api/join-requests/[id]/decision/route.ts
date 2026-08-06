@@ -176,7 +176,8 @@ export async function PATCH(
             requester_id: joinRequest.requester_id,
             status: "pending",
             id: { not: joinRequest.id }
-          }
+          },
+          include: { team: { select: { leader_id: true } } }
         });
         
         await tx.joinRequest.updateMany({
@@ -192,14 +193,14 @@ export async function PATCH(
           }
         });
 
-        // Send notifications for expired requests
+        // Send notifications for expired requests (to the team leader of the expired request)
         for (const req of userOtherRequests) {
           await tx.notification.create({
             data: {
-              user_id: req.requester_id,
+              user_id: req.team.leader_id,
               type: "request_expired_other_team_joined",
               team_id: req.team_id,
-              payload: {}
+              payload: { user_name: freshUser.name }
             }
           });
         }

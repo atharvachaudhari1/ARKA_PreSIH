@@ -24,9 +24,15 @@ export async function GET(request: NextRequest) {
   });
 
   // 2. If user is in a team, fetch requests directed to that team (user_to_team)
+  // 3. If user is in a team AND is leader, fetch invites sent by that team (team_to_user)
   let teamRequests: any[] = [];
+  let outboundInvites: any[] = [];
+
   if (currentUser.team_memberships.length > 0) {
-    const teamId = currentUser.team_memberships[0].team_id;
+    const membership = currentUser.team_memberships[0];
+    const teamId = membership.team_id;
+    
+    // Inbound applications
     teamRequests = await prisma.joinRequest.findMany({
       where: { team_id: teamId, direction: "user_to_team" },
       include: {
@@ -50,9 +56,30 @@ export async function GET(request: NextRequest) {
       },
       orderBy: { created_at: "desc" },
     });
+
+    // Outbound invites (leader only)
+    if (membership.role === "leader") {
+      outboundInvites = await prisma.joinRequest.findMany({
+        where: { team_id: teamId, direction: "team_to_user" },
+        include: {
+          requester: {
+            select: {
+              id: true,
+              name: true,
+              department: true,
+              gender: true,
+              past_hackathons_count: true,
+              skills: { select: { skill: true, proficiency: true } },
+              presentation_skill_rating: true,
+            }
+          }
+        },
+        orderBy: { created_at: "desc" },
+      });
+    }
   }
 
-  return NextResponse.json({ myRequests, teamRequests });
+  return NextResponse.json({ myRequests, teamRequests, outboundInvites });
 }
 
 export async function POST(request: NextRequest) {

@@ -7,7 +7,7 @@ import useSWR, { mutate } from "swr";
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function RequestsPage() {
-  const [activeTab, setActiveTab] = useState<"my" | "team">("my");
+  const [activeTab, setActiveTab] = useState<"my" | "team" | "outbound">("my");
   const [hasSetTab, setHasSetTab] = useState(false);
 
   const { data: profileData } = useSWR('/api/users/profile', fetcher);
@@ -24,6 +24,7 @@ export default function RequestsPage() {
 
   const myRequests = requestsData?.myRequests || [];
   const teamRequests = requestsData?.teamRequests || [];
+  const outboundInvites = requestsData?.outboundInvites || [];
 
   async function handleOpinion(requestId: string, opinion: "approve" | "reject" | "neutral") {
     const res = await fetch(`/api/join-requests/${requestId}/opinion`, {
@@ -122,6 +123,28 @@ export default function RequestsPage() {
         >
           📥 Inbound Candidates ({teamRequests.length})
         </button>
+        {outboundInvites.length > 0 && (
+          <button
+            onClick={() => setActiveTab("outbound")}
+            className="btn-mobile-full"
+            style={{
+              padding: "0.75rem 1.25rem",
+              background: activeTab === "outbound" ? "#1a1a1a" : "#fdfbf7",
+              color: activeTab === "outbound" ? "#ffffff" : "#1a1a1a",
+              border: "2px solid #1a1a1a",
+              boxShadow: activeTab === "outbound" ? "4px 4px 0px #5b5fc7" : "3px 3px 0px #1a1a1a",
+              borderRadius: "4px",
+              fontWeight: 800,
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.9rem",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              minHeight: "44px"
+            }}
+          >
+            📤 Outbound Invites ({outboundInvites.length})
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -173,11 +196,60 @@ export default function RequestsPage() {
                     </span>
                   </div>
                 </div>
+                {req.direction === "team_to_user" && req.status === "pending" && (
+                  <div style={{ borderTop: "2px dashed #1a1a1a", paddingTop: "1.25rem", marginTop: "1.25rem" }}>
+                    <div style={{ fontSize: "0.72rem", color: "#1a1a1a", marginBottom: "0.6rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "0.5px" }}>
+                      [ACTION REQUIRED: RESPOND TO TEAM INVITE]
+                    </div>
+                    <div className="responsive-stack" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                      <button 
+                        onClick={() => handleDecision(req.id, "accept")} 
+                        className="btn-mobile-full"
+                        style={{ 
+                          padding: "0.75rem 1.25rem", 
+                          background: "#059669", 
+                          color: "#ffffff", 
+                          border: "2px solid #1a1a1a", 
+                          boxShadow: "3px 3px 0px #1a1a1a", 
+                          borderRadius: "4px", 
+                          fontWeight: 800, 
+                          fontFamily: "var(--font-mono)", 
+                          textTransform: "uppercase", 
+                          letterSpacing: "0.5px", 
+                          cursor: "pointer",
+                          minHeight: "44px"
+                        }}
+                      >
+                        🎉 Accept Invite
+                      </button>
+                      <button 
+                        onClick={() => handleDecision(req.id, "reject")} 
+                        className="btn-mobile-full"
+                        style={{ 
+                          padding: "0.75rem 1.25rem", 
+                          background: "#fef2f2", 
+                          color: "#dc2626", 
+                          border: "2px solid #dc2626", 
+                          boxShadow: "3px 3px 0px #dc2626", 
+                          borderRadius: "4px", 
+                          fontWeight: 800, 
+                          fontFamily: "var(--font-mono)", 
+                          textTransform: "uppercase", 
+                          letterSpacing: "0.5px", 
+                          cursor: "pointer",
+                          minHeight: "44px"
+                        }}
+                      >
+                        ✕ Decline
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}
         </div>
-      ) : (
+      ) : activeTab === "team" ? (
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {teamRequests.length === 0 ? (
             <div style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "5px 5px 0px #1a1a1a", padding: "3rem 2rem", textAlign: "center", borderRadius: "6px", color: "#555", fontWeight: 600 }}>
@@ -349,6 +421,64 @@ export default function RequestsPage() {
                 </div>
               );
             })
+          )}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {outboundInvites.length === 0 ? (
+            <div style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "5px 5px 0px #1a1a1a", padding: "3rem 2rem", textAlign: "center", borderRadius: "6px", color: "#555", fontWeight: 600 }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📤</div>
+              <h3 style={{ fontSize: "1.25rem", color: "#1a1a1a", fontWeight: 800, marginBottom: "0.4rem" }}>No active outbound invites</h3>
+              <p style={{ fontSize: "0.95rem", margin: 0 }}>You haven&apos;t invited any hackers to your team yet.</p>
+            </div>
+          ) : (
+            outboundInvites.map((req: any) => (
+              <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "4px 4px 0px #1a1a1a", borderRadius: "6px", padding: "1.75rem", boxSizing: "border-box" }}>
+                <div className="responsive-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                  <div>
+                    <h3 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#1a1a1a", margin: "0 0 0.25rem" }}>{req.requester.name}</h3>
+                    <div style={{ display: "inline-block", background: "#eef0ff", color: "#1a1a1a", border: "1.5px solid #5b5fc7", padding: "2px 8px", borderRadius: "3px", fontSize: "0.75rem", fontFamily: "var(--font-mono)", fontWeight: 700, margin: "0.3rem 0 0.6rem" }}>
+                      🎓 {req.requester.department} • 👤 {req.requester.gender}
+                    </div>
+                    <p style={{ fontSize: "0.8rem", color: "#666", fontWeight: 600, fontFamily: "var(--font-mono)", margin: 0 }}>
+                      [SENT ON: {new Date(req.created_at).toLocaleDateString()}]
+                    </p>
+                  </div>
+                  <div>
+                    <span
+                      style={{
+                        padding: "5px 12px", 
+                        borderRadius: "4px", 
+                        fontSize: "0.75rem", 
+                        fontWeight: 800,
+                        fontFamily: "var(--font-mono)",
+                        border: "2px solid #1a1a1a",
+                        boxShadow: "2px 2px 0px #1a1a1a",
+                        display: "inline-block",
+                        background: req.status === "pending" ? "#fef3c7" : req.status === "accepted" ? "#d1fae5" : "#fee2e2",
+                        color: req.status === "pending" ? "#92400e" : req.status === "accepted" ? "#065f46" : "#991b1b",
+                      }}
+                    >
+                      STATUS: {req.status.toUpperCase()}
+                      {req.status === "expired" && req.expired_reason && ` (${req.expired_reason})`}
+                    </span>
+                  </div>
+                </div>
+                {req.status === "pending" && (
+                  <div style={{ borderTop: "2px dashed #1a1a1a", paddingTop: "1rem", marginTop: "1rem" }}>
+                    <button 
+                      onClick={() => handleCancel(req.id)}
+                      style={{
+                        background: "none", border: "none", cursor: "pointer", color: "#dc2626", 
+                        fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: "0.8rem", textDecoration: "underline"
+                      }}
+                    >
+                      Cancel Invite
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))
           )}
         </div>
       )}
