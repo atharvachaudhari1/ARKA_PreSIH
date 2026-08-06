@@ -125,7 +125,7 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
           fontWeight: 700,
           marginBottom: "0.75rem" 
         }}>
-          <Target size={16} strokeWidth={1.75} /> {team.domain_interest ?? "General Track / Unspecified Domain"}
+          <Target size={16} strokeWidth={1.75} color="#ef4444" fill="#fecaca" /> {team.domain_interest ?? "General Track / Unspecified Domain"}
         </div>
 
         {team.needed_female_count > 0 && (
@@ -146,7 +146,7 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
                 fontFamily: "var(--font-mono)"
               }}
             >
-              <Crown size={16} strokeWidth={1.75} /> Seeking {team.needed_female_count} Female Member{team.needed_female_count !== 1 ? "s" : ""} (SIH Requirement)
+              <Crown size={16} strokeWidth={1.75} color="#d97706" fill="#fef08a" /> Seeking {team.needed_female_count} Female Member{team.needed_female_count !== 1 ? "s" : ""} (SIH Requirement)
             </span>
           </div>
         )}
@@ -171,7 +171,7 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
           <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "4px" }}>
-            <UserCircle2 size={18} strokeWidth={1.75} /> {team.leader.name}
+            <UserCircle2 size={18} strokeWidth={1.75} color="#2563eb" fill="#bfdbfe" /> {team.leader.name}
           </div>
           <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.8rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
             {team.leader.phone_number && (
@@ -210,7 +210,7 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
                   gap: "0.25rem"
                 }}
               >
-                <div style={{ fontWeight: 800, display: "flex", alignItems: "center", gap: "4px" }}><Zap size={16} strokeWidth={1.75} /> {slot.role_title}</div>
+                <div style={{ fontWeight: 800, display: "flex", alignItems: "center", gap: "4px" }}><Zap size={16} strokeWidth={1.75} color="#ea580c" fill="#fef08a" /> {slot.role_title}</div>
                 <div style={{ fontSize: "0.7rem", color: "#666", fontWeight: 600, fontFamily: "var(--font-mono)" }}>
                   Req: {slot.gender.toUpperCase()} {slot.skills.length > 0 && `| ${slot.skills.join(", ")}`}
                 </div>
