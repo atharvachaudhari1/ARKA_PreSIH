@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Target, Crown, UserCircle2, Zap, Flag } from "lucide-react";
 import ReportModal from "./ReportModal";
 
 interface TeamMember {
@@ -71,10 +72,7 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
               onMouseOver={e => e.currentTarget.style.color = "#dc2626"}
               onMouseOut={e => e.currentTarget.style.color = "#9ca3af"}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
-                <line x1="4" y1="22" x2="4" y2="15"></line>
-              </svg>
+              <Flag size={16} strokeWidth={1.75} />
             </button>
             <span
               style={{
@@ -114,7 +112,9 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
 
         {/* Domain tag */}
         <div style={{ 
-          display: "inline-block", 
+          display: "inline-flex", 
+          alignItems: "center",
+          gap: "4px",
           background: "#eef0ff", 
           color: "#1a1a1a", 
           border: "1.5px solid #5b5fc7", 
@@ -125,7 +125,7 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
           fontWeight: 700,
           marginBottom: "0.75rem" 
         }}>
-          🎯 {team.domain_interest ?? "General Track / Unspecified Domain"}
+          <Target size={16} strokeWidth={1.75} /> {team.domain_interest ?? "General Track / Unspecified Domain"}
         </div>
 
         {team.needed_female_count > 0 && (
@@ -139,12 +139,14 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
                 background: "#fdf4ff", 
                 color: "#9333ea", 
                 border: "1.5px solid #9333ea",
-                display: "inline-block",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
                 boxShadow: "1.5px 1.5px 0px #1a1a1a",
                 fontFamily: "var(--font-mono)"
               }}
             >
-              👑 Seeking {team.needed_female_count} Female Member{team.needed_female_count !== 1 ? "s" : ""} (SIH Requirement)
+              <Crown size={16} strokeWidth={1.75} /> Seeking {team.needed_female_count} Female Member{team.needed_female_count !== 1 ? "s" : ""} (SIH Requirement)
             </span>
           </div>
         )}
@@ -168,8 +170,8 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
           [TEAM LEADER DOSSIER]
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-          <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "0.95rem" }}>
-            👤 {team.leader.name}
+          <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "4px" }}>
+            <UserCircle2 size={18} strokeWidth={1.75} /> {team.leader.name}
           </div>
           <div style={{ display: "flex", gap: "0.75rem", fontSize: "0.8rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
             {team.leader.phone_number && (
@@ -208,7 +210,7 @@ export default function TeamCard({ team, hideCTA = false }: { team: TeamData, hi
                   gap: "0.25rem"
                 }}
               >
-                <div style={{ fontWeight: 800 }}>⚡ {slot.role_title}</div>
+                <div style={{ fontWeight: 800, display: "flex", alignItems: "center", gap: "4px" }}><Zap size={16} strokeWidth={1.75} /> {slot.role_title}</div>
                 <div style={{ fontSize: "0.7rem", color: "#666", fontWeight: 600, fontFamily: "var(--font-mono)" }}>
                   Req: {slot.gender.toUpperCase()} {slot.skills.length > 0 && `| ${slot.skills.join(", ")}`}
                 </div>
