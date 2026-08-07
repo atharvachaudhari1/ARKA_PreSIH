@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       const p = (n.payload || {}) as Record<string, unknown>;
       const pendingRequestExists = await prisma.joinRequest.findFirst({
         where: {
-          team_id: n.team_id,
+          team_id: n.team_id ?? undefined,
           status: "pending",
           OR: [
             { requester_id: currentUser.id },
