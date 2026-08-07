@@ -1,4 +1,4 @@
-# TeamUp — README
+# TeamUp by ARKAA — README
 
 ## Overview
 
