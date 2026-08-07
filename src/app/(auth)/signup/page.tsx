@@ -31,7 +31,7 @@ function SignupContent() {
     }
   }, [searchParams]);
 
-  const [step, setStep] = useState<"path" | "account" | "profile">("path");
+  const [step, setStep] = useState<"path" | "account" | "profile" | "verify-email">("path");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,10 +45,7 @@ function SignupContent() {
     college: "",
     department: "",
     past_hackathons_count: "0",
-    bio: "",
   });
-
-  const [idCard, setIdCard] = useState<File | null>(null);
 
   function update(field: string, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
@@ -75,10 +72,6 @@ function SignupContent() {
       setError("Passwords don't match.");
       return;
     }
-    if (!idCard) {
-      setError("College ID card is required.");
-      return;
-    }
     setLoading(true);
     setError(null);
 
@@ -92,25 +85,25 @@ function SignupContent() {
     });
 
     if (authErr || !authData.user) {
-      setError(authErr?.message ?? "Signup failed.");
+      // GoTrue sometimes returns an empty error object (e.g. 504 while the
+      // email provider is unreachable) — surface a friendly message.
+      const msg = authErr?.message && authErr.message !== "{}"
+        ? authErr.message
+        : "We couldn't create your account right now. Please try again in a few minutes.";
+      setError(msg);
       setLoading(false);
       return;
     }
 
-    // 2. Upload ID card to private storage bucket
-    const fileExt = idCard.name.split(".").pop();
-    const storagePath = `id-cards/${authData.user.id}/id_card.${fileExt}`;
-    const { error: uploadErr } = await supabase.storage
-      .from("id-cards") // private bucket
-      .upload(storagePath, idCard, { upsert: true });
-
-    if (uploadErr) {
-      setError("ID card upload failed: " + uploadErr.message);
+    // No session means Supabase requires email confirmation before login.
+    // Profile creation happens on first login via the profile-completion gate.
+    if (!authData.session) {
+      setStep("verify-email");
       setLoading(false);
       return;
     }
 
-    // 3. Create user profile via API route
+    // 2. Create user profile via API route
     const res = await fetch("/api/users/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -120,8 +113,7 @@ function SignupContent() {
         college: form.college,
         department: form.department,
         past_hackathons_count: parseInt(form.past_hackathons_count, 10),
-        bio: form.bio,
-        id_card_storage_path: storagePath,
+
         intent: selectedPath, // join | create
       }),
     });
@@ -143,6 +135,39 @@ function SignupContent() {
       <PathSelectionScreen
         onSelect={(p) => { setSelectedPath(p); setStep("account"); }}
       />
+    );
+  }
+
+  // ── Render: Email confirmation required ──
+  if (step === "verify-email") {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#f7f4ee",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "1.25rem",
+        }}
+      >
+        <div className="card" style={{ maxWidth: "440px", width: "100%", padding: "2rem", border: "1.5px solid #1a1a1a", background: "#ffffff", boxShadow: "3px 3px 0px #1a1a1a", borderRadius: "2px", textAlign: "center" }}>
+          <BrandLogo size="lg" />
+          <h2 style={{ fontSize: "1.5rem", fontWeight: 800, margin: "1.5rem 0 0.75rem", color: "#1a1a1a" }}>
+            Check your inbox
+          </h2>
+          <p style={{ color: "#444", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+            We sent a confirmation link to <strong>{form.email}</strong>. Click it to activate
+            your account, then sign in to land on your dashboard.
+          </p>
+          <Link
+            href="/login"
+            style={{ color: "#5b5fc7", textDecoration: "none", fontWeight: 700, fontFamily: "var(--font-mono)" }}
+          >
+            Go to sign in →
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -324,60 +349,7 @@ function SignupContent() {
                 />
               </div>
 
-              {/* ID Card upload — mandatory */}
-              <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
-                <label htmlFor="signup-id-card" style={{ fontWeight: 600, color: "#1a1a1a", fontSize: "0.875rem" }}>
-                  College ID card{" "}
-                  <span style={{ color: "#444", fontWeight: 400 }}>
-                    (required for verification)
-                  </span>
-                </label>
-                <div
-                  style={{
-                    border: `1.5px dashed #1a1a1a`,
-                    borderRadius: "2px",
-                    padding: "1.25rem",
-                    textAlign: "center",
-                    cursor: "pointer",
-                    transition: "all 0.18s ease",
-                    background: idCard ? "#f7f4ee" : "#ffffff",
-                    position: "relative",
-                  }}
-                  onClick={() => document.getElementById("signup-id-card")?.click()}
-                >
-                  <input
-                    id="signup-id-card"
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,application/pdf"
-                    style={{ display: "none" }}
-                    onChange={(e) => setIdCard(e.target.files?.[0] ?? null)}
-                  />
-                  {idCard ? (
-                    <div>
-                      <div style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>✅</div>
-                      <div style={{ fontSize: "0.875rem", color: "#1a1a1a", fontWeight: 700 }}>
-                        {idCard.name}
-                      </div>
-                      <div style={{ fontSize: "0.75rem", color: "#444", marginTop: "0.2rem" }}>
-                        {(idCard.size / 1024).toFixed(0)} KB · Click to change
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>🪪</div>
-                      <div style={{ fontSize: "0.875rem", color: "#1a1a1a", fontWeight: 700 }}>
-                        Upload your college ID
-                      </div>
-                      <div style={{ fontSize: "0.75rem", color: "#444", marginTop: "0.2rem" }}>
-                        JPG, PNG, PDF · Max 5 MB
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <p style={{ fontSize: "0.72rem", color: "#444", marginTop: "0.4rem" }}>
-                  🔒 Only seen by our automated verification system. Never shown to other users.
-                </p>
-              </div>
+
             </div>
 
             {error && (

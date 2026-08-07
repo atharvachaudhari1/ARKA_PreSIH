@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     
     // Inbound applications (for any team the user is in)
     teamRequests = await prisma.joinRequest.findMany({
-      where: { team_id: { in: teamIds }, direction: "user_to_team" },
+      where: { team_id: { in: teamIds }, direction: "user_to_team", status: "pending" },
       include: {
         team: { include: { slots: true } },
         requester: {
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     // Outbound invites (for teams where user is a leader)
     if (leaderTeamIds.length > 0) {
       outboundInvites = await prisma.joinRequest.findMany({
-        where: { team_id: { in: leaderTeamIds }, direction: "team_to_user" },
+        where: { team_id: { in: leaderTeamIds }, direction: "team_to_user", status: "pending" },
         include: {
           team: { include: { slots: true } },
           requester: {
@@ -114,9 +114,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if team is full
-    const team = await prisma.team.findUnique({ where: { id: team_id } });
+    const team = await prisma.team.findUnique({
+      where: { id: team_id },
+      include: { event: true, _count: { select: { memberships: true } } }
+    });
     if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
     if (team.status === "full") return NextResponse.json({ error: "This team is already full." }, { status: 400 });
+    const currentMembers = team._count?.memberships ?? 0;
+    const maxSize = team.event?.team_size_max;
+    if (maxSize != null && currentMembers >= maxSize) {
+      return NextResponse.json({ error: "This team is already full." }, { status: 400 });
+    }
 
     if (!applicantBio || typeof applicantBio !== "string" || !applicantBio.trim()) {
       return NextResponse.json({ error: "Your bio/description is required to join a team." }, { status: 400 });
@@ -164,7 +172,7 @@ export async function POST(request: NextRequest) {
           user_id: team.leader_id,
           type: "new_join_request",
           team_id: team.id,
-          payload: { user_name: currentUser.name }
+          payload: { requester_name: currentUser.name, team_name: team.name }
         }
       });
       return req;
@@ -183,11 +191,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Only team leaders can send invites." }, { status: 403 });
     }
 
-    const team = await prisma.team.findUnique({ where: { id: membership.team_id } });
+    const team = await prisma.team.findUnique({
+      where: { id: membership.team_id },
+      include: { event: true, _count: { select: { memberships: true } } }
+    });
     if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
     if (team.status === "full") return NextResponse.json({ error: "Your team is full." }, { status: 400 });
+    const currentMembers = team._count?.memberships ?? 0;
+    const maxSize = team.event?.team_size_max;
+    if (maxSize != null && currentMembers >= maxSize) {
+      return NextResponse.json({ error: "Your team is full." }, { status: 400 });
+    }
 
-    const targetUser = await prisma.user.findUnique({ where: { id: user_id }, include: { team_memberships: true } });
+    const targetUser = await prisma.user.findUnique({ where: { id: user_id }, include: { team_memberships: { where: { team: { status: { not: 'dissolved' } } } } } });
     if (!targetUser) return NextResponse.json({ error: "Target user not found" }, { status: 404 });
     if (targetUser.team_memberships.length > 0) return NextResponse.json({ error: "User is already in a team." }, { status: 400 });
 
@@ -210,7 +226,7 @@ export async function POST(request: NextRequest) {
           user_id: user_id,
           type: "new_join_request",
           team_id: team.id,
-          payload: { team_name: team.name }
+          payload: { team_name: team.name, requester_name: team.name }
         }
       });
       return req;

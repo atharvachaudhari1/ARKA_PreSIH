@@ -28,6 +28,10 @@ export async function PATCH(
 
   const joinRequest = await prisma.joinRequest.findUnique({
     where: { id: id },
+    include: {
+      requester: { select: { name: true } },
+      team: { select: { name: true, leader_id: true } },
+    },
   });
   if (!joinRequest) return NextResponse.json({ error: "Request not found" }, { status: 404 });
   if (joinRequest.status !== "pending") return NextResponse.json({ error: "Request is not pending" }, { status: 400 });
@@ -54,7 +58,6 @@ export async function PATCH(
     });
 
     // Notify the leader
-    // For simplicity, we can fetch team leader id
     const team = await tx.team.findUnique({ where: { id: joinRequest.team_id } });
     if (team && team.leader_id !== currentUser.id) {
       await tx.notification.create({
@@ -62,7 +65,12 @@ export async function PATCH(
           user_id: team.leader_id,
           type: "teammate_opinion_added",
           team_id: team.id,
-          payload: { user_name: currentUser.name }
+          payload: {
+            voter_name: currentUser.name,
+            opinion,
+            requester_name: joinRequest.requester.name,
+            team_name: joinRequest.team.name,
+          }
         }
       });
     }

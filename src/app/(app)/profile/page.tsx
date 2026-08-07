@@ -16,7 +16,6 @@ interface Profile {
   gender: string;
   college: string;
   department: string;
-  verification_status: "pending" | "verified" | "rejected";
   past_hackathons_count: number;
   bio: string | null;
   presentation_skill_rating: number | null;
@@ -157,18 +156,6 @@ export default function ProfilePage() {
 
   if (!profile) return null;
 
-  const verificationColor = profile.verification_status === "verified" ? "#10b981"
-    : profile.verification_status === "rejected" ? "#ef4444" : "#f59e0b";
-  const verificationLabel = profile.verification_status === "verified" ? "✓ Verified"
-    : profile.verification_status === "rejected" ? "✗ Rejected" : "⏳ Pending";
-
-  const isVerified = profile.verification_status === "verified";
-  const verifiedFieldsEdited = isVerified && (
-    form.name !== profile.name ||
-    form.college !== profile.college ||
-    form.department !== profile.department
-  );
-
   return (
     <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 800 }}>
       {/* ── Header ── */}
@@ -199,36 +186,12 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Verification banner ── */}
-      <div
-        style={{
-          display: "flex", alignItems: "center", gap: "1rem",
-          background: profile.verification_status === "verified" ? "rgba(16,185,129,0.08)" : "rgba(245,158,11,0.08)",
-          border: `1px solid ${verificationColor}30`,
-          borderRadius: "var(--radius-md)", padding: "0.85rem 1.25rem", marginBottom: "1.5rem",
-        }}
-      >
-        <span style={{ color: verificationColor, fontWeight: 700, fontSize: "0.875rem" }}>{verificationLabel}</span>
-        <span style={{ color: "var(--color-text-secondary)", fontSize: "0.8rem" }}>
-          {profile.verification_status === "verified"
-            ? "Your college ID has been verified. Your department is shown as verified on team cards."
-            : profile.verification_status === "rejected"
-            ? "Your ID card was rejected. Please contact support to re-submit."
-            : "Your college ID is being verified. Department shown with 'Unverified' badge until confirmed."}
-        </span>
-      </div>
-
       {/* ── Basic info ── */}
       <div className="card" style={{ marginBottom: "1.25rem", padding: "1.5rem" }}>
         <h2 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "1.25rem", color: "var(--color-text-secondary)" }}>
           Basic Information
         </h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.25rem" }}>
-          {editing && verifiedFieldsEdited && (
-            <div style={{ gridColumn: "1 / -1", background: "rgba(245,158,11,0.1)", color: "#d97706", border: "1px solid rgba(245,158,11,0.3)", padding: "0.75rem 1rem", borderRadius: "4px", fontSize: "0.85rem", fontWeight: 600 }}>
-              ⚠️ Changing your Name, College, or Department will require re-verification of your college ID.
-            </div>
-          )}
           {editing ? (
             <>
               <div>
@@ -255,18 +218,7 @@ export default function ProfilePage() {
           ) : (
             <>
               <InfoRow label="College" value={profile.college} />
-              <InfoRow
-                label="Department"
-                value={
-                  <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    {profile.department}
-                    {/* [GAP-RESOLVED-7] Show Unverified badge if not verified */}
-                    {profile.verification_status !== "verified" && (
-                      <span className="badge badge-unverified">Unverified</span>
-                    )}
-                  </span>
-                }
-              />
+              <InfoRow label="Department" value={profile.department} />
               <InfoRow label="Gender" value={profile.gender} />
               <InfoRow label="Past hackathons" value={`${profile.past_hackathons_count} hackathon${profile.past_hackathons_count !== 1 ? "s" : ""}`} />
             </>

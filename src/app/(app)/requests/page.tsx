@@ -3,11 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 
 import useSWR, { mutate } from "swr";
+import { GraduationCap, User, Medal, Mic, Phone, Hourglass, Zap, ThumbsUp, ThumbsDown, PartyPopper, X, Target, Send, Inbox } from "lucide-react";
 import { isStrongMatch } from "@/lib/recommendation";
+import { useToast } from "@/components/ToastProvider";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function RequestsPage() {
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<"my" | "team" | "outbound">("my");
   const [hasSetTab, setHasSetTab] = useState(false);
 
@@ -33,7 +36,13 @@ export default function RequestsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ opinion })
     });
-    if (res.ok) mutate('/api/join-requests');
+    if (res.ok) {
+      mutate('/api/join-requests');
+      toast(`Opinion recorded: ${opinion}`, "success");
+    } else {
+      const error = await res.json().catch(() => ({}));
+      toast(error.error || "Failed to submit opinion", "error");
+    }
   }
 
   async function handleDecision(requestId: string, decision: "accept" | "reject") {
@@ -45,15 +54,22 @@ export default function RequestsPage() {
     if (res.ok) {
       mutate('/api/join-requests');
       mutate('/api/users/profile'); // user might have joined a team
+      toast(decision === "accept" ? "Request accepted" : "Request rejected", "success");
     } else {
-      const error = await res.json();
-      alert(error.error || "Failed to make decision");
+      const error = await res.json().catch(() => ({}));
+      toast(error.error || "Failed to make decision", "error");
     }
   }
 
   async function handleCancel(requestId: string) {
     const res = await fetch(`/api/join-requests/${requestId}/cancel`, { method: "DELETE" });
-    if (res.ok) mutate('/api/join-requests');
+    if (res.ok) {
+      mutate('/api/join-requests');
+      toast("Request cancelled", "success");
+    } else {
+      const error = await res.json().catch(() => ({}));
+      toast(error.error || "Failed to cancel request", "error");
+    }
   }
 
   return (
@@ -143,7 +159,7 @@ export default function RequestsPage() {
               minHeight: "44px"
             }}
           >
-            📤 Outbound Invites ({outboundInvites.length})
+            <Send size={16} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> Outbound Invites ({outboundInvites.length})
           </button>
         )}
       </div>
@@ -160,18 +176,18 @@ export default function RequestsPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {myRequests.length === 0 ? (
             <div style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "5px 5px 0px #1a1a1a", padding: "3rem 2rem", textAlign: "center", borderRadius: "6px", color: "#555", fontWeight: 600 }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📭</div>
+              <div style={{ marginBottom: "0.5rem" }}><Inbox size={48} className="inline-block" /></div>
               <h3 style={{ fontSize: "1.25rem", color: "#1a1a1a", fontWeight: 800, marginBottom: "0.4rem" }}>No active outbound requests</h3>
               <p style={{ fontSize: "0.95rem", margin: 0 }}>You haven&apos;t submitted applications to any teams yet. Head over to the Browse tab to find an open squad!</p>
             </div>
           ) : (
             myRequests.map((req: any) => (
-              <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "4px 4px 0px #1a1a1a", borderRadius: "6px", padding: "1.75rem", boxSizing: "border-box" }}>
+              <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "3px 3px 0px #1a1a1a", borderRadius: "6px", padding: "1.25rem", boxSizing: "border-box" }}>
                 <div className="responsive-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
                   <div>
                     <h3 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#1a1a1a", margin: "0 0 0.25rem" }}>{req.team.name}</h3>
                     <div style={{ display: "inline-block", background: "#eef0ff", color: "#1a1a1a", border: "1.5px solid #5b5fc7", padding: "2px 8px", borderRadius: "3px", fontSize: "0.75rem", fontFamily: "var(--font-mono)", fontWeight: 700, margin: "0.3rem 0 0.6rem" }}>
-                      🎯 Domain: {req.team.domain_interest ?? "General Track"}
+                      <Target size={12} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> Domain: {req.team.domain_interest ?? "General Track"}
                     </div>
                     <p style={{ fontSize: "0.8rem", color: "#666", fontWeight: 600, fontFamily: "var(--font-mono)", margin: 0 }}>
                       [SUBMITTED ON: {new Date(req.created_at).toLocaleDateString()}]
@@ -221,7 +237,7 @@ export default function RequestsPage() {
                           minHeight: "44px"
                         }}
                       >
-                        🎉 Accept Invite
+                        Accept Invite
                       </button>
                       <button 
                         onClick={() => handleDecision(req.id, "reject")} 
@@ -241,7 +257,7 @@ export default function RequestsPage() {
                           minHeight: "44px"
                         }}
                       >
-                        ✕ Decline
+                        <X size={16} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> Decline Invite
                       </button>
                     </div>
                   </div>
@@ -254,16 +270,18 @@ export default function RequestsPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {teamRequests.length === 0 ? (
             <div style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "5px 5px 0px #1a1a1a", padding: "3rem 2rem", textAlign: "center", borderRadius: "6px", color: "#555", fontWeight: 600 }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📥</div>
+              <div style={{ marginBottom: "0.5rem" }}><Inbox size={48} className="inline-block" /></div>
               <h3 style={{ fontSize: "1.25rem", color: "#1a1a1a", fontWeight: 800, marginBottom: "0.4rem" }}>No pending candidate applications</h3>
               <p style={{ fontSize: "0.95rem", margin: 0 }}>Your team currently has no unreviewed inbound applicant dossiers.</p>
             </div>
           ) : (
             teamRequests.map((req: any) => {
-              const myOpinion = req.opinions.find((o: any) => o.member.id === currentUserId);
+              const myOpinion = req.opinions.find((o: any) => o.team_member.id === currentUserId);
               return (
-                <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "5px 5px 0px #1a1a1a", borderRadius: "6px", padding: "1.75rem", boxSizing: "border-box" }}>
-                  <div className="responsive-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", gap: "0.75rem" }}>
+                <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "4px 4px 0px #1a1a1a", borderRadius: "6px", padding: "1.1rem", boxSizing: "border-box" }}>
+                  <div className="responsive-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.05fr) minmax(0, 1fr)", gap: "1.25rem", alignItems: "start" }}>
+                  <div>
+                  <div className="responsive-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.85rem", gap: "0.75rem" }}>
                     <div>
                       <div style={{ fontSize: "0.7rem", color: "#777", fontFamily: "var(--font-mono)", fontWeight: 800, letterSpacing: "1px", marginBottom: "0.25rem" }}>
                         [CANDIDATE DOSSIER]
@@ -287,11 +305,11 @@ export default function RequestsPage() {
                         })()}
                       </div>
                       <p style={{ color: "#5a5a5a", fontSize: "0.85rem", fontWeight: 700, fontFamily: "var(--font-mono)", margin: "0 0 0.25rem" }}>
-                        🎓 {req.requester.department} • 👤 {req.requester.gender} • 🏅 {req.requester.past_hackathons_count} Past Hackathons • 🎤 {req.requester.presentation_skill_rating}/5 Presentation
+                        <GraduationCap size={14} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> {req.requester.department} • <User size={14} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> {req.requester.gender}
                       </p>
                       {(req.requester.whatsapp_number || req.requester.phone_number) && (
                         <p style={{ color: "#2563eb", fontSize: "0.85rem", fontWeight: 700, fontFamily: "var(--font-mono)", margin: 0 }}>
-                          📞 Contact: {req.requester.whatsapp_number || req.requester.phone_number}
+                          <Phone size={14} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> Contact: {req.requester.whatsapp_number || req.requester.phone_number}
                         </p>
                       )}
                     </div>
@@ -309,7 +327,7 @@ export default function RequestsPage() {
                         display: "inline-block"
                       }}
                     >
-                      ⏳ PENDING REVIEW
+                      <Hourglass size={12} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> PENDING REVIEW
                     </span>
                   </div>
 
@@ -334,18 +352,19 @@ export default function RequestsPage() {
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                         {req.requester.skills.map((s: any) => (
                           <span key={s.skill} style={{ background: "#fdfbf7", border: "1.5px solid #1a1a1a", boxShadow: "1.5px 1.5px 0px #1a1a1a", color: "#1a1a1a", padding: "3px 8px", borderRadius: "3px", fontSize: "0.75rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
-                            ⚡ {s.skill}
+                            <Zap size={12} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> {s.skill}
                           </span>
                         ))}
                       </div>
                     </div>
                   )}
+                  </div>
 
-                  <div style={{ background: "#fdfbf7", border: "2px solid #1a1a1a", padding: "1.25rem", borderRadius: "4px", boxShadow: "2px 2px 0px #1a1a1a", boxSizing: "border-box" }}>
+                  <div style={{ background: "#fdfbf7", border: "2px solid #1a1a1a", padding: "1.1rem", borderRadius: "4px", boxShadow: "2px 2px 0px #1a1a1a", boxSizing: "border-box" }}>
                     <div style={{ fontSize: "0.72rem", color: "#1a1a1a", marginBottom: "0.6rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "0.5px" }}>
                       [SQUAD MEMBER CONSENSUS VOTING]
                     </div>
-                    <div className="responsive-stack" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1.25rem" }}>
+                    <div className="responsive-stack" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "0.9rem" }}>
                       <button 
                         onClick={() => handleOpinion(req.id, "approve")}
                         className="btn-mobile-full"
@@ -363,7 +382,7 @@ export default function RequestsPage() {
                           minHeight: "44px"
                         }}
                       >
-                        👍 Approve ({req.opinions.filter((o: any) => o.opinion === "approve").length})
+                        <ThumbsUp size={14} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> Approve ({req.opinions.filter((o: any) => o.opinion === "approve").length})
                       </button>
                       <button 
                         onClick={() => handleOpinion(req.id, "reject")}
@@ -382,40 +401,21 @@ export default function RequestsPage() {
                           minHeight: "44px"
                         }}
                       >
-                        👎 Reject ({req.opinions.filter((o: any) => o.opinion === "reject").length})
-                      </button>
-                      <button 
-                        onClick={() => handleOpinion(req.id, "neutral")}
-                        className="btn-mobile-full"
-                        style={{
-                          padding: "0.6rem 1rem",
-                          borderRadius: "4px",
-                          border: "2px solid #1a1a1a",
-                          boxShadow: "2.5px 2.5px 0px #1a1a1a",
-                          background: myOpinion?.opinion === "neutral" ? "#fef3c7" : "#ffffff",
-                          color: "#92400e",
-                          fontWeight: 800,
-                          fontSize: "0.85rem",
-                          cursor: "pointer",
-                          fontFamily: "var(--font-mono)",
-                          minHeight: "44px"
-                        }}
-                      >
-                        🤷 Neutral
+                        <ThumbsDown size={14} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> Reject ({req.opinions.filter((o: any) => o.opinion === "reject").length})
                       </button>
                     </div>
                     
                     {/* Executive Leader Decision Actions */}
-                    <div style={{ borderTop: "2px dashed #1a1a1a", paddingTop: "1.25rem" }}>
+                    <div style={{ borderTop: "2px dashed #1a1a1a", paddingTop: "0.9rem" }}>
                       <div style={{ fontSize: "0.72rem", color: "#1a1a1a", marginBottom: "0.6rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "0.5px" }}>
                         [EXECUTIVE LEADER DECISION]
                       </div>
-                      <div className="responsive-stack" style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+                      <div className="responsive-stack" style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                         <button 
                           onClick={() => handleDecision(req.id, "accept")} 
                           className="btn-mobile-full"
                           style={{ 
-                            padding: "0.75rem 1.25rem", 
+                            padding: "0.6rem 1.1rem", 
                             background: "#059669", 
                             color: "#ffffff", 
                             border: "2px solid #1a1a1a", 
@@ -429,13 +429,13 @@ export default function RequestsPage() {
                             minHeight: "44px"
                           }}
                         >
-                          🎉 Accept Applicant & Enlist
+                          Accept Applicant & Enlist
                         </button>
                         <button 
                           onClick={() => handleDecision(req.id, "reject")} 
                           className="btn-mobile-full"
                           style={{ 
-                            padding: "0.75rem 1.25rem", 
+                            padding: "0.6rem 1.1rem", 
                             background: "#fef2f2", 
                             color: "#dc2626", 
                             border: "2px solid #dc2626", 
@@ -449,10 +449,11 @@ export default function RequestsPage() {
                             minHeight: "44px"
                           }}
                         >
-                          ✕ Decline Application
+                          <X size={16} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> Decline Application
                         </button>
                       </div>
                     </div>
+                  </div>
                   </div>
                 </div>
               );
@@ -463,18 +464,18 @@ export default function RequestsPage() {
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
           {outboundInvites.length === 0 ? (
             <div style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "5px 5px 0px #1a1a1a", padding: "3rem 2rem", textAlign: "center", borderRadius: "6px", color: "#555", fontWeight: 600 }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📤</div>
+              <div style={{ marginBottom: "0.5rem" }}><Inbox size={48} className="inline-block" /></div>
               <h3 style={{ fontSize: "1.25rem", color: "#1a1a1a", fontWeight: 800, marginBottom: "0.4rem" }}>No active outbound invites</h3>
               <p style={{ fontSize: "0.95rem", margin: 0 }}>You haven&apos;t invited any hackers to your team yet.</p>
             </div>
           ) : (
             outboundInvites.map((req: any) => (
-              <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "4px 4px 0px #1a1a1a", borderRadius: "6px", padding: "1.75rem", boxSizing: "border-box" }}>
+              <div key={req.id} style={{ background: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "3px 3px 0px #1a1a1a", borderRadius: "6px", padding: "1.25rem", boxSizing: "border-box" }}>
                 <div className="responsive-stack" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
                   <div>
                     <h3 style={{ fontSize: "1.3rem", fontWeight: 900, color: "#1a1a1a", margin: "0 0 0.25rem" }}>{req.requester.name}</h3>
                     <div style={{ display: "inline-block", background: "#eef0ff", color: "#1a1a1a", border: "1.5px solid #5b5fc7", padding: "2px 8px", borderRadius: "3px", fontSize: "0.75rem", fontFamily: "var(--font-mono)", fontWeight: 700, margin: "0.3rem 0 0.6rem" }}>
-                      🎓 {req.requester.department} • 👤 {req.requester.gender} {(req.requester.whatsapp_number || req.requester.phone_number) && `• 📞 ${req.requester.whatsapp_number || req.requester.phone_number}`}
+                      <GraduationCap size={12} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> {req.requester.department} • <User size={12} className="inline-block mr-1" style={{ verticalAlign: "text-bottom" }} /> {req.requester.gender} {(req.requester.whatsapp_number || req.requester.phone_number) && `• 📞 ${req.requester.whatsapp_number || req.requester.phone_number}`}
                     </div>
                     <p style={{ fontSize: "0.8rem", color: "#666", fontWeight: 600, fontFamily: "var(--font-mono)", margin: 0 }}>
                       [SENT ON: {new Date(req.created_at).toLocaleDateString()}]

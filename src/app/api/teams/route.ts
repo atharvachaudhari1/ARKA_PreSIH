@@ -30,12 +30,15 @@ export async function GET(request: NextRequest) {
   const status = url.searchParams.get("status");
   const domain = url.searchParams.get("domain");
   const genderNeed = url.searchParams.get("gender_need");
-  const minExperience = url.searchParams.get("min_experience");
   const skillsNeeded = url.searchParams.getAll("skills_needed[]");
+  const searchQuery = url.searchParams.get("search");
 
   const where: any = {};
   if (status && (status === "open" || status === "full")) {
     where.status = status;
+  } else {
+    // Never show dissolved teams unless explicitly filtered
+    where.status = { not: "dissolved" };
   }
   if (domain) {
     where.domain_interest = domain;
@@ -43,11 +46,15 @@ export async function GET(request: NextRequest) {
   if (genderNeed === "true") {
     where.needed_female_count = { gt: 0 };
   }
-  if (minExperience) {
-    where.min_experience_required = { lte: parseInt(minExperience, 10) };
-  }
   if (skillsNeeded.length > 0) {
     where.skills_needed = { hasSome: skillsNeeded };
+  }
+  if (searchQuery) {
+    where.OR = [
+      { name: { contains: searchQuery, mode: 'insensitive' } },
+      { leader: { name: { contains: searchQuery, mode: 'insensitive' } } },
+      { memberships: { some: { user: { name: { contains: searchQuery, mode: 'insensitive' } } } } }
+    ];
   }
 
   try {
@@ -55,6 +62,7 @@ export async function GET(request: NextRequest) {
       where,
       orderBy: { created_at: "desc" },
       include: {
+        event: { select: { team_size_max: true, min_female_required: true } },
         slots: true,
         leader: {
           select: {
@@ -72,7 +80,6 @@ export async function GET(request: NextRequest) {
                 id: true,
                 name: true,
                 department: true,
-                verification_status: true,
                 skills: { select: { skill: true, proficiency: true } },
               },
             },
@@ -89,7 +96,6 @@ export async function GET(request: NextRequest) {
                 id: true,
                 name: true,
                 department: true,
-                verification_status: true,
                 skills: { select: { skill: true, proficiency: true } },
               },
             },
@@ -131,7 +137,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { name, description, domain_interest, skills_needed, min_experience_required, succession_mode, event_id, slots, leaderBio, leaderSkills } = body;
+    const { name, description, domain_interest, skills_needed, succession_mode, event_id, slots, leaderBio, leaderSkills } = body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Team name is required" }, { status: 400 });
@@ -164,7 +170,6 @@ export async function POST(request: NextRequest) {
           description: description ?? null,
           domain_interest: domain_interest || null,
           skills_needed: Array.isArray(skills_needed) ? skills_needed : [],
-          min_experience_required: min_experience_required != null ? parseInt(min_experience_required, 10) : null,
           succession_mode: (succession_mode as SuccessionMode) || "manual",
           event_id: event.id,
           leader_id: currentUser.id,
@@ -236,7 +241,7 @@ export async function POST(request: NextRequest) {
               const { Resend } = require("resend");
               const resend = new Resend(process.env.RESEND_API_KEY);
               await resend.emails.send({
-                from: "TeamUp <invites@teamup.arkalights.com>",
+                from: "TeamUp <noreply@arkaa.online>",
                 to: [invitedUser.email],
                 subject: "You've been invited to a team!",
                 html: `<p>Hello!</p><p>You have been invited to join the team <strong>${name.trim()}</strong> on TeamUp.</p><p>Log in to your dashboard to view and accept the invitation.</p>`

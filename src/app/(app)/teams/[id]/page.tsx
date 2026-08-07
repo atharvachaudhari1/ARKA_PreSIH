@@ -284,8 +284,7 @@ export default function TeamDetailsPage() {
 
       {/* Action Section for Teammates */}
       {isLeader && team.status !== 'dissolved' && (
-        <div style={{ marginTop: "1.5rem", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "5px 5px 0px #dc2626", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
-          <div style={{ fontSize: "0.72rem", color: "#991b1b", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>[LEADER ACTIONS]</div>
+        <div style={{ marginTop: "1.5rem", maxWidth: "500px", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "5px 5px 0px #dc2626", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#991b1b", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>Dissolve Team</h3>
           <p style={{ color: "#991b1b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
             This action is irreversible. All current members will be removed, pending requests will be cancelled, and the team will be permanently marked as dissolved.
@@ -297,8 +296,7 @@ export default function TeamDetailsPage() {
       )}
 
       {isMemberOnly && team.status !== 'dissolved' && (
-        <div style={{ marginTop: "1.5rem", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "5px 5px 0px #dc2626", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
-          <div style={{ fontSize: "0.72rem", color: "#991b1b", marginBottom: "0.5rem", textTransform: "uppercase", fontWeight: 800, fontFamily: "var(--font-mono)", letterSpacing: "1px" }}>[MEMBER ACTIONS]</div>
+        <div style={{ marginTop: "1.5rem", maxWidth: "500px", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "5px 5px 0px #dc2626", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#991b1b", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>Leave Team</h3>
           <p style={{ color: "#991b1b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
             You will be removed from this team and your spot will become available. You will be free to join another team.

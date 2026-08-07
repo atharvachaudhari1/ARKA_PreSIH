@@ -52,7 +52,6 @@ export async function GET(
       gender: true,
       past_hackathons_count: true,
       presentation_skill_rating: true,
-      verification_status: true,
       skills: {
         select: { skill: true, proficiency: true }
       }

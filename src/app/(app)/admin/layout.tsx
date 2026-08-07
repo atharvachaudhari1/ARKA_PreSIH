@@ -44,7 +44,6 @@ export default async function AdminLayout({
         overflowX: "auto"
       }}>
         <Link href="/admin" className="btn" style={{ padding: "0.5rem 1rem", background: "var(--color-bg-elevated)" }}>Dashboard</Link>
-        <Link href="/admin/verifications" className="btn" style={{ padding: "0.5rem 1rem", background: "var(--color-bg-elevated)" }}>Verifications</Link>
         <Link href="/admin/reports" className="btn" style={{ padding: "0.5rem 1rem", background: "var(--color-bg-elevated)" }}>Reports</Link>
         <Link href="/admin/events" className="btn" style={{ padding: "0.5rem 1rem", background: "var(--color-bg-elevated)" }}>Events</Link>
       </nav>

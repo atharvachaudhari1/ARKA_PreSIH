@@ -45,7 +45,7 @@ describe("Join Requests API", () => {
         id: "db_user_1",
         team_memberships: [],
       });
-      (prisma.team.findUnique as jest.Mock).mockResolvedValue({ id: "team1", status: "open" });
+      (prisma.team.findUnique as jest.Mock).mockResolvedValue({ id: "team1", status: "open", event: { team_size_max: 6 }, _count: { memberships: 1 } });
       (prisma.joinRequest.findFirst as jest.Mock).mockResolvedValue(null); // No existing pending request
       (prisma.joinRequest.create as jest.Mock).mockResolvedValue({ id: "req1", status: "pending" });
 
@@ -78,7 +78,7 @@ describe("Join Requests API", () => {
         id: "db_user_1",
         team_memberships: [],
       });
-      (prisma.team.findUnique as jest.Mock).mockResolvedValue({ id: "team1", status: "open" });
+      (prisma.team.findUnique as jest.Mock).mockResolvedValue({ id: "team1", status: "open", event: { team_size_max: 6 }, _count: { memberships: 1 } });
       (prisma.joinRequest.findFirst as jest.Mock).mockResolvedValue({ id: "existing_req", status: "pending" });
 
       await testApiHandler({
@@ -106,6 +106,8 @@ describe("Join Requests API", () => {
         id: "req1",
         team_id: "team1",
         status: "pending",
+        requester: { name: "Applicant One" },
+        team: { name: "Team A", leader_id: "leader1" },
       });
 
       await testApiHandler({
@@ -132,7 +134,7 @@ describe("Join Requests API", () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
       (prisma.user.findUnique as jest.Mock).mockImplementation(async (args) => {
   if (args?.where?.id === "leader1" || args?.where?.auth_user_id === "auth_user_1") return { id: "leader1", team_memberships: [{ team_id: "team1", role: "leader" }] };
-  return { id: args?.where?.id, counts_toward_female_quota: true, verification_status: "verified", team_memberships: [] };
+  return { id: args?.where?.id, counts_toward_female_quota: true, team_memberships: [] };
 });
       
       const mockTeam = {
@@ -255,7 +257,7 @@ describe("Join Requests API", () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
       (prisma.user.findUnique as jest.Mock).mockImplementation(async (args) => {
   if (args?.where?.id === "leader1" || args?.where?.auth_user_id === "auth_user_1") return { id: "leader1", team_memberships: [{ team_id: "team1", role: "leader" }] };
-  return { id: args?.where?.id, counts_toward_female_quota: true, verification_status: "verified", team_memberships: [] };
+  return { id: args?.where?.id, counts_toward_female_quota: true, team_memberships: [] };
 });
       
       const mockTeam = {
@@ -264,8 +266,8 @@ describe("Join Requests API", () => {
         event: { team_size_max: 5, min_female_required: 3 }, // Needs 3 females
         memberships: [
           // 2 existing male members
-          { id: "mem1", user: { counts_toward_female_quota: false, verification_status: "verified" } },
-          { id: "mem2", user: { counts_toward_female_quota: false, verification_status: "verified" } }
+          { id: "mem1", user: { counts_toward_female_quota: false } },
+          { id: "mem2", user: { counts_toward_female_quota: false } }
         ]
       };
 
@@ -278,9 +280,9 @@ describe("Join Requests API", () => {
         team: mockTeam,
         // Applicant is also male.
         // Current: 2. New: 3. Max: 5. Remaining slots: 2.
-        // Verified females: 0. Still needed: 3.
+        // Females: 0. Still needed: 3.
         // 3 > 2 -> mathematically impossible, should reject!
-        requester: { counts_toward_female_quota: false, verification_status: "verified", team_memberships: [] },
+        requester: { counts_toward_female_quota: false, team_memberships: [] },
       });
       (prisma.team.findUnique as jest.Mock).mockResolvedValue(mockTeam);
 
@@ -291,7 +293,7 @@ describe("Join Requests API", () => {
           const res = await fetch({ method: "PATCH", body: JSON.stringify({ decision: "accept" }) });
           expect(res.status).toBe(400);
           const body = await res.json();
-          expect(body.error).toContain("would have 2 slots left, but still needs 3 verified female member(s)");
+          expect(body.error).toContain("would have 2 slots left, but still needs 3 female member(s)");
           expect(prisma.joinRequest.update).not.toHaveBeenCalled();
         },
       });
@@ -301,7 +303,7 @@ describe("Join Requests API", () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
       (prisma.user.findUnique as jest.Mock).mockImplementation(async (args) => {
   if (args?.where?.id === "leader1" || args?.where?.auth_user_id === "auth_user_1") return { id: "leader1", team_memberships: [{ team_id: "team1", role: "leader" }] };
-  return { id: args?.where?.id, counts_toward_female_quota: true, verification_status: "verified", team_memberships: [] };
+  return { id: args?.where?.id, counts_toward_female_quota: true, team_memberships: [] };
 });
       
       const mockTeam = {
@@ -310,11 +312,11 @@ describe("Join Requests API", () => {
         event: { team_size_max: 6, min_female_required: 1 }, // Needs 1 female
         memberships: [
           // 5 existing male members
-          { id: "m1", user: { counts_toward_female_quota: false, verification_status: "verified" } },
-          { id: "m2", user: { counts_toward_female_quota: false, verification_status: "verified" } },
-          { id: "m3", user: { counts_toward_female_quota: false, verification_status: "verified" } },
-          { id: "m4", user: { counts_toward_female_quota: false, verification_status: "verified" } },
-          { id: "m5", user: { counts_toward_female_quota: false, verification_status: "verified" } }
+          { id: "m1", user: { counts_toward_female_quota: false } },
+          { id: "m2", user: { counts_toward_female_quota: false } },
+          { id: "m3", user: { counts_toward_female_quota: false } },
+          { id: "m4", user: { counts_toward_female_quota: false } },
+          { id: "m5", user: { counts_toward_female_quota: false } }
         ]
       };
 
@@ -326,7 +328,7 @@ describe("Join Requests API", () => {
         requester_id: "applicant1",
         team: mockTeam,
         // Applicant is also male. New count: 6. Remaining: 0. Still needed: 1.
-        requester: { counts_toward_female_quota: false, verification_status: "verified", team_memberships: [] },
+        requester: { counts_toward_female_quota: false, team_memberships: [] },
       });
       (prisma.team.findUnique as jest.Mock).mockResolvedValue(mockTeam);
 
@@ -337,7 +339,7 @@ describe("Join Requests API", () => {
           const res = await fetch({ method: "PATCH", body: JSON.stringify({ decision: "accept" }) });
           expect(res.status).toBe(400);
           const body = await res.json();
-          expect(body.error).toContain("would have 0 slots left, but still needs 1 verified female member(s)");
+          expect(body.error).toContain("would have 0 slots left, but still needs 1 female member(s)");
           expect(prisma.joinRequest.update).not.toHaveBeenCalled();
         },
       });
@@ -347,7 +349,7 @@ describe("Join Requests API", () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
       (prisma.user.findUnique as jest.Mock).mockImplementation(async (args) => {
   if (args?.where?.id === "leader1" || args?.where?.auth_user_id === "auth_user_1") return { id: "leader1", team_memberships: [{ team_id: "team1", role: "leader" }] };
-  return { id: args?.where?.id, counts_toward_female_quota: true, verification_status: "verified", team_memberships: [] };
+  return { id: args?.where?.id, counts_toward_female_quota: true, team_memberships: [] };
 });
       
       const mockTeam = {
@@ -356,10 +358,10 @@ describe("Join Requests API", () => {
         event: { team_size_max: 6, min_female_required: 1 }, // Needs 1 female
         memberships: [
           // 4 existing male members
-          { id: "m1", user: { counts_toward_female_quota: false, verification_status: "verified" } },
-          { id: "m2", user: { counts_toward_female_quota: false, verification_status: "verified" } },
-          { id: "m3", user: { counts_toward_female_quota: false, verification_status: "verified" } },
-          { id: "m4", user: { counts_toward_female_quota: false, verification_status: "verified" } }
+          { id: "m1", user: { counts_toward_female_quota: false } },
+          { id: "m2", user: { counts_toward_female_quota: false } },
+          { id: "m3", user: { counts_toward_female_quota: false } },
+          { id: "m4", user: { counts_toward_female_quota: false } }
         ]
       };
 
@@ -372,7 +374,7 @@ describe("Join Requests API", () => {
         team: mockTeam,
         // Applicant is also male. New count: 5. Remaining: 1. Still needed: 1.
         // 1 remaining >= 1 needed, so this is valid.
-        requester: { counts_toward_female_quota: false, verification_status: "verified", team_memberships: [] },
+        requester: { counts_toward_female_quota: false, team_memberships: [] },
       });
       (prisma.team.findUnique as jest.Mock).mockResolvedValue(mockTeam);
 

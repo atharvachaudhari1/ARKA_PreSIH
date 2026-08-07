@@ -57,10 +57,10 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
           );
         }
         if (min_female_required !== undefined) {
-          const verifiedFemales = t.memberships.filter(m => m.user.counts_toward_female_quota && m.user.verification_status === 'verified').length;
-          if (verifiedFemales < min_female_required) {
+          const females = t.memberships.filter(m => m.user.counts_toward_female_quota).length;
+          if (females < min_female_required) {
             return NextResponse.json(
-              { error: `min_female_required cannot be set above what existing teams satisfy (a team has only ${verifiedFemales} verified female members).` },
+              { error: `min_female_required cannot be set above what existing teams satisfy (a team has only ${females} female members).` },
               { status: 400 }
             );
           }

@@ -6,16 +6,14 @@ export default async function AdminDashboard() {
     fullTeams,
     pendingRequests,
     recentSignups,
-    activeReports,
-    verificationQueue
+    activeReports
   ] = await Promise.all([
     prisma.team.count({ where: { status: "open" } }),
     prisma.team.count({ where: { status: "full" } }),
     prisma.joinRequest.count({ where: { status: "pending" } }),
     // eslint-disable-next-line react-hooks/purity
     prisma.user.count({ where: { created_at: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }),
-    prisma.report.count({ where: { status: "open" } }),
-    prisma.user.count({ where: { verification_status: "pending" } })
+    prisma.report.count({ where: { status: "open" } })
   ]);
 
   const stats = [
@@ -24,7 +22,6 @@ export default async function AdminDashboard() {
     { label: "Pending Join Requests", value: pendingRequests, color: "#f59e0b" },
     { label: "New Users (24h)", value: recentSignups, color: "#10b981" },
     { label: "Active Reports", value: activeReports, color: "#ef4444" },
-    { label: "Pending Verifications", value: verificationQueue, color: "#8b5cf6" },
   ];
 
   return (

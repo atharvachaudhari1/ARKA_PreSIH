@@ -70,7 +70,7 @@ describe("Security IDOR/Auth Checks", () => {
     console.log(`Body:`, JSON.stringify(data, null, 2));
     
     // In our GET route, we explicitly SELECT the fields for memberships.user:
-    // id, name, department, verification_status, skills. 
+    // id, name, department, skills. 
     // We do NOT select email or whatsapp_number! 
     expect(res.status).toBe(200);
   });

@@ -15,17 +15,7 @@ datasource db {
 // ─────────────────────────────────────────────
 
 // Removed Gender enum in favor of decoupled String field
-
-enum VerificationStatus {
-  pending
-  verified
-  rejected
-}
-
-enum VerificationMethod {
-  auto
-  manual_review
-}
+// Removed VerificationStatus and VerificationMethod enums (identity verification system stripped)
 
 enum ContactVisibility {
   public_to_logged_in
@@ -123,22 +113,10 @@ model User {
   department   String?
   college      String?
 
-  // ID card — stored in private Supabase Storage bucket.
-  // [GAP-RESOLVED-6] NEVER returned by any public API route.
-  id_card_storage_path String?
-  verification_status  VerificationStatus  @default(pending)
-  verification_method  VerificationMethod?
-  verified_at          DateTime?
-
-  // OCR Verification Fields
-  ocr_parsed_name       String?
-  ocr_parsed_department String?
-  ocr_parsed_college    String?
-  ocr_confidence_score  Float?
-
   // Decoupled gender field: users can specify freely.
   gender                     String?
-  // Quota flag: strictly evaluated for SIH validation (e.g. true for 'female')
+  // Quota flag: strictly evaluated for SIH validation (e.g. true for 'female').
+  // No verification gate: every registered user's self-reported gender counts directly.
   counts_toward_female_quota Boolean @default(false)
 
   // Contact — leader's fields forced public_to_logged_in while leading.
@@ -172,27 +150,9 @@ model User {
   chat_messages    ChatMessage[]
   reports_made     Report[]                 @relation("Reporter")
   reports_received Report[]                 @relation("ReportedUser")
-  ocr_attempts     OcrVerificationAttempt[]
   team_slots       TeamSlot[]
-  email_otps       EmailVerificationOTP[]
 
-  @@index([verification_status])
   @@map("users")
-}
-
-model OcrVerificationAttempt {
-  id                    String   @id @default(cuid())
-  user_id               String
-  ocr_parsed_name       String?
-  ocr_parsed_department String?
-  ocr_parsed_college    String?
-  ocr_confidence_score  Float?
-  created_at            DateTime @default(now())
-  expires_at            DateTime
-
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("ocr_verification_attempts")
 }
 
 model UserSkill {
@@ -409,18 +369,4 @@ model Report {
   // CREATE UNIQUE INDEX reports_active_user_idx ON reports(reporter_id, reported_user_id) WHERE status = 'open';
   // CREATE UNIQUE INDEX reports_active_team_idx ON reports(reporter_id, reported_team_id) WHERE status = 'open';
   @@map("reports")
-}
-
-model EmailVerificationOTP {
-  id         String   @id @default(cuid())
-  user_id    String
-  email      String
-  otp        String
-  expires_at DateTime
-  created_at DateTime @default(now())
-
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id, email])
-  @@map("email_verification_otps")
 }

@@ -41,11 +41,11 @@ export async function GET(
   const finalizedTeams = event.teams.filter((team) => {
     if (team.memberships.length !== event.team_size_max) return false;
     
-    const verifiedFemaleCount = team.memberships.filter(
-      (m: any) => m.user.counts_toward_female_quota && m.user.verification_status === "verified"
+    const femaleCount = team.memberships.filter(
+      (m: any) => m.user.counts_toward_female_quota
     ).length;
 
-    if (verifiedFemaleCount < event.min_female_required) return false;
+    if (femaleCount < event.min_female_required) return false;
     
     return true;
   });

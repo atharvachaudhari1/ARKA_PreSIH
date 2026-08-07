@@ -14,7 +14,7 @@ Browser
   │    └─ Middleware (auth guard)
   │
   ├─ Supabase Auth  (Google OAuth + email/password)
-  ├─ Supabase Storage  (private bucket: id-cards/)
+  ├─ Supabase Storage  (private bucket: resumes/)
   ├─ Supabase Real-time  (Phase 4: notification subscriptions)
   │
   └─ PostgreSQL (Supabase)
@@ -69,7 +69,7 @@ See `prisma/schema.prisma` for the full schema. Key models:
 
 | Model | Purpose |
 |---|---|
-| `User` | Auth + profile. id_card_storage_path never returned by API. |
+| `User` | Auth + profile. Self-reported gender drives the SIH female quota flag. |
 | `Event` | Configurable hackathon (SIH 2026 seed data) |
 | `Team` | A team with leader, skills, vacancy tracking |
 | `TeamMembership` | Join table with role (leader/member) |
@@ -91,7 +91,7 @@ Login page:
 
 Signup page:
   Step 1: Choose path (Join / Create) — Devfolio-style
-  Step 2: Google OAuth OR email+password + profile form + ID card upload
+  Step 2: Google OAuth OR email+password + profile form
     → POST /api/users/profile (creates Prisma User record)
     → redirect /dashboard or /teams/create
 ```
@@ -105,7 +105,7 @@ Implemented as explicit field selection in each API handler — never scattered 
 | Any logged-in user | Team structure, leader name+contact, existing members name/dept/skills |
 | Team member (viewing pending request) | Requester's live User record (GAP-RESOLVED-3: no snapshot) |
 | Leader (reviewing request) | Same as team member + aggregated opinions |
-| Nobody | id_card_storage_path, non-leader contact info (until member joins) |
+| Nobody | Non-leader contact info (until member joins) |
 
 ## Key Design Decisions (GAP-RESOLVED markers)
 
@@ -116,7 +116,7 @@ Implemented as explicit field selection in each API handler — never scattered 
 | 3 | No profile snapshot in JoinRequest — team always reads live User record. |
 | 4 | Cascade-expiry covers both directions (user_to_team and team_to_user). |
 | 5 | Partial unique DB index on `(team_id, requester_id) WHERE status='pending'`. |
-| 6 | `id_card_storage_path` stored but NEVER returned by any API endpoint. |
-| 7 | Pending verification: dept shown with "Unverified" badge. |
+| 6 | Identity verification (OCR/ID-card) removed. Self-reported gender counts directly toward the female quota. |
+| 7 | The phone number collected at signup is the informal identity signal (closed, single-college user base). |
 | 8 | `auto_promote` algorithm: TBD before Phase 5. |
 | 9 | Test tooling: `next-test-api-route-handler` replaces Supertest. |

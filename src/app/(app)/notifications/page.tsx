@@ -176,7 +176,7 @@ export default function NotificationsPage() {
   const read = notifications.filter((n) => n.read_status === "read");
 
   return (
-    <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 800, margin: "0 auto" }}>
+    <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 860, margin: "0 auto" }}>
       {/* Page Header */}
       <div style={{ marginBottom: "2rem" }}>
         <div
@@ -394,7 +394,7 @@ export default function NotificationsPage() {
           >
             ○ READ ({read.length})
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", opacity: 0.65 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {read.map((n) => (
               <NotificationCard key={n.id} notification={n} onMarkRead={() => {}} />
             ))}
@@ -419,15 +419,23 @@ function NotificationCard({
     <div
       style={{
         background: isUnread ? cfg.bg : "#ffffff",
-        border: `2px solid ${isUnread ? cfg.border : "#e5e5e5"}`,
-        boxShadow: isUnread ? `4px 4px 0px ${cfg.border}` : "2px 2px 0px #e5e5e5",
+        border: `2px solid ${isUnread ? cfg.border : "#1a1a1a"}`,
+        boxShadow: isUnread ? `4px 4px 0px ${cfg.border}` : "4px 4px 0px #1a1a1a",
         borderRadius: "6px",
-        padding: "1.25rem 1.5rem",
+        padding: "1.1rem 1.25rem",
         display: "flex",
         gap: "1rem",
         alignItems: "flex-start",
         transition: "all 0.15s ease",
         position: "relative",
+      }}
+      onMouseOver={(e) => {
+        e.currentTarget.style.transform = "translate(-2px, -2px)";
+        e.currentTarget.style.boxShadow = isUnread ? `6px 6px 0px ${cfg.border}` : "6px 6px 0px #1a1a1a";
+      }}
+      onMouseOut={(e) => {
+        e.currentTarget.style.transform = "translate(0px, 0px)";
+        e.currentTarget.style.boxShadow = isUnread ? `4px 4px 0px ${cfg.border}` : "4px 4px 0px #1a1a1a";
       }}
     >
       {/* Unread dot */}
@@ -457,10 +465,10 @@ function NotificationCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#ffffff",
-          border: `2px solid ${isUnread ? cfg.border : "#e5e5e5"}`,
-          borderRadius: "6px",
-          boxShadow: `2px 2px 0px ${isUnread ? cfg.border : "#e5e5e5"}`,
+          background: isUnread ? cfg.bg : "#ffffff",
+          border: "2px solid #1a1a1a",
+          borderRadius: "4px",
+          boxShadow: "2px 2px 0px #1a1a1a",
         }}
       >
         {cfg.icon}
@@ -517,14 +525,28 @@ function NotificationCard({
                 href={`/teams/${notification.team_id}`}
                 style={{
                   fontSize: "0.75rem",
-                  color: "#5b5fc7",
+                  color: "#ffffff",
+                  background: "#5b5fc7",
                   fontWeight: 800,
                   fontFamily: "var(--font-mono)",
                   textDecoration: "none",
-                  border: "1.5px solid #5b5fc7",
-                  padding: "2px 8px",
-                  borderRadius: "3px",
+                  border: "2px solid #1a1a1a",
+                  padding: "4px 10px",
+                  borderRadius: "4px",
                   display: "inline-block",
+                  boxShadow: "2px 2px 0px #1a1a1a",
+                  transition: "all 0.15s ease",
+                  textTransform: "uppercase"
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translate(-1px, -1px)";
+                  e.currentTarget.style.boxShadow = "3px 3px 0px #1a1a1a";
+                  e.currentTarget.style.background = "#4a4fb5";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translate(0px, 0px)";
+                  e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a";
+                  e.currentTarget.style.background = "#5b5fc7";
                 }}
               >
                 → VIEW TEAM
@@ -535,17 +557,30 @@ function NotificationCard({
                 onClick={onMarkRead}
                 style={{
                   fontSize: "0.75rem",
-                  color: "#5a5a5a",
-                  fontWeight: 700,
+                  color: "#1a1a1a",
+                  fontWeight: 800,
                   fontFamily: "var(--font-mono)",
-                  background: "none",
-                  border: "1.5px solid #ccc",
-                  padding: "2px 8px",
-                  borderRadius: "3px",
+                  background: "#ffffff",
+                  border: "2px solid #1a1a1a",
+                  padding: "4px 10px",
+                  borderRadius: "4px",
                   cursor: "pointer",
+                  boxShadow: "2px 2px 0px #1a1a1a",
+                  transition: "all 0.15s ease",
+                  textTransform: "uppercase"
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = "translate(-1px, -1px)";
+                  e.currentTarget.style.boxShadow = "3px 3px 0px #1a1a1a";
+                  e.currentTarget.style.background = "#f5f5f5";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = "translate(0px, 0px)";
+                  e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a";
+                  e.currentTarget.style.background = "#ffffff";
                 }}
               >
-                Mark Read
+                ✓ Mark Read
               </button>
             )}
           </div>

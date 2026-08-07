@@ -55,27 +55,6 @@ export default function DashboardPage() {
           $ ./DASHBOARD_INIT.SH
         </div>
         
-        {profile?.verification_status === "pending" && profile?.verification_method === null && (
-          <div style={{
-            background: "#fffbeb", border: "2px solid #f59e0b", borderRadius: "4px", padding: "1rem 1.5rem",
-            marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center",
-            boxShadow: "3px 3px 0px #f59e0b", animation: "fade-up 0.3s ease"
-          }}>
-            <div>
-              <h4 style={{ margin: 0, color: "#b45309", fontWeight: 800, fontSize: "1.05rem" }}>Action Required: Re-verify your Student ID</h4>
-              <p style={{ margin: "0.2rem 0 0", color: "#92400e", fontSize: "0.9rem", fontWeight: 500 }}>
-                Your profile is pending verification. Please verify via your institutional email or ID upload to unlock full access.
-              </p>
-            </div>
-            <Link href="/profile/complete" style={{
-              background: "#f59e0b", color: "#fff", padding: "0.5rem 1rem", borderRadius: "3px", textDecoration: "none",
-              fontWeight: 800, fontSize: "0.85rem", textTransform: "uppercase", border: "2px solid #b45309", boxShadow: "2px 2px 0px #b45309"
-            }}>
-              Verify Now
-            </Link>
-          </div>
-        )}
-
         <h1 style={{ fontSize: "2rem", fontWeight: 900, letterSpacing: "-0.02em" }}>
           Welcome back, <span className="gradient-text">{profile?.name ? profile.name.split(" ")[0] : "Hacker"}</span>
         </h1>

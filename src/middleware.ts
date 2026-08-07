@@ -45,8 +45,16 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
+  // API routes that must be callable WITHOUT a session.
+  // /api/auth/verify-password is step 1 of email login (password check happens
+  // server-side before any session exists) — blocking it here breaks login.
+  const publicApiRoutes = ["/api/auth/verify-password"];
+  const isPublicApiRoute = publicApiRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+
   // If not authenticated and trying to access a protected route → redirect to /login.
-  if (!user && !isPublicRoute) {
+  if (!user && !isPublicRoute && !isPublicApiRoute) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

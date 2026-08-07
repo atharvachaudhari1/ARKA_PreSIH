@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { recomputeNeededFemaleCount } from "@/lib/teamQuota";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
@@ -14,7 +15,7 @@ export async function PATCH(
 
   const currentUser = await prisma.user.findUnique({
     where: { auth_user_id: authUser.id },
-    include: { team_memberships: true }
+    include: { team_memberships: { where: { team: { status: { not: 'dissolved' } } } } }
   });
   if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -30,7 +31,7 @@ export async function PATCH(
     where: { id: id },
     include: {
       team: { include: { event: true, memberships: { include: { user: true } } } },
-      requester: { include: { team_memberships: true } }
+      requester: { include: { team_memberships: { where: { team: { status: { not: 'dissolved' } } } } } }
     }
   });
 
@@ -74,7 +75,7 @@ export async function PATCH(
             user_id: joinRequest.team.leader_id,
             type: "request_rejected",
             team_id: joinRequest.team_id,
-            payload: { user_name: currentUser.name }
+            payload: { team_name: joinRequest.team.name, user_name: currentUser.name }
           }
         });
       }
@@ -104,7 +105,7 @@ export async function PATCH(
         // 0.5 Fetch fresh user state to prevent 1-team rule race condition
         const freshUser = await tx.user.findUnique({
           where: { id: joinRequest.requester_id },
-          include: { team_memberships: { select: { id: true } } }
+          include: { team_memberships: { where: { team: { status: { not: 'dissolved' } } }, select: { id: true } } }
         });
         if (!freshUser || freshUser.team_memberships.length > 0) {
            throw new Error("This user has already joined another team.");
@@ -117,18 +118,18 @@ export async function PATCH(
         const newCount = currentCount + 1;
         const remainingSlots = maxCount - newCount;
         
-        let verifiedFemaleCount = freshTeam.memberships.filter(
-          (m: any) => m.user.counts_toward_female_quota && m.user.verification_status === "verified"
+        let femaleCount = freshTeam.memberships.filter(
+          (m: any) => m.user.counts_toward_female_quota
         ).length;
         
-        if (joinRequest.requester.counts_toward_female_quota && joinRequest.requester.verification_status === "verified") {
-          verifiedFemaleCount += 1;
+        if (joinRequest.requester.counts_toward_female_quota) {
+          femaleCount += 1;
         }
 
-        const stillNeeded = freshTeam.event.min_female_required - verifiedFemaleCount;
+        const stillNeeded = freshTeam.event.min_female_required - femaleCount;
         
         if (stillNeeded > remainingSlots) {
-           throw new Error(`Cannot accept this request. Your team would have ${remainingSlots} slots left, but still needs ${stillNeeded} verified female member(s) to meet the event quota.`);
+           throw new Error(`Cannot accept this request. Your team would have ${remainingSlots} slots left, but still needs ${stillNeeded} female member(s) to meet the event quota.`);
         }
 
         // 1. Mark request as accepted
@@ -149,6 +150,9 @@ export async function PATCH(
             role: "member",
           }
         });
+
+        // 2.25 Recompute female quota requirement now that membership changed
+        await recomputeNeededFemaleCount(tx, joinRequest.team_id);
 
         // 2.5 Claim a slot
         let targetSlot = null;
@@ -177,7 +181,7 @@ export async function PATCH(
             status: "pending",
             id: { not: joinRequest.id }
           },
-          include: { team: { select: { leader_id: true } } }
+          include: { team: { select: { leader_id: true, name: true } } }
         });
         
         await tx.joinRequest.updateMany({
@@ -200,7 +204,7 @@ export async function PATCH(
               user_id: req.team.leader_id,
               type: "request_expired_other_team_joined",
               team_id: req.team_id,
-              payload: { user_name: freshUser.name }
+              payload: { team_name: req.team.name, user_name: freshUser.name }
             }
           });
         }
@@ -221,7 +225,7 @@ export async function PATCH(
               user_id: joinRequest.team.leader_id,
               type: "request_accepted",
               team_id: joinRequest.team_id,
-              payload: { user_name: currentUser.name }
+              payload: { team_name: joinRequest.team.name, user_name: currentUser.name }
             }
           });
         }

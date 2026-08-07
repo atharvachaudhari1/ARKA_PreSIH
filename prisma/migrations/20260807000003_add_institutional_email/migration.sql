@@ -1,0 +1,3 @@
+-- Reconcile-only migration. The institutional_email column no longer exists in the
+-- database (it was dropped outside Prisma history), so this local record exists purely
+-- to keep the migration history in sync. No SQL to apply.

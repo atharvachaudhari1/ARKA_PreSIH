@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { recomputeNeededFemaleCount } from '@/lib/teamQuota';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(
@@ -64,6 +65,9 @@ export async function POST(
         where: { team_id: team.id, filled_by_user_id: currentUser.id },
         data: { is_filled: false, filled_by_user_id: null }
       });
+
+      // Recompute female quota requirement now that membership changed
+      await recomputeNeededFemaleCount(tx, team.id);
 
       // Check if team status needs to change from 'full' to 'open'
       // Use team.id, not team_id from params, since it's confirmed

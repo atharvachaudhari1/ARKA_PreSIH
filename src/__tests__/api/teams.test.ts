@@ -56,7 +56,7 @@ describe("Teams API", () => {
 
       await testApiHandler({
         appHandler: teamsHandler,
-        url: "/api/teams?status=open&domain=Web3&gender_need=true&min_experience=2&skills_needed[]=React",
+        url: "/api/teams?status=open&domain=Web3&gender_need=true&skills_needed[]=React",
         test: async ({ fetch }) => {
           const res = await fetch({ method: "GET" });
           expect(res.status).toBe(200);
@@ -71,7 +71,6 @@ describe("Teams API", () => {
                 status: "open",
                 domain_interest: "Web3",
                 needed_female_count: { gt: 0 },
-                min_experience_required: { lte: 2 },
                 skills_needed: { hasSome: ["React"] },
               },
             })

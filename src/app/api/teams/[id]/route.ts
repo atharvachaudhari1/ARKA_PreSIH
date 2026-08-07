@@ -15,6 +15,7 @@ export async function GET(
   const team = await prisma.team.findUnique({
     where: { id: id },
     include: {
+      event: { select: { team_size_max: true, min_female_required: true } },
       slots: true,
       leader: {
         select: {
@@ -37,7 +38,6 @@ export async function GET(
               id: true,
               name: true,
               department: true,
-              verification_status: true,
               skills: { select: { skill: true, proficiency: true } },
               linkedin_url: true,
               github_url: true,
@@ -61,7 +61,6 @@ export async function GET(
               id: true,
               name: true,
               department: true,
-              verification_status: true,
               skills: { select: { skill: true, proficiency: true } },
               linkedin_url: true,
               github_url: true,

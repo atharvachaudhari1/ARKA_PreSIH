@@ -8,7 +8,15 @@ const globalForPrisma = globalThis as unknown as {
 
 const connectionString = process.env.DATABASE_URL;
 
-const pool = new Pool({ connectionString });
+// Sized pool for concurrent load. pgBouncer (transaction mode) multiplexes
+// these logical connections, so the limit is well above the ~60 direct
+// connection cap Supabase allows.
+const pool = new Pool({
+  connectionString,
+  max: Number(process.env.PG_POOL_MAX ?? 20),
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+});
 const adapter = new PrismaPg(pool);
 
 /**

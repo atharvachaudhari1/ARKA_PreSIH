@@ -14,14 +14,6 @@ const COMMON_SKILLS = [
   "Docker", "AWS", "Firebase", "Tailwind CSS", "Go", "Rust", "C++", "Java"
 ];
 
-function IconLightbulb() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "text-bottom", marginRight: "4px" }}>
-      <path d="M14.4 14.4C16 13.1 17 11.1 17 8.8 17 4.5 13.6 1 9.3 1S1.6 4.5 1.6 8.8c0 2.3 1 4.3 2.6 5.6M9.3 18.5V23M6 18.5h6.6"/>
-    </svg>
-  );
-}
-
 function IconZap() {
   return (
     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eab308" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "4px" }}>
@@ -96,7 +88,6 @@ function CreateTeamForm() {
     name: "",
     description: "",
     domain_interest: "",
-    min_experience_required: "0",
     succession_mode: "manual",
     leaderBio: "",
   });
@@ -144,12 +135,6 @@ function CreateTeamForm() {
 
     if (!form.name.trim()) {
       setError("Team name is required.");
-      setLoading(false);
-      return;
-    }
-
-    if (slots.length !== 5) {
-      setError("You must define exactly 5 member slots (for a total squad of 6) to deploy the team.");
       setLoading(false);
       return;
     }
@@ -377,39 +362,20 @@ function CreateTeamForm() {
           </div>
 
 
-          {/* Min Experience */}
-          <div>
-            <label htmlFor="team-exp" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
-              Minimum Hackathons Experience Filter
-            </label>
-            <input
-              id="team-exp"
-              type="number"
-              min="0"
-              value={form.min_experience_required}
-              onChange={(e) => update("min_experience_required", e.target.value)}
-              style={fieldStyle}
-              {...fieldHover}
-            />
-            <p style={{ fontSize: "0.78rem", color: "#666", marginTop: "0.35rem", fontWeight: 600 }}>
-              <IconLightbulb /> Only applicants matching or exceeding this hackathon count will appear in priority filtering.
-            </p>
-          </div>
-
           {/* Member Slots */}
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
               <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", fontFamily: "var(--font-mono)", textTransform: "uppercase", margin: 0 }}>
-                Required Member Slots
+                Member Slots <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
               </label>
-              <div style={{ fontSize: "0.75rem", fontWeight: 800, fontFamily: "var(--font-mono)", background: slots.length === 5 ? "#ecfdf5" : "#eef0ff", border: `2px solid ${slots.length === 5 ? "#059669" : "#5b5fc7"}`, padding: "0.25rem 0.6rem", borderRadius: "3px", color: slots.length === 5 ? "#059669" : "#5b5fc7", boxShadow: "2px 2px 0px #1a1a1a" }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, fontFamily: "var(--font-mono)", background: "#eef0ff", border: "2px solid #5b5fc7", padding: "0.25rem 0.6rem", borderRadius: "3px", color: "#5b5fc7", boxShadow: "2px 2px 0px #1a1a1a" }}>
                 SQUAD SIZE: {1 + slots.length} / 6
               </div>
             </div>
-            <div style={{ background: "#fef2f2", border: "1.5px solid #dc2626", borderRadius: "4px", padding: "0.65rem 0.85rem", marginBottom: "1rem", color: "#dc2626", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-              <span style={{ fontSize: "1rem", lineHeight: 1 }}>⚠️</span>
+            <div style={{ background: "#eef0ff", border: "1.5px solid #5b5fc7", borderRadius: "4px", padding: "0.65rem 0.85rem", marginBottom: "1rem", color: "#5b5fc7", fontSize: "0.8rem", fontWeight: 700, display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+              <span style={{ fontSize: "1rem", lineHeight: 1 }}>💡</span>
               <span style={{ fontFamily: "var(--font-mono)" }}>
-                IMPORTANT: You must define all 5 remaining member slots (either by inviting known teammates or specifying open requirements) to reach a full 6-member squad before you can submit.
+                Slots are optional — add as many as you like. Each slot can invite a known teammate or stay open for others to apply. You can always add more members after the team is created.
               </span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1rem" }}>

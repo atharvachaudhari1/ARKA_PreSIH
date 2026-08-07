@@ -2,7 +2,6 @@
 
 > All routes require authentication (NFR6). Include the Supabase session cookie on all requests.
 > All responses are JSON unless otherwise noted.
-> `id_card_storage_path` is **never** returned by any endpoint (GAP-RESOLVED-6).
 
 ---
 
@@ -31,7 +30,6 @@ Create a user profile (called immediately after signup).
   "department": "string (required)",
   "past_hackathons_count": "number",
   "bio": "string (optional)",
-  "id_card_storage_path": "string (required)",
   "intent": "join | create (optional)"
 }
 ```
@@ -45,7 +43,6 @@ Create a user profile (called immediately after signup).
     "gender": "male | female",
     "college": "...",
     "department": "...",
-    "verification_status": "pending",
     "past_hackathons_count": 0,
     "bio": null,
     "created_at": "..."
@@ -70,7 +67,6 @@ Get the authenticated user's own profile.
     "gender": "...",
     "college": "...",
     "department": "...",
-    "verification_status": "pending | verified | rejected",
     "past_hackathons_count": 0,
     "bio": null,
     "presentation_skill_rating": null,
@@ -90,7 +86,7 @@ Get the authenticated user's own profile.
 
 ### PATCH /api/users/profile
 Update the authenticated user's own profile. Allows partial updates. 
-*Note: `id_card_storage_path` and `verification_status` are strictly protected and cannot be updated via this endpoint.*
+*Note: `is_admin` is strictly protected and cannot be updated via this endpoint.*
 
 **Auth**: Required  
 **Body**:
@@ -199,7 +195,6 @@ Fetches a list of open or full teams. Supports filtering.
           "user": {
             "name": "Bob",
             "department": "CSE",
-            "verification_status": "verified",
             "skills": []
           }
         }

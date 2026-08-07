@@ -14,14 +14,14 @@ export default function DashboardPage() {
   const [status, setStatus] = useState<string>("open");
   const [domain, setDomain] = useState<string>("");
   const [genderNeed, setGenderNeed] = useState<boolean>(false);
-  const [minExperience, setMinExperience] = useState<string>("");
   const [skillsNeeded, setSkillsNeeded] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const params = new URLSearchParams();
   if (status) params.set("status", status);
   if (domain) params.set("domain", domain);
   if (genderNeed) params.set("gender_need", "true");
-  if (minExperience) params.set("min_experience", minExperience);
+  if (searchQuery) params.set("search", searchQuery);
   const skillsArray = skillsNeeded.split(",").map((s) => s.trim()).filter(Boolean);
   skillsArray.forEach((s) => params.append("skills_needed[]", s));
 
@@ -35,7 +35,6 @@ export default function DashboardPage() {
     setStatus("open");
     setDomain("");
     setGenderNeed(false);
-    setMinExperience("");
     setSkillsNeeded("");
   };
 
@@ -213,7 +212,7 @@ export default function DashboardPage() {
               REQUIRED SKILLSETS
             </label>
             <input
-              placeholder="e.g. React, Node, AI/ML (comma separated)"
+              placeholder="e.g. React, Node (comma separated)"
               value={skillsNeeded}
               onChange={(e) => setSkillsNeeded(e.target.value)}
               style={{ ...fieldBaseStyle, fontWeight: 600, boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.06)" }}
@@ -224,18 +223,16 @@ export default function DashboardPage() {
             />
           </div>
 
-          {/* Min Hackathons */}
-          <div style={{ flex: "1 1 auto", minWidth: "120px" }}>
+          {/* Search by Name */}
+          <div style={{ flex: "2 1 auto", minWidth: "200px" }}>
             <label style={{ fontSize: "0.75rem", fontWeight: 800, fontFamily: "var(--font-mono)", color: "#1a1a1a", marginBottom: "0.4rem", display: "block", letterSpacing: "0.5px" }}>
-              MIN HACKATHONS
+              SEARCH TEAMS OR MEMBERS
             </label>
             <input
-              type="number"
-              min="0"
-              placeholder="0"
-              value={minExperience}
-              onChange={(e) => setMinExperience(e.target.value)}
-              style={{ ...fieldBaseStyle, boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.06)" }}
+              placeholder="Search by team, leader, or member name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ ...fieldBaseStyle, fontWeight: 600, boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.06)" }}
               onFocus={fieldFocusOn}
               onBlur={(e) => fieldFocusOff(e, "inset 1px 1px 2px rgba(0,0,0,0.06)")}
               onMouseOver={fieldHoverOn}
