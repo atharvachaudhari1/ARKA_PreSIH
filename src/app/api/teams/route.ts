@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 import { SuccessionMode } from "@prisma/client";
 
@@ -237,15 +238,12 @@ export async function POST(request: NextRequest) {
               select: { email: true }
             });
 
-            if (invitedUser?.email && process.env.RESEND_API_KEY) {
-              const { Resend } = require("resend");
-              const resend = new Resend(process.env.RESEND_API_KEY);
-              await resend.emails.send({
-                from: "TeamUp <noreply@arkaa.online>",
-                to: [invitedUser.email],
+            if (invitedUser?.email) {
+              await sendEmail({
+                to: invitedUser.email,
                 subject: "You've been invited to a team!",
                 html: `<p>Hello!</p><p>You have been invited to join the team <strong>${name.trim()}</strong> on TeamUp.</p><p>Log in to your dashboard to view and accept the invitation.</p>`
-              }).catch((e: any) => console.error("Email send failed:", e));
+              });
             }
           }
         }

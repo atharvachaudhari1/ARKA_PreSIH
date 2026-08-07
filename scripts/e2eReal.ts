@@ -301,10 +301,20 @@ async function main() {
   ok("m2 now a member", (teamAfter.memberships || []).some((m: any) => m.user.name === "E2E Member Two"));
   ok("needed_female_count recomputed to 0", teamAfter.needed_female_count === 0, `got ${teamAfter.needed_female_count}`);
 
-  section("M. Advisory opinions");
+  section("M. Notifications API");
+  r = await req("/api/notifications", { cookie: U.m2.cookie });
+  ok("m2 sees request_accepted notification", (r.data as any).notifications?.some((n: any) => n.type === "request_accepted"), JSON.stringify(r.data).slice(0, 200));
+  r = await req("/api/notifications", { cookie: U.m1.cookie });
+  ok("m1 sees request_rejected notification", (r.data as any).notifications?.some((n: any) => n.type === "request_rejected"), JSON.stringify(r.data).slice(0, 200));
+  r = await req("/api/notifications", { cookie: U.leader.cookie });
+  ok("Leader GET /api/notifications → 200", r.status === 200, `got ${r.status}`);
+
+  section("N. Advisory opinions");
   r = await req("/api/join-requests", { method: "POST", cookie: U.m3.cookie, body: { team_id: teamId, applicantBio: "third applicant" } });
   const jr3 = (r.data as any).joinRequest?.id;
   ok("m3 (female) applies → 201", r.status === 201, `got ${r.status}`);
+  r = await req("/api/notifications", { cookie: U.leader.cookie });
+  ok("Leader sees new_join_request notification (m3 pending)", (r.data as any).notifications?.some((n: any) => n.type === "new_join_request"), JSON.stringify(r.data).slice(0, 200));
   r = await req(`/api/join-requests/${jr3}/opinion`, { method: "PATCH", cookie: U.m2.cookie, body: { opinion: "approve" } });
   ok("Member m2 posts approve → 200", r.status === 200, `got ${r.status}`);
   r = await req(`/api/join-requests/${jr3}/opinion`, { method: "PATCH", cookie: U.m1.cookie, body: { opinion: "approve" } });
@@ -312,7 +322,7 @@ async function main() {
   r = await req(`/api/join-requests/${jr3}/opinion`, { method: "PATCH", cookie: U.leader.cookie, body: { opinion: "neutral" } });
   ok("Leader opinion → 200 (not notified to self)", r.status === 200, `got ${r.status}`);
 
-  section("N. Invite flow (team_to_user)");
+  section("O. Invite flow (team_to_user)");
   r = await req("/api/join-requests", { method: "POST", cookie: U.leader.cookie, body: { direction: "team_to_user", user_id: U.invitee.profileId } });
   ok("Leader invites invitee → 201", r.status === 201, `got ${r.status} ${JSON.stringify(r.data).slice(0, 150)}`);
   const inviteJrid = (r.data as any).joinRequest?.id;
@@ -321,7 +331,7 @@ async function main() {
   r = await req(`/api/join-requests/${inviteJrid}/decision`, { method: "PATCH", cookie: U.invitee.cookie, body: { decision: "accept" } });
   ok("Invitee accepts invite → 200", r.status === 200, `got ${r.status}`);
 
-  section("O. Capacity enforcement (max 6)");
+  section("P. Capacity enforcement (max 6)");
   // Members so far: leader, m2, invitee = 3. Accept m3 (4), m4 (5), m5 (6) → full.
   r = await req(`/api/join-requests/${jr3}/decision`, { method: "PATCH", cookie: U.leader.cookie, body: { decision: "accept" } });
   ok("Accept m3 → 200", r.status === 200, `got ${r.status}`);
@@ -342,7 +352,7 @@ async function main() {
   r = await req("/api/teams", { method: "POST", cookie: U.m2.cookie, body: { name: "E2E Impossible", description: "n/a" } });
   ok("m2 (member) can't create team → 400", r.status === 400, `got ${r.status}`);
 
-  section("P. Leave a full team → reopens");
+  section("Q. Leave a full team → reopens");
   r = await req(`/api/teams/${teamId}/leave`, { method: "POST", cookie: U.invitee.cookie });
   ok("invitee leaves → 200", r.status === 200, `got ${r.status}`);
   r = await req(`/api/teams/${teamId}`, { cookie: U.leader.cookie });
@@ -351,7 +361,7 @@ async function main() {
   const jr6 = (r.data as any).joinRequest?.id;
   ok("Outsider applies after reopen → 201", r.status === 201, `got ${r.status} ${JSON.stringify(r.data).slice(0, 120)}`);
 
-  section("Q. Dissolve team");
+  section("R. Dissolve team");
   r = await req(`/api/teams/${teamId}/dissolve`, { method: "POST", cookie: U.leader.cookie });
   ok("Leader dissolves → 200", r.status === 200, `got ${r.status}`);
   r = await req("/api/teams", { cookie: U.outsider.cookie });
@@ -359,13 +369,13 @@ async function main() {
   r = await req("/api/join-requests", { cookie: U.leader.cookie });
   ok("Dissolved team's pending requests not in leader list", !(r.data as any).teamRequests?.some((x: any) => x.team_id === teamId), JSON.stringify(r.data).slice(0, 200));
 
-  section("R. Session persistence + signout");
+  section("S. Session persistence + signout");
   r = await req("/api/users/profile", { cookie: U.leader.cookie });
   ok("Leader profile still readable after all flows (session persisted)", r.status === 200, `got ${r.status}`);
   r = await req("/api/auth/signout", { method: "POST", cookie: U.leader.cookie });
   ok("POST /api/auth/signout → 302 to /login", r.status === 302 && Boolean(r.location?.includes("/login")), `got ${r.status} loc=${r.location}`);
 
-  section("S. Cleanup");
+  section("T. Cleanup");
   const authIds = Object.values(U).map((u) => u.authId);
   await prisma.team.deleteMany({ where: { name: { startsWith: "E2E" } } }).catch(() => {});
   await prisma.joinRequest.deleteMany({ where: { team: { name: { startsWith: "E2E" } } } }).catch(() => {});

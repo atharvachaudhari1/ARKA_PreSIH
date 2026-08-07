@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
 import { NextRequest, NextResponse } from "next/server";
 import { RequestDirection } from "@prisma/client";
 
@@ -116,7 +117,11 @@ export async function POST(request: NextRequest) {
     // Check if team is full
     const team = await prisma.team.findUnique({
       where: { id: team_id },
-      include: { event: true, _count: { select: { memberships: true } } }
+      include: {
+        event: true,
+        leader: { select: { email: true, name: true } },
+        _count: { select: { memberships: true } }
+      }
     });
     if (!team) return NextResponse.json({ error: "Team not found" }, { status: 404 });
     if (team.status === "full") return NextResponse.json({ error: "This team is already full." }, { status: 400 });
@@ -177,6 +182,14 @@ export async function POST(request: NextRequest) {
       });
       return req;
     });
+    // Email the team leader about the new application
+    if (team.leader?.email) {
+      await sendEmail({
+        to: team.leader.email,
+        subject: `New join request from ${currentUser.name}`,
+        html: `<p>Hello!</p><p>${currentUser.name} has applied to join your team <strong>${team.name}</strong>.</p><p>Log in to TeamUp to review and respond to the request.</p>`
+      });
+    }
     return NextResponse.json({ joinRequest: newRequest }, { status: 201 });
   } 
   else if (direction === "team_to_user") {
@@ -231,6 +244,14 @@ export async function POST(request: NextRequest) {
       });
       return req;
     });
+    // Email the invited user
+    if (targetUser.email) {
+      await sendEmail({
+        to: targetUser.email,
+        subject: `You've been invited to join ${team.name}!`,
+        html: `<p>Hello!</p><p>You have been invited to join the team <strong>${team.name}</strong> on TeamUp.</p><p>Log in to your dashboard to view and accept the invitation.</p>`
+      });
+    }
     return NextResponse.json({ joinRequest: newRequest }, { status: 201 });
   }
 
