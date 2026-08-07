@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { recomputeNeededFemaleCount } from "@/lib/teamQuota";
 import { sendEmail } from "@/lib/email";
+import { scheduleAfter } from "@/lib/scheduleAfter";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
@@ -82,25 +83,27 @@ export async function PATCH(
       }
       return req;
     });
-    // Email the affected party about the rejection
-    if (joinRequest.direction === "user_to_team") {
-      if (joinRequest.requester.email) {
-        await sendEmail({
-          to: joinRequest.requester.email,
-          subject: `Update on your request to ${joinRequest.team.name}`,
-          html: `<p>Hello ${joinRequest.requester.name}!</p><p>Your request to join the team <strong>${joinRequest.team.name}</strong> was not accepted.</p><p>Don't worry — browse other open teams on TeamUp to find your team.</p>`
-        });
+    // Email the affected party about the rejection (does not block the response)
+    scheduleAfter(async () => {
+      if (joinRequest.direction === "user_to_team") {
+        if (joinRequest.requester.email) {
+          await sendEmail({
+            to: joinRequest.requester.email,
+            subject: `Update on your request to ${joinRequest.team.name}`,
+            html: `<p>Hello ${joinRequest.requester.name}!</p><p>Your request to join the team <strong>${joinRequest.team.name}</strong> was not accepted.</p><p>Don't worry — browse other open teams on TeamUp to find your team.</p>`
+          });
+        }
+      } else {
+        const teamLeader = joinRequest.team.memberships?.find((m: any) => m.role === "leader");
+        if (teamLeader?.user?.email) {
+          await sendEmail({
+            to: teamLeader.user.email,
+            subject: `${joinRequest.requester.name} declined your invite`,
+            html: `<p>Hello!</p><p>${joinRequest.requester.name} declined the invitation to join <strong>${joinRequest.team.name}</strong>.</p><p>You can invite other members from your team dashboard.</p>`
+          });
+        }
       }
-    } else {
-      const teamLeader = joinRequest.team.memberships?.find((m: any) => m.role === "leader");
-      if (teamLeader?.user?.email) {
-        await sendEmail({
-          to: teamLeader.user.email,
-          subject: `${joinRequest.requester.name} declined your invite`,
-          html: `<p>Hello!</p><p>${joinRequest.requester.name} declined the invitation to join <strong>${joinRequest.team.name}</strong>.</p><p>You can invite other members from your team dashboard.</p>`
-        });
-      }
-    }
+    });
     return NextResponse.json({ joinRequest: updated });
   }
 
@@ -218,16 +221,18 @@ export async function PATCH(
         });
 
         // Send notifications for expired requests (to the team leader of the expired request)
-        for (const req of userOtherRequests) {
-          await tx.notification.create({
-            data: {
-              user_id: req.team.leader_id,
-              type: "request_expired_other_team_joined",
-              team_id: req.team_id,
-              payload: { team_name: req.team.name, user_name: freshUser.name }
-            }
-          });
-        }
+        await Promise.all(
+          userOtherRequests.map((req) =>
+            tx.notification.create({
+              data: {
+                user_id: req.team.leader_id,
+                type: "request_expired_other_team_joined",
+                team_id: req.team_id,
+                payload: { team_name: req.team.name, user_name: freshUser.name }
+              }
+            })
+          )
+        );
 
         // 4. Notify the other party they were accepted
         if (joinRequest.direction === "user_to_team") {
@@ -272,40 +277,44 @@ export async function PATCH(
             }
           });
 
-          for (const tr of otherTeamRequests) {
-            await tx.notification.create({
-              data: {
-                user_id: tr.requester_id,
-                type: "team_now_full",
-                team_id: joinRequest.team_id,
-                payload: { team_name: joinRequest.team.name }
-              }
-            });
-          }
+          await Promise.all(
+            otherTeamRequests.map((tr) =>
+              tx.notification.create({
+                data: {
+                  user_id: tr.requester_id,
+                  type: "team_now_full",
+                  team_id: joinRequest.team_id,
+                  payload: { team_name: joinRequest.team.name }
+                }
+              })
+            )
+          );
         }
 
         return req;
       });
 
-      // Email the affected party about the acceptance
-      if (joinRequest.direction === "user_to_team") {
-        if (joinRequest.requester.email) {
-          await sendEmail({
-            to: joinRequest.requester.email,
-            subject: `You're in! Accepted into ${joinRequest.team.name}`,
-            html: `<p>Hello ${joinRequest.requester.name}!</p><p>Great news — your request to join <strong>${joinRequest.team.name}</strong> has been <strong>accepted</strong>.</p><p>Log in to TeamUp to see your team dashboard.</p>`
-          });
+      // Email the affected party about the acceptance (does not block the response)
+      scheduleAfter(async () => {
+        if (joinRequest.direction === "user_to_team") {
+          if (joinRequest.requester.email) {
+            await sendEmail({
+              to: joinRequest.requester.email,
+              subject: `You're in! Accepted into ${joinRequest.team.name}`,
+              html: `<p>Hello ${joinRequest.requester.name}!</p><p>Great news — your request to join <strong>${joinRequest.team.name}</strong> has been <strong>accepted</strong>.</p><p>Log in to TeamUp to see your team dashboard.</p>`
+            });
+          }
+        } else {
+          const teamLeader = joinRequest.team.memberships?.find((m: any) => m.role === "leader");
+          if (teamLeader?.user?.email) {
+            await sendEmail({
+              to: teamLeader.user.email,
+              subject: `${joinRequest.requester.name} joined your team!`,
+              html: `<p>Hello!</p><p>${joinRequest.requester.name} accepted your invite and joined <strong>${joinRequest.team.name}</strong>.</p><p>View your updated team on TeamUp.</p>`
+            });
+          }
         }
-      } else {
-        const teamLeader = joinRequest.team.memberships?.find((m: any) => m.role === "leader");
-        if (teamLeader?.user?.email) {
-          await sendEmail({
-            to: teamLeader.user.email,
-            subject: `${joinRequest.requester.name} joined your team!`,
-            html: `<p>Hello!</p><p>${joinRequest.requester.name} accepted your invite and joined <strong>${joinRequest.team.name}</strong>.</p><p>View your updated team on TeamUp.</p>`
-          });
-        }
-      }
+      });
 
       return NextResponse.json({ joinRequest: updated });
     } catch (e: any) {

@@ -19,6 +19,7 @@ export default function TeamDetailsPage() {
   const [selectedNewLeaderId, setSelectedNewLeaderId] = useState("");
   const [applicantBio, setApplicantBio] = useState("");
   const [applicantSkills, setApplicantSkills] = useState<string[]>([]);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   
   useEffect(() => {
     async function fetchTeamAndProfile() {
@@ -103,6 +104,28 @@ export default function TeamDetailsPage() {
       setMessage({ type: "error", text: data.error || "Failed to leave team." });
       setTransferLoading(false);
     }
+  }
+
+  async function handleRemoveMember(userId: string, userName: string) {
+    if (!confirm(`Are you sure you want to remove ${userName} from this team? They will be notified and their spot will open up.`)) return;
+    setRemovingMemberId(userId);
+    setMessage(null);
+    const res = await fetch(`/api/teams/${team.id}/remove-member`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId }),
+    });
+    if (res.ok) {
+      setTeam((prev: { memberships: { user: { id: string } }[] } | null) => ({
+        ...prev,
+        memberships: prev?.memberships.filter((m) => m.user.id !== userId),
+      }));
+      setMessage({ type: "success", text: `${userName} has been removed from the team.` });
+    } else {
+      const data = await res.json();
+      setMessage({ type: "error", text: data.error || "Failed to remove member." });
+    }
+    setRemovingMemberId(null);
   }
 
   async function handleDissolveTeam() {
@@ -283,6 +306,53 @@ export default function TeamDetailsPage() {
       )}
 
       {/* Action Section for Teammates */}
+      {isLeader && team.status !== 'dissolved' && (
+        <div style={{ marginTop: "1.5rem", maxWidth: "500px", background: "#fff7ed", border: "2px solid #ea580c", boxShadow: "5px 5px 0px #ea580c", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#9a3412", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>Manage Squad Members</h3>
+          <p style={{ color: "#9a3412", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
+            Remove a member to free up their spot. The removed member will be notified and can browse other teams again.
+          </p>
+          {teamMembers.length === 0 && (
+            <div style={{ fontSize: "0.9rem", color: "#c2410c", fontStyle: "italic" }}>
+              No other members to manage yet.
+            </div>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+            {teamMembers.map((m: { id: string; name: string; department: string | null }) => (
+              <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem", background: "#ffffff", border: "2px solid #ea580c", borderRadius: "4px", padding: "0.55rem 0.8rem", boxSizing: "border-box" }}>
+                <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "0.95rem", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {m.name}
+                  <span style={{ color: "#6b7280", marginLeft: "0.25rem", fontWeight: 600, fontSize: "0.75rem" }}>
+                    ({m.department || "Dept N/A"})
+                  </span>
+                </div>
+                <button
+                  onClick={() => handleRemoveMember(m.id, m.name)}
+                  disabled={removingMemberId === m.id}
+                  style={{
+                    flexShrink: 0,
+                    padding: "0.45rem 0.9rem",
+                    background: removingMemberId === m.id ? "#e5e7eb" : "#dc2626",
+                    color: removingMemberId === m.id ? "#6b7280" : "#ffffff",
+                    border: "2px solid #7f1d1d",
+                    boxShadow: "2px 2px 0px #7f1d1d",
+                    borderRadius: "4px",
+                    fontWeight: 800,
+                    fontFamily: "var(--font-mono)",
+                    fontSize: "0.75rem",
+                    textTransform: "uppercase",
+                    cursor: removingMemberId === m.id ? "not-allowed" : "pointer",
+                    opacity: removingMemberId === m.id ? 0.6 : 1,
+                  }}
+                >
+                  {removingMemberId === m.id ? "Removing..." : "Remove"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {isLeader && team.status !== 'dissolved' && (
         <div style={{ marginTop: "1.5rem", maxWidth: "500px", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "5px 5px 0px #dc2626", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#991b1b", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>Dissolve Team</h3>

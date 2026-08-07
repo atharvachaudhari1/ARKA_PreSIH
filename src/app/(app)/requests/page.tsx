@@ -46,6 +46,22 @@ export default function RequestsPage() {
   }
 
   async function handleDecision(requestId: string, decision: "accept" | "reject") {
+    // Optimistically remove the request so it disappears instantly
+    type RequestsCache = {
+      myRequests?: { id: string }[];
+      teamRequests?: { id: string }[];
+      outboundInvites?: { id: string }[];
+    };
+    mutate('/api/join-requests', (current: RequestsCache | undefined) => {
+      if (!current) return current;
+      return {
+        ...current,
+        myRequests: current.myRequests?.filter((r) => r.id !== requestId) || [],
+        teamRequests: current.teamRequests?.filter((r) => r.id !== requestId) || [],
+        outboundInvites: current.outboundInvites?.filter((r) => r.id !== requestId) || [],
+      };
+    }, false);
+
     const res = await fetch(`/api/join-requests/${requestId}/decision`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -56,6 +72,7 @@ export default function RequestsPage() {
       mutate('/api/users/profile'); // user might have joined a team
       toast(decision === "accept" ? "Request accepted" : "Request rejected", "success");
     } else {
+      mutate('/api/join-requests'); // roll back to server truth
       const error = await res.json().catch(() => ({}));
       toast(error.error || "Failed to make decision", "error");
     }
