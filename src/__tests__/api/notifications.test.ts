@@ -16,7 +16,8 @@ jest.mock("@/lib/prisma", () => ({
       deleteMany: jest.fn(),
       updateMany: jest.fn(),
     },
-    joinRequest: { findFirst: jest.fn() },
+    joinRequest: { findFirst: jest.fn(), findMany: jest.fn() },
+    team: { findMany: jest.fn() },
   },
 }));
 
@@ -58,6 +59,8 @@ describe("Notifications API", () => {
         { id: "n1", user_id: "user1", type: "request_accepted", read_status: "read" },
         { id: "n2", user_id: "user1", type: "new_join_request", read_status: "read", team_id: null },
       ]);
+      (prisma.team.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.joinRequest.findMany as jest.Mock).mockResolvedValue([]);
       (prisma.joinRequest.findFirst as jest.Mock).mockResolvedValue({ id: "jr1" });
 
       const req = new NextRequest("http://localhost/api/notifications");

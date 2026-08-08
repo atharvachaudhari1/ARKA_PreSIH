@@ -124,8 +124,16 @@ export async function GET() {
       portfolio_url: true,
       resume_storage_path: true,
       preferred_contact_visibility: true,
-      led_teams: { select: { id: true, name: true, status: true } },
-      team_memberships: { select: { team_id: true, team: { select: { name: true, status: true } } } },
+      led_teams: {
+        where: { status: { not: 'dissolved' } },
+        take: 1,
+        select: { id: true, name: true, status: true },
+      },
+      team_memberships: {
+        where: { team: { status: { not: 'dissolved' } } },
+        take: 1,
+        select: { team_id: true, team: { select: { name: true, status: true } } },
+      },
       skills: {
         select: { skill: true, proficiency: true },
       },
@@ -140,8 +148,8 @@ export async function GET() {
 
   const { led_teams, team_memberships, ...profileData } = profile;
 
-  const activeLedTeams = (led_teams || []).filter((t: any) => t.status !== 'dissolved').slice(0, 1);
-  const activeMemberships = (team_memberships || []).filter((m: any) => m?.team?.status !== 'dissolved').slice(0, 1);
+  const activeLedTeams = (led_teams || []);
+  const activeMemberships = (team_memberships || []);
 
   const pastLedTeams = (led_teams || []).filter((t: any) => t.status === 'dissolved').map((t: any) => ({ id: t.id, name: t.name, role: 'leader' }));
   const pastMemberTeams = (team_memberships || []).filter((m: any) => m?.team?.status === 'dissolved' && !pastLedTeams.some(plt => plt.id === m.team_id)).map((m: any) => ({ id: m.team_id, name: m?.team?.name, role: 'member' }));

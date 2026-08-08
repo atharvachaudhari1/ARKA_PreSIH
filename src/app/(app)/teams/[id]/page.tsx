@@ -75,9 +75,6 @@ export default function TeamDetailsPage() {
       )
       .subscribe();
 
-    // Fallback polling so the roster reflects changes even without Realtime.
-    const poll = setInterval(fetchTeam, 15000);
-
     const statusChannel = supabase
       .channel(`team_${params.id}`)
       .on(
@@ -97,7 +94,6 @@ export default function TeamDetailsPage() {
     return () => {
       supabase.removeChannel(membersChannel);
       supabase.removeChannel(statusChannel);
-      clearInterval(poll);
     };
   }, [params.id, supabase, fetchTeam]);
 
@@ -147,7 +143,7 @@ export default function TeamDetailsPage() {
     const res = await fetch(`/api/teams/${team.id}/leave`, { method: "POST" });
     if (res.ok) {
       setMessage({ type: "success", text: "You have left the team." });
-      setTimeout(() => window.location.href = "/dashboard", 1500);
+      setTimeout(() => router.push("/dashboard"), 800);
     } else {
       const data = await res.json();
       setMessage({ type: "error", text: data.error || "Failed to leave team." });
@@ -184,7 +180,8 @@ export default function TeamDetailsPage() {
     const res = await fetch(`/api/teams/${team.id}/dissolve`, { method: "POST" });
     if (res.ok) {
       setMessage({ type: "success", text: "Team dissolved successfully." });
-      setTimeout(() => window.location.reload(), 1500);
+      setTeam((prev: any) => (prev ? { ...prev, status: "dissolved" } : prev));
+      setTransferLoading(false);
     } else {
       const data = await res.json();
       setMessage({ type: "error", text: data.error || "Failed to dissolve team." });

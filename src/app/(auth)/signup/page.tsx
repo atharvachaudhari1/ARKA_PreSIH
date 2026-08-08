@@ -80,10 +80,10 @@ function SignupContent() {
       email: form.email,
       password: form.password,
       options: {
-        // Send the confirmation link back into our app. The /auth/callback page
-        // is a client component that picks up the session tokens (they arrive in
-        // the URL hash, which a server route can never read) and routes the user
-        // to /profile/complete (first-time) or their dashboard.
+        // Send the confirmation link back into our app. /auth/callback is a
+        // server route that exchanges the PKCE code, sets the session cookie
+        // and routes the user to /profile/complete (first-time) or their
+        // dashboard — a single round-trip.
         emailRedirectTo: `${window.location.origin}/auth/callback?path=${selectedPath}`,
         // Mirror the profile details into user_metadata so the profile-completion
         // form can pre-fill even if the email is confirmed from another device.

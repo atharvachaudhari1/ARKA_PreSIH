@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import useSWR, { mutate } from "swr";
 import { createClient } from "@/lib/supabase/client";
-import { isOutcomeNotificationType } from "@/lib/notificationOutcome";
-import EmptyState from "@/components/EmptyState";
 import { IconBellCheck } from "@/components/TerminalIcons";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 function IconBell() {
   return (
@@ -23,66 +24,41 @@ function IconCheck() {
   );
 }
 
-export default function NotificationCenter() {
+export default function NotificationCenter({ userId }: { userId: string }) {
   const supabase = createClient();
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  // Shared SWR key — dedupes with AppNavbar's badge fetch so /api/notifications
+  // is requested once per page instead of twice.
+  const { data } = useSWR(userId ? "/api/notifications" : null, fetcher, { revalidateOnFocus: false });
+  const notifications: any[] = data?.notifications ?? [];
+  const unreadCount = notifications.filter((n: any) => n.read_status === "unread").length;
 
   useEffect(() => {
-    async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const resProfile = await fetch("/api/users/profile");
-      if (resProfile.ok) {
-        const { profile } = await resProfile.json();
-        setCurrentUserId(profile.id);
-      }
-      const res = await fetch("/api/notifications");
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.notifications);
-        setUnreadCount(data.notifications.filter((n: any) => n.read_status === "unread").length);
-      }
-    }
-    init();
-  }, [supabase.auth]);
-
-  useEffect(() => {
-    if (!currentUserId) return;
+    if (!userId) return;
     const channel = supabase
-      .channel(`user_${currentUserId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${currentUserId}` }, (payload) => {
-        setNotifications((prev) => [payload.new, ...prev]);
-        setUnreadCount((prev) => prev + 1);
+      .channel(`user_${userId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => {
+        mutate("/api/notifications");
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [currentUserId, supabase]);
+  }, [userId, supabase]);
 
   async function markAsRead(id: string) {
     const res = await fetch(`/api/notifications/${id}/read`, { method: "PATCH" });
     if (res.ok) {
-      const { removed } = await res.json();
       // Outcome notifications are deleted server-side once read; remove them
       // from the local feed instead of parking them as read.
-      setNotifications((prev) => removed ? prev.filter((n) => n.id !== id) : prev.map((n) => (n.id === id ? { ...n, read_status: "read" } : n)));
-      setUnreadCount((prev) => Math.max(0, prev - 1));
+      mutate("/api/notifications");
     }
   }
 
   async function markAllRead() {
-    const unread = notifications.filter((n) => n.read_status === "unread");
-    await Promise.all(unread.map((n) => fetch(`/api/notifications/${n.id}/read`, { method: "PATCH" })));
+    await fetch("/api/notifications/read-all", { method: "PATCH" });
     // Outcome notifications were deleted server-side as part of "mark all read";
     // drop them locally too, keep the actionable ones as read.
-    setNotifications((prev) =>
-      prev
-        .filter((n) => !isOutcomeNotificationType(n.type))
-        .map((n) => ({ ...n, read_status: "read" }))
-    );
-    setUnreadCount(0);
+    mutate("/api/notifications");
   }
 
   function getNotificationText(notif: any) {

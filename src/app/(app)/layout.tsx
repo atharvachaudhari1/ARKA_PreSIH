@@ -35,7 +35,7 @@ export default async function AppLayout({
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}>
-      <AppNavbar userEmail={user.email ?? ""} isAdmin={dbUser.is_admin ?? false} hasTeam={dbUser.team_memberships.length > 0} />
+      <AppNavbar userEmail={user.email ?? ""} userId={dbUser.id} isAdmin={dbUser.is_admin ?? false} hasTeam={dbUser.team_memberships.length > 0} />
       {children}
     </div>
   );

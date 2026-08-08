@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   if (authErr || !authUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const currentUser = await prisma.user.findUnique({
-    where: { auth_user_id: authUser.id }
+    where: { auth_user_id: authUser.id },
+    select: { id: true },
   });
   if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
@@ -19,6 +20,38 @@ export async function GET(request: NextRequest) {
     take: 50,
     include: { team: { select: { id: true, name: true } } },
   });
+
+  // Batch the "does a matching pending join request still exist?" check for all
+  // new_join_request notifications in one query instead of one per notification.
+  const requestNotifications = rawNotifications.filter((n) => n.type === "new_join_request");
+  const pendingRequests = new Set<string>();
+  if (requestNotifications.length > 0) {
+    const myTeams = await prisma.team.findMany({
+      where: { leader_id: currentUser.id },
+      select: { id: true },
+    });
+    const teamIds = myTeams.map((t) => t.id);
+    const matches = await prisma.joinRequest.findMany({
+      where: {
+        status: "pending",
+        OR: [
+          { requester_id: currentUser.id },
+          ...(teamIds.length > 0 ? [{ team_id: { in: teamIds } }] : []),
+        ],
+      },
+      select: {
+        id: true,
+        team_id: true,
+        requester_id: true,
+        requester: { select: { name: true } },
+      },
+    });
+    // Keyed by team+requester-name so a leader's notification matches its applicant.
+    for (const m of matches) {
+      pendingRequests.add(`${m.team_id}::${m.requester.name.toLowerCase()}`);
+      if (m.requester_id === currentUser.id) pendingRequests.add(`mine::${m.team_id}`);
+    }
+  }
 
   const validNotifications = [];
   const notificationsToDelete = [];
@@ -34,21 +67,15 @@ export async function GET(request: NextRequest) {
 
     if (n.type === "new_join_request") {
       const p = (n.payload || {}) as Record<string, unknown>;
-      const pendingRequestExists = await prisma.joinRequest.findFirst({
-        where: {
-          team_id: n.team_id ?? undefined,
-          status: "pending",
-          OR: [
-            { requester_id: currentUser.id },
-            { 
-              team: { leader_id: currentUser.id },
-              requester: { name: String(p.requester_name || "") }
-            }
-          ]
-        }
-      });
-      
-      if (!pendingRequestExists) {
+      const name = String(p.requester_name || "").toLowerCase();
+      // Without a team reference we can't verify the request still exists —
+      // keep the notification rather than risk dropping a live lead.
+      const stillPending =
+        !n.team_id ||
+        pendingRequests.has(`mine::${n.team_id}`) ||
+        (name ? pendingRequests.has(`${n.team_id}::${name}`) : false);
+
+      if (!stillPending) {
         notificationsToDelete.push(n.id);
         continue;
       }

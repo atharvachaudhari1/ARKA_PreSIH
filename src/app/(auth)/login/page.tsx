@@ -14,7 +14,15 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      const p = new URLSearchParams(window.location.search).get("error");
+      if (p === "auth_callback_failed") {
+        return "Sign-in could not be completed. Please try again.";
+      }
+    }
+    return null;
+  });
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();

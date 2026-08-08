@@ -102,11 +102,16 @@ export default function TeamChatPage() {
         },
         async (payload) => {
           if (payload.new.sender_id === currentUserId) return;
-          const res = await fetch(`/api/teams/${params.id}/chat`);
-          if (res.ok) {
-            const data = await res.json();
-            setMessages(data.messages);
-          }
+          // Append the new message directly instead of refetching the whole
+          // history. Sender name is reused from an already-loaded message.
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === payload.new.id)) return prev;
+            const known = prev.find((m) => m.sender_id === payload.new.sender_id);
+            return [
+              ...prev,
+              { ...payload.new, sender: { id: payload.new.sender_id, name: known?.sender?.name ?? null } },
+            ];
+          });
         }
       )
       .on('presence', { event: 'sync' }, () => {

@@ -16,12 +16,20 @@ export default function DashboardPage() {
   const [genderNeed, setGenderNeed] = useState<boolean>(false);
   const [skillsNeeded, setSkillsNeeded] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  // Debounced copy of the search term so the API is hit only after the user
+  // pauses typing, not on every keystroke.
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchQuery), 350);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   const params = new URLSearchParams();
   if (status) params.set("status", status);
   if (domain) params.set("domain", domain);
   if (genderNeed) params.set("gender_need", "true");
-  if (searchQuery) params.set("search", searchQuery);
+  if (debouncedSearch) params.set("search", debouncedSearch);
   const skillsArray = skillsNeeded.split(",").map((s) => s.trim()).filter(Boolean);
   skillsArray.forEach((s) => params.append("skills_needed[]", s));
 

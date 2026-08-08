@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import useSWR, { mutate } from "swr";
 import { createClient } from "@/lib/supabase/client";
 import NotificationCenter from "./NotificationCenter";
 import BrandLogo from "./BrandLogo";
@@ -16,6 +17,8 @@ import {
   IconAlertsBell
 } from "./TerminalIcons";
 
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
+
 const NAV_LINKS = [
   { href: "/dashboard", label: "Home", icon: <IconTerminalPrompt size={20} /> },
   { href: "/teams", label: "Browse", icon: <IconDashboardGrid size={20} /> },
@@ -23,68 +26,40 @@ const NAV_LINKS = [
   { href: "/notifications", label: "Alerts", icon: <IconAlertsBell size={20} /> },
 ];
 
-export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false }: { userEmail: string, isAdmin?: boolean, hasTeam?: boolean }) {
+export default function AppNavbar({ userEmail, userId, isAdmin = false, hasTeam = false }: { userEmail: string, userId: string, isAdmin?: boolean, hasTeam?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
-  const [hasUnreadRequests, setHasUnreadRequests] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  async function fetchCounts() {
-    // Fire both in parallel — no sequential dependency
-    const [notifRes, reqRes] = await Promise.all([
-      fetch("/api/notifications"),
-      fetch("/api/join-requests"),
-    ]);
+  // Shared SWR keys so the navbar badge fetches dedupe with NotificationCenter
+  // and any other component using the same endpoints (single request per page).
+  const { data: notifData } = useSWR(userId ? "/api/notifications" : null, fetcher, { revalidateOnFocus: false });
+  const { data: reqData } = useSWR(userId ? "/api/join-requests" : null, fetcher, { revalidateOnFocus: false });
 
-    if (notifRes.ok) {
-      const notifData = await notifRes.json();
-      const hasUnread = notifData.notifications?.some((n: any) => n.read_status === "unread");
-      setHasUnreadAlerts(hasUnread);
-    }
-
-    if (reqRes.ok) {
-      const reqData = await reqRes.json();
-      const hasPendingMy = reqData.myRequests?.some((r: any) => r.status === "pending" && r.direction === "team_to_user");
-      const hasPendingTeam = reqData.teamRequests?.some((r: any) => r.status === "pending" && r.direction === "user_to_team");
-      setHasUnreadRequests(hasPendingMy || hasPendingTeam);
-    }
-  }
+  const hasUnreadAlerts = notifData?.notifications?.some((n: any) => n.read_status === "unread") ?? false;
+  const hasUnreadRequests =
+    (reqData?.myRequests?.some((r: any) => r.status === "pending" && r.direction === "team_to_user") ?? false) ||
+    (reqData?.teamRequests?.some((r: any) => r.status === "pending" && r.direction === "user_to_team") ?? false);
 
   useEffect(() => {
-    async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const resProfile = await fetch("/api/users/profile");
-      if (resProfile.ok) {
-        const { profile } = await resProfile.json();
-        setCurrentUserId(profile.id);
-      }
-      fetchCounts();
-    }
-    init();
-  }, [supabase.auth]);
-
-  useEffect(() => {
-    if (!currentUserId) return;
+    if (!userId) return;
     const notifChannel = supabase
-      .channel(`navbar_notifs_${currentUserId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${currentUserId}` }, () => { fetchCounts(); })
+      .channel(`navbar_notifs_${userId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` }, () => { mutate("/api/notifications"); })
       .subscribe();
 
     const reqChannel = supabase
-      .channel(`navbar_requests_${currentUserId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "join_requests", filter: `requester_id=eq.${currentUserId}` }, () => { fetchCounts(); })
+      .channel(`navbar_requests_${userId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "join_requests", filter: `requester_id=eq.${userId}` }, () => { mutate("/api/join-requests"); })
       .subscribe();
 
     return () => {
       supabase.removeChannel(notifChannel);
       supabase.removeChannel(reqChannel);
     };
-  }, [currentUserId, supabase]);
+  }, [userId, supabase]);
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -199,7 +174,7 @@ export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false 
 
         {/* Right side controls */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <NotificationCenter />
+          <NotificationCenter userId={userId} />
 
           {/* Desktop Create Button */}
           {!hasTeam && (

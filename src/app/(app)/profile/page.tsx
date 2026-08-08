@@ -436,7 +436,7 @@ export default function ProfilePage() {
                 });
                 if (res.ok) {
                   alert("Resume uploaded successfully!");
-                  window.location.reload();
+                  mutateProfile();
                 } else {
                   const data = await res.json();
                   alert(data.error || "Upload failed");

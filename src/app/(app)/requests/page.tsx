@@ -19,9 +19,6 @@ export default function RequestsPage() {
   const currentUserId = profileData?.profile?.id || null;
 
   const { data: requestsData, isLoading: loading } = useSWR('/api/join-requests', fetcher, {
-    // Fallback polling so changes (e.g. a teammate accepting my invite) reflect
-    // even before/without the Realtime publication being deployed.
-    refreshInterval: 15000,
     onSuccess: (data) => {
       if (!hasSetTab && data.teamRequests?.length > 0 && data.myRequests?.length === 0) {
         setActiveTab("team");
