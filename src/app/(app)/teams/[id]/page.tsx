@@ -462,6 +462,18 @@ export default function TeamDetailsPage() {
 
       {/* Action Section for Teammates */}
       {isLeader && team.status !== 'dissolved' && (
+        <div style={{ marginTop: "1.5rem", maxWidth: "500px", background: "#eef2ff", border: "2px solid #5b5fc7", boxShadow: "5px 5px 0px #5b5fc7", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
+          <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#3730a3", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>Recruit Solo Hackers</h3>
+          <p style={{ color: "#4338ca", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>
+            Browse registered students who are solo and looking for teams, then send them an invite to join your squad.
+          </p>
+          <a href="/hackers" style={{ display: "inline-block", padding: "0.75rem 1.5rem", background: "#5b5fc7", color: "#ffffff", border: "2px solid #1a1a1a", boxShadow: "3px 3px 0px #1a1a1a", borderRadius: "4px", fontWeight: 800, fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.5px", cursor: "pointer", textDecoration: "none" }}>
+            Browse Solo Hackers →
+          </a>
+        </div>
+      )}
+
+      {isLeader && team.status !== 'dissolved' && (
         <div style={{ marginTop: "1.5rem", maxWidth: "500px", background: "#fff7ed", border: "2px solid #ea580c", boxShadow: "5px 5px 0px #ea580c", borderRadius: "6px", padding: "2rem", boxSizing: "border-box" }}>
           <h3 style={{ fontSize: "1.2rem", fontWeight: 900, color: "#9a3412", marginBottom: "0.6rem", margin: "0 0 0.5rem" }}>Manage Squad Members</h3>
           <p style={{ color: "#9a3412", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem", fontWeight: 500 }}>

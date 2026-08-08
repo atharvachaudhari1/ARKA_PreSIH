@@ -33,6 +33,18 @@ export default async function AppLayout({
     redirect("/profile/complete");
   }
 
+  // Presence heartbeat: refresh last_seen_at on every protected page load so
+  // the solo-hackers directory only lists recently-active participants.
+  prisma.user
+    .updateMany({
+      where: {
+        id: dbUser.id,
+        OR: [{ last_seen_at: null }, { last_seen_at: { lt: new Date(Date.now() - 5 * 60 * 1000) } }],
+      },
+      data: { last_seen_at: new Date() },
+    })
+    .catch(() => {});
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}>
       <AppNavbar userEmail={user.email ?? ""} userId={dbUser.id} isAdmin={dbUser.is_admin ?? false} hasTeam={dbUser.team_memberships.length > 0} />

@@ -22,6 +22,7 @@ const fetcher = (url: string) => fetch(url).then((res) => res.json());
 const NAV_LINKS = [
   { href: "/dashboard", label: "Home", icon: <IconTerminalPrompt size={20} /> },
   { href: "/teams", label: "Browse", icon: <IconDashboardGrid size={20} /> },
+  { href: "/hackers", label: "Hackers", icon: <IconSquadUsers size={20} /> },
   { href: "/requests", label: "Requests", icon: <IconRequestsUsers size={20} /> },
   { href: "/notifications", label: "Alerts", icon: <IconAlertsBell size={20} /> },
 ];

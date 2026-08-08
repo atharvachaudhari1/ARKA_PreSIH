@@ -136,6 +136,9 @@ model User {
   // Timestamps
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+  // Presence: last time the user made an authenticated request. Used to hide
+  // stale/logged-out accounts from the solo-hackers directory.
+  last_seen_at DateTime?
 
   // Admin Flag
   is_admin Boolean @default(false)
@@ -352,7 +355,6 @@ model ChatMessage {
 // ─────────────────────────────────────────────
 // Report
 // ─────────────────────────────────────────────
-
 model Report {
   id               String       @id @default(cuid())
   reporter_id      String
@@ -372,4 +374,17 @@ model Report {
   // CREATE UNIQUE INDEX reports_active_user_idx ON reports(reporter_id, reported_user_id) WHERE status = 'open';
   // CREATE UNIQUE INDEX reports_active_team_idx ON reports(reporter_id, reported_team_id) WHERE status = 'open';
   @@map("reports")
+}
+
+// ─────────────────────────────────────────────
+// Department (persistent directory of departments)
+// ─────────────────────────────────────────────
+
+model Department {
+  id         String   @id @default(cuid())
+  // Normalized (uppercase) department code, e.g. "ECS", "MECH".
+  name       String   @unique
+  created_at DateTime @default(now())
+
+  @@map("departments")
 }

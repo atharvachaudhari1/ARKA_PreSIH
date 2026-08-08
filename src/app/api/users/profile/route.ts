@@ -4,6 +4,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { ContactVisibility } from "@prisma/client";
 
 /**
+ * Persists a department code in the directory so it remains available in the
+ * solo-hackers filter even after every member with that department leaves or
+ * is removed. Normalized to uppercase; no-op for empty values.
+ */
+async function registerDepartment(department?: unknown) {
+  const name = String(department ?? "").trim().toUpperCase();
+  if (!name) return;
+  try {
+    await prisma.department.upsert({
+      where: { name },
+      create: { name },
+      update: {},
+    });
+  } catch {
+    // Best-effort: never fail the profile write because the directory upsert
+    // failed (e.g. prisma is mocked without the department model in tests).
+  }
+}
+
+/**
  * POST /api/users/profile
  * Creates a new user profile after signup.
  * Requires an authenticated Supabase session.
@@ -57,8 +77,8 @@ export async function POST(request: NextRequest) {
   }
 
   // 4. Create profile
-  const profile = await prisma.user.create({
-    data: {
+  await registerDepartment(body.department);
+  const profile = await prisma.user.create({    data: {
       auth_user_id: user.id,
       email: user.email!,
       name: body.name,
@@ -210,6 +230,7 @@ export async function PATCH(request: NextRequest) {
     updateData.gender = (updateData.gender as string).trim();
     updateData.counts_toward_female_quota = (updateData.gender as string).toLowerCase() === "female";
   }
+  if (updateData.department) await registerDepartment(updateData.department);
 
   // Optional full skill-list sync: replaces the user's skill set while
   // preserving existing proficiency levels where a skill is kept.

@@ -2,13 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Middleware — runs on every request.
+ * Proxy (formerly Middleware) — runs on every request.
  * 1. Refreshes the Supabase auth session (keeps JWT fresh).
  * 2. Enforces "no anonymous access anywhere" (NFR6):
  *    - Public routes: /login, /signup, /auth/callback, /auth/error
  *    - Everything else requires a logged-in session → redirect to /login.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

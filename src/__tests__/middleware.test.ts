@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { middleware } from "@/middleware";
+import { proxy } from "@/proxy";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
@@ -32,7 +32,7 @@ describe("Auth Middleware (NFR6)", () => {
     mockSupabaseClient.auth.getUser.mockResolvedValue({ data: { user: null } });
 
     const req = createMockRequest("/login");
-    const res = await middleware(req);
+    const res = await proxy(req);
 
     // Should return NextResponse.next()
     expect(res).toBeDefined();
@@ -43,7 +43,7 @@ describe("Auth Middleware (NFR6)", () => {
     mockSupabaseClient.auth.getUser.mockResolvedValue({ data: { user: null } });
 
     const req = createMockRequest("/dashboard");
-    const res = await middleware(req);
+    const res = await proxy(req);
 
     expect(res).toBeDefined();
     expect(res?.status).toBe(307); // Redirect status
@@ -54,7 +54,7 @@ describe("Auth Middleware (NFR6)", () => {
     mockSupabaseClient.auth.getUser.mockResolvedValue({ data: { user: null } });
 
     const req = createMockRequest("/api/users/profile");
-    const res = await middleware(req);
+    const res = await proxy(req);
 
     expect(res).toBeDefined();
     expect(res?.status).toBe(401);
@@ -64,7 +64,7 @@ describe("Auth Middleware (NFR6)", () => {
     mockSupabaseClient.auth.getUser.mockResolvedValue({ data: { user: { id: "user1" } } });
 
     const req = createMockRequest("/dashboard");
-    const res = await middleware(req);
+    const res = await proxy(req);
 
     expect(res).toBeDefined();
     expect(res?.status).not.toBe(307);
