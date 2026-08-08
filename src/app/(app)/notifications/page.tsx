@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isOutcomeNotificationType } from "@/lib/notificationOutcome";
 import Link from "next/link";
 
 type NotificationType =
@@ -173,7 +174,9 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter((n) => n.read_status === "unread").length;
   const unread = notifications.filter((n) => n.read_status === "unread");
-  const read = notifications.filter((n) => n.read_status === "read");
+  const read = notifications.filter(
+    (n) => n.read_status === "read" && !isOutcomeNotificationType(n.type)
+  );
 
   return (
     <div className="page-container" style={{ padding: "2rem 1.25rem", maxWidth: 860, margin: "0 auto" }}>

@@ -196,7 +196,9 @@ model Team {
   event_id                String
   // [GAP-RESOLVED-1] leader_id always matches the TeamMembership with role=leader.
   leader_id               String
-  name                    String
+  // Team names must be unique at the DB level — enforced by a UNIQUE constraint,
+  // not just a frontend check, so no two teams can ever share a name.
+  name                    String  @unique
   description             String?
   domain_interest         String?
   min_experience_required Int?

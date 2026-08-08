@@ -113,6 +113,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  let attemptedName: string | undefined;
   try {
     const supabase = await createClient();
     const { data: { user: authUser }, error: authErr } = await supabase.auth.getUser();
@@ -143,6 +144,7 @@ export async function POST(request: NextRequest) {
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Team name is required" }, { status: 400 });
     }
+    attemptedName = name.trim();
 
     if (!description || typeof description !== "string" || !description.trim()) {
       return NextResponse.json({ error: "Team description is required" }, { status: 400 });
@@ -277,6 +279,10 @@ export async function POST(request: NextRequest) {
   } catch (err: any) {
     // Catch ALL unhandled exceptions so we ALWAYS return JSON — never an HTML 500 page.
     console.error("[POST /api/teams] Unhandled error:", err);
+    // DB-level uniqueness: a second team with the same name is rejected here.
+    if (err?.code === "P2002" && err?.meta?.target?.includes("name")) {
+      return NextResponse.json({ error: `A team named "${attemptedName ?? ""}" already exists. Please choose a different team name.` }, { status: 409 });
+    }
     const message = err?.message ?? "Failed to create team";
     return NextResponse.json({ error: message }, { status: 500 });
   }

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { isOutcomeNotificationType } from "@/lib/notificationOutcome";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -23,6 +24,14 @@ export async function GET(request: NextRequest) {
   const notificationsToDelete = [];
 
   for (const n of rawNotifications) {
+    // Outcome notifications that have already been read are one-time status
+    // updates with nothing left to act on — drop them from the feed entirely
+    // (and delete them so they never reappear).
+    if (n.read_status === "read" && isOutcomeNotificationType(n.type)) {
+      notificationsToDelete.push(n.id);
+      continue;
+    }
+
     if (n.type === "new_join_request") {
       const p = (n.payload || {}) as Record<string, unknown>;
       const pendingRequestExists = await prisma.joinRequest.findFirst({

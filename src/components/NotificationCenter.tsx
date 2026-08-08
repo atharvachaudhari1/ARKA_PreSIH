@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isOutcomeNotificationType } from "@/lib/notificationOutcome";
 import EmptyState from "@/components/EmptyState";
 import { IconBellCheck } from "@/components/TerminalIcons";
 
@@ -63,7 +64,10 @@ export default function NotificationCenter() {
   async function markAsRead(id: string) {
     const res = await fetch(`/api/notifications/${id}/read`, { method: "PATCH" });
     if (res.ok) {
-      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read_status: "read" } : n)));
+      const { removed } = await res.json();
+      // Outcome notifications are deleted server-side once read; remove them
+      // from the local feed instead of parking them as read.
+      setNotifications((prev) => removed ? prev.filter((n) => n.id !== id) : prev.map((n) => (n.id === id ? { ...n, read_status: "read" } : n)));
       setUnreadCount((prev) => Math.max(0, prev - 1));
     }
   }
@@ -71,7 +75,13 @@ export default function NotificationCenter() {
   async function markAllRead() {
     const unread = notifications.filter((n) => n.read_status === "unread");
     await Promise.all(unread.map((n) => fetch(`/api/notifications/${n.id}/read`, { method: "PATCH" })));
-    setNotifications((prev) => prev.map((n) => ({ ...n, read_status: "read" })));
+    // Outcome notifications were deleted server-side as part of "mark all read";
+    // drop them locally too, keep the actionable ones as read.
+    setNotifications((prev) =>
+      prev
+        .filter((n) => !isOutcomeNotificationType(n.type))
+        .map((n) => ({ ...n, read_status: "read" }))
+    );
     setUnreadCount(0);
   }
 
