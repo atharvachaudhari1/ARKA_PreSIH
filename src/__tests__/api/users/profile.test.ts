@@ -12,6 +12,11 @@ jest.mock("@/lib/prisma", () => ({
       update: jest.fn(),
       create: jest.fn(),
     },
+    userSkill: {
+      findMany: jest.fn(),
+      deleteMany: jest.fn(),
+      upsert: jest.fn(),
+    },
   },
 }));
 
@@ -156,6 +161,46 @@ describe("PATCH /api/users/profile", () => {
               gender: "female",
               counts_toward_female_quota: true,
             }),
+          })
+        );
+      },
+    });
+  });
+
+  test("skills array replaces the full skill set while preserving proficiency", async () => {
+    mockAuthGetUser.mockResolvedValue({ data: { user: { id: "user1" } }, error: null });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "db_user1" });
+    (prisma.userSkill.findMany as jest.Mock).mockResolvedValue([
+      { skill: "React", proficiency: "expert" },
+      { skill: "Python", proficiency: "beginner" },
+    ]);
+    (prisma.user.update as jest.Mock).mockResolvedValue({ id: "db_user1", led_teams: [] });
+
+    await testApiHandler({
+      appHandler,
+      test: async ({ fetch }) => {
+        const res = await fetch({
+          method: "PATCH",
+          body: JSON.stringify({ skills: ["React", "Figma"] }),
+        });
+        expect(res.status).toBe(200);
+
+        // Python was dropped -> deleteMany removes skills not in the new list
+        expect(prisma.userSkill.deleteMany).toHaveBeenCalledWith({
+          where: { user_id: "db_user1", skill: { notIn: ["React", "Figma"] } },
+        });
+        // React keeps its existing proficiency (expert), Figma defaults to intermediate
+        expect(prisma.userSkill.upsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { user_id_skill: { user_id: "db_user1", skill: "React" } },
+            create: expect.objectContaining({ proficiency: "expert" }),
+            update: expect.objectContaining({ proficiency: "expert" }),
+          })
+        );
+        expect(prisma.userSkill.upsert).toHaveBeenCalledWith(
+          expect.objectContaining({
+            where: { user_id_skill: { user_id: "db_user1", skill: "Figma" } },
+            create: expect.objectContaining({ proficiency: "intermediate" }),
           })
         );
       },

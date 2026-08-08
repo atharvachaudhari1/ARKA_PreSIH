@@ -406,7 +406,7 @@ export default function DashboardPage() {
       ) : (
         <div className="responsive-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.75rem" }}>
           {teams.map((team: any) => (
-            <TeamCard key={team.id} team={team} currentUserSkills={userSkills} />
+            <TeamCard key={team.id} team={team} currentUserSkills={userSkills} hideCollege />
           ))}
         </div>
       )}

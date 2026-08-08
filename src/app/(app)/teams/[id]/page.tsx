@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import TeamCard from "@/components/TeamCard";
 import { SkillSelector } from "@/components/SkillSelector";
+import { ProfileInlineEditor } from "@/components/ProfileInlineEditor";
+import { TeamSpecEditor } from "@/components/TeamSpecEditor";
 import { createClient } from "@/lib/supabase/client";
 
 export default function TeamDetailsPage() {
@@ -23,6 +25,8 @@ export default function TeamDetailsPage() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const [editingTeam, setEditingTeam] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
   
   // Refetch just the team (roster/status) — used by realtime + polling so a new
   // teammate appears without resetting any in-progress form state.
@@ -239,6 +243,49 @@ export default function TeamDetailsPage() {
           Comprehensive architectural and personnel report for this SIH squad profile.
         </p>
       </div>
+
+      {(isLeader || isTeammate) && team.status !== 'dissolved' && (
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1.5rem" }}>
+          {isLeader && (
+            <button
+              onClick={() => setEditingTeam(true)}
+              style={{
+                padding: "0.6rem 1.15rem",
+                background: "#ffffff",
+                border: "2px solid #1a1a1a",
+                boxShadow: "3px 3px 0px #5b5fc7",
+                borderRadius: "4px",
+                fontWeight: 800,
+                fontFamily: "var(--font-mono)",
+                fontSize: "0.85rem",
+                cursor: "pointer",
+                textTransform: "uppercase",
+                letterSpacing: "0.3px",
+              }}
+            >
+              ✏️ Edit Team Specifications
+            </button>
+          )}
+          <button
+            onClick={() => setEditingProfile(true)}
+            style={{
+              padding: "0.6rem 1.15rem",
+              background: "#ffffff",
+              border: "2px solid #1a1a1a",
+              boxShadow: "3px 3px 0px #059669",
+              borderRadius: "4px",
+              fontWeight: 800,
+              fontFamily: "var(--font-mono)",
+              fontSize: "0.85rem",
+              cursor: "pointer",
+              textTransform: "uppercase",
+              letterSpacing: "0.3px",
+            }}
+          >
+            ✏️ Edit My Profile
+          </button>
+        </div>
+      )}
       
       {team.status === 'dissolved' && (
         <div style={{ marginBottom: "2rem", padding: "1.25rem", background: "#fef2f2", border: "2px solid #dc2626", boxShadow: "4px 4px 0px #dc2626", borderRadius: "6px" }}>
@@ -248,6 +295,22 @@ export default function TeamDetailsPage() {
       )}
 
       <TeamCard team={team} hideCTA />
+
+      {editingTeam && isLeader && (
+        <TeamSpecEditor
+          team={team}
+          onSaved={() => { fetchTeam(); }}
+          onClose={() => setEditingTeam(false)}
+        />
+      )}
+
+      {editingProfile && isTeammate && (
+        <ProfileInlineEditor
+          profile={currentUserProfile}
+          onSaved={(p) => { setCurrentUserProfile(p); fetchTeam(); }}
+          onClose={() => setEditingProfile(false)}
+        />
+      )}
 
       {/* Application Section */}
       {team.status !== 'dissolved' && !isTeammate && (

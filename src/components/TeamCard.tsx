@@ -100,7 +100,7 @@ interface TeamData {
   join_requests?: { requester: TeamMember }[];
 }
 
-export default function TeamCard({ team, hideCTA = false, currentUserSkills = [] }: { team: TeamData, hideCTA?: boolean, currentUserSkills?: string[] }) {
+export default function TeamCard({ team, hideCTA = false, hideCollege = false, currentUserSkills = [] }: { team: TeamData, hideCTA?: boolean, hideCollege?: boolean, currentUserSkills?: string[] }) {
   const [showReport, setShowReport] = useState(false);
   const squadMax = team.event?.team_size_max ?? 6;
   const activeMembersCount = team.memberships.length;
@@ -271,7 +271,7 @@ export default function TeamCard({ team, hideCTA = false, currentUserSkills = []
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
           <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "4px" }}>
             <UserCircle2 size={18} strokeWidth={1.75} color="#2563eb" fill="#bfdbfe" /> {team.leader.name}
-            {team.leader.college && <CollegeBadge college={team.leader.college} />}
+            {!hideCollege && team.leader.college && <CollegeBadge college={team.leader.college} />}
           </div>
           <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.8rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
             {team.leader.phone_number && (
@@ -373,7 +373,7 @@ export default function TeamCard({ team, hideCTA = false, currentUserSkills = []
                   <span style={{ color: "#6b7280", marginLeft: "0.25rem", fontWeight: 600, fontSize: "0.75rem" }}>
                     ({m.department || "Dept N/A"})
                   </span>
-                  {m.college && <CollegeBadge college={m.college} />}
+                  {!hideCollege && m.college && <CollegeBadge college={m.college} />}
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.75rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
                   {m.phone_number && (

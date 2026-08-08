@@ -202,7 +202,30 @@ export async function PATCH(request: NextRequest) {
     updateData.gender = (updateData.gender as string).trim();
     updateData.counts_toward_female_quota = (updateData.gender as string).toLowerCase() === "female";
   }
-  if (Object.keys(updateData).length === 0)
+
+  // Optional full skill-list sync: replaces the user's skill set while
+  // preserving existing proficiency levels where a skill is kept.
+  if (Array.isArray(body.skills)) {
+    const newSkills = Array.from(new Set((body.skills as unknown[]).map((s) => String(s).trim()).filter(Boolean)));
+    const current = await prisma.userSkill.findMany({
+      where: { user_id: profile.id },
+      select: { skill: true, proficiency: true },
+    });
+    const profMap = new Map(current.map((s) => [s.skill.toLowerCase(), s.proficiency]));
+    await prisma.userSkill.deleteMany({
+      where: { user_id: profile.id, skill: { notIn: newSkills } },
+    });
+    for (const skill of newSkills) {
+      const proficiency = profMap.get(skill.toLowerCase()) ?? "intermediate";
+      await prisma.userSkill.upsert({
+        where: { user_id_skill: { user_id: profile.id, skill } },
+        create: { user_id: profile.id, skill, proficiency },
+        update: { proficiency },
+      });
+    }
+  }
+
+  if (Object.keys(updateData).length === 0 && !Array.isArray(body.skills))
     return NextResponse.json({ error: "No updatable fields provided" }, { status: 400 });
 
   const updated = await prisma.user.update({
