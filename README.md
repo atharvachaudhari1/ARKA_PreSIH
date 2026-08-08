@@ -1,4 +1,4 @@
-# TeamUp by ARKA! — README
+# TeamUp by ARKA!
 
 ## Overview
 
