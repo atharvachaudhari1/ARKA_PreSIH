@@ -12,7 +12,8 @@ type NotificationType =
   | "request_accepted"
   | "request_rejected"
   | "request_expired_other_team_joined"
-  | "team_now_full";
+  | "team_now_full"
+  | "team_dissolved";
 
 interface Notification {
   id: string;
@@ -76,6 +77,13 @@ const TYPE_CONFIG: Record<
     bg: "#f5f3ec",
     border: "#1a1a1a",
   },
+  team_dissolved: {
+    icon: "🚫",
+    label: "TEAM DISSOLVED",
+    color: "#7c2d12",
+    bg: "#fff7ed",
+    border: "#ea580c",
+  },
 };
 
 function getPayloadMessage(type: NotificationType, payload: Record<string, any>): string {
@@ -94,6 +102,8 @@ function getPayloadMessage(type: NotificationType, payload: Record<string, any>)
       return `Your pending request to "${payload.team_name ?? ""}" expired because you joined another team.`;
     case "team_now_full":
       return `Team "${payload.team_name ?? ""}" is now at full capacity.`;
+    case "team_dissolved":
+      return `Team "${payload.team_name ?? ""}" was dissolved by the leader. You are now free to join or create another team.`;
     default:
       return "You have a new notification.";
   }

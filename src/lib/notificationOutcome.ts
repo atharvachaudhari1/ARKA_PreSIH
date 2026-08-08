@@ -19,6 +19,7 @@ export const OUTCOME_NOTIFICATION_TYPES = [
   "request_accepted",
   "request_rejected",
   "team_now_full",
+  "team_dissolved",
 ] as const;
 
 export type OutcomeNotificationType = (typeof OUTCOME_NOTIFICATION_TYPES)[number];

@@ -70,8 +70,26 @@ describe("Notifications API", () => {
       });
     });
 
-    test("keeps read request_expired_other_team_joined notifications in the feed", async () => {
+    test("filters out and deletes read team_dissolved notifications from the feed", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "user1" });
+      (prisma.notification.findMany as jest.Mock).mockResolvedValue([
+        { id: "n1", user_id: "user1", type: "team_dissolved", read_status: "read", team_id: "t1" },
+        { id: "n2", user_id: "user1", type: "team_dissolved", read_status: "unread", team_id: "t1" },
+      ]);
+
+      const req = new NextRequest("http://localhost/api/notifications");
+      const res = await notificationsHandler.GET(req);
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      // read team_dissolved is dropped; unread one stays
+      expect(body.notifications.map((n: any) => n.id)).toEqual(["n2"]);
+      expect(prisma.notification.deleteMany).toHaveBeenCalledWith({
+        where: { id: { in: ["n1"] } }
+      });
+    });
+
+    test("keeps read request_expired_other_team_joined notifications in the feed", async () => {      mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "user1" });
       (prisma.notification.findMany as jest.Mock).mockResolvedValue([
         { id: "n1", user_id: "user1", type: "request_expired_other_team_joined", read_status: "read", team_id: "t1" },
@@ -163,6 +181,24 @@ describe("Notifications API", () => {
       expect(prisma.notification.delete).toHaveBeenCalledWith({ where: { id: "n1" } });
     });
 
+    test("team_dissolved outcome notification is deleted once read", async () => {
+      mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "user1" });
+      (prisma.notification.findUnique as jest.Mock).mockResolvedValue({
+        id: "n1",
+        user_id: "user1",
+        type: "team_dissolved",
+      });
+      (prisma.notification.delete as jest.Mock).mockResolvedValue({ id: "n1", user_id: "user1", type: "team_dissolved" });
+
+      const req = new NextRequest("http://localhost/api/notifications/n1/read", { method: "PATCH" });
+      const res = await readHandler.PATCH(req, { params: { id: "n1" } as any });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body.removed).toBe(true);
+      expect(prisma.notification.delete).toHaveBeenCalledWith({ where: { id: "n1" } });
+    });
+
     test("request_expired_other_team_joined is marked read, NOT deleted", async () => {
       mockAuthGetUser.mockResolvedValue({ data: { user: { id: "auth_user_1" } }, error: null });
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "user1" });
@@ -205,7 +241,7 @@ describe("Notifications API", () => {
       expect(prisma.notification.deleteMany).toHaveBeenCalledWith({
         where: {
           user_id: "user1",
-          type: { in: ["request_accepted", "request_rejected", "team_now_full"] },
+          type: { in: ["request_accepted", "request_rejected", "team_now_full", "team_dissolved"] },
         },
       });
       expect(prisma.notification.updateMany).toHaveBeenCalledWith({

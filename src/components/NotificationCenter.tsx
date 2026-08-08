@@ -94,13 +94,14 @@ export default function NotificationCenter() {
       case "request_rejected":                  return `Your request to ${notif.payload?.team_name ?? "a team"} was declined.`;
       case "request_expired_other_team_joined": return "Request expired — you joined another team.";
       case "team_now_full":                     return `Request expired — ${notif.payload?.team_name ?? "team"} is now full.`;
+      case "team_dissolved":                    return notif.payload?.message ?? `Team ${notif.payload?.team_name ?? "your team"} was dissolved.`;
       default: return "New notification";
     }
   }
 
   function getNotifIcon(type: string) {
     if (type === "request_accepted") return "✓";
-    if (type === "request_rejected" || type.includes("expired") || type.includes("full")) return "✕";
+    if (type === "request_rejected" || type.includes("expired") || type.includes("full") || type === "team_dissolved") return "✕";
     if (type === "new_join_request") return "→";
     return "·";
   }
