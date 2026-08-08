@@ -15,9 +15,9 @@ export async function GET(request: NextRequest) {
   });
   if (!currentUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  // 1. Requests involving the current user (sent by user or invites to user)
+  // 1. Active requests involving the current user (sent by user or invites to user)
   const myRequests = await prisma.joinRequest.findMany({
-    where: { requester_id: currentUser.id },
+    where: { requester_id: currentUser.id, status: "pending" },
     include: {
       team: { select: { id: true, name: true, domain_interest: true, skills_needed: true, slots: true } },
     },

@@ -26,34 +26,65 @@ const NAV_LINKS = [
 export default function AppNavbar({ userEmail, isAdmin = false, hasTeam = false }: { userEmail: string, isAdmin?: boolean, hasTeam?: boolean }) {
   const pathname = usePathname();
   const router = useRouter();
+  const supabase = createClient();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
   const [hasUnreadRequests, setHasUnreadRequests] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  async function fetchCounts() {
+    // Fire both in parallel — no sequential dependency
+    const [notifRes, reqRes] = await Promise.all([
+      fetch("/api/notifications"),
+      fetch("/api/join-requests"),
+    ]);
+
+    if (notifRes.ok) {
+      const notifData = await notifRes.json();
+      const hasUnread = notifData.notifications?.some((n: any) => n.read_status === "unread");
+      setHasUnreadAlerts(hasUnread);
+    }
+
+    if (reqRes.ok) {
+      const reqData = await reqRes.json();
+      const hasPendingMy = reqData.myRequests?.some((r: any) => r.status === "pending" && r.direction === "team_to_user");
+      const hasPendingTeam = reqData.teamRequests?.some((r: any) => r.status === "pending" && r.direction === "user_to_team");
+      setHasUnreadRequests(hasPendingMy || hasPendingTeam);
+    }
+  }
 
   useEffect(() => {
-    async function fetchCounts() {
-      // Fire both in parallel — no sequential dependency
-      const [notifRes, reqRes] = await Promise.all([
-        fetch("/api/notifications"),
-        fetch("/api/join-requests"),
-      ]);
-
-      if (notifRes.ok) {
-        const notifData = await notifRes.json();
-        const hasUnread = notifData.notifications?.some((n: any) => n.read_status === "unread");
-        setHasUnreadAlerts(hasUnread);
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const resProfile = await fetch("/api/users/profile");
+      if (resProfile.ok) {
+        const { profile } = await resProfile.json();
+        setCurrentUserId(profile.id);
       }
-
-      if (reqRes.ok) {
-        const reqData = await reqRes.json();
-        const hasPendingMy = reqData.myRequests?.some((r: any) => r.status === "pending" && r.direction === "team_to_user");
-        const hasPendingTeam = reqData.teamRequests?.some((r: any) => r.status === "pending" && r.direction === "user_to_team");
-        setHasUnreadRequests(hasPendingMy || hasPendingTeam);
-      }
+      fetchCounts();
     }
-    fetchCounts();
-  }, []);
+    init();
+  }, [supabase.auth]);
+
+  useEffect(() => {
+    if (!currentUserId) return;
+    const notifChannel = supabase
+      .channel(`navbar_notifs_${currentUserId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${currentUserId}` }, () => { fetchCounts(); })
+      .subscribe();
+
+    const reqChannel = supabase
+      .channel(`navbar_requests_${currentUserId}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "join_requests", filter: `requester_id=eq.${currentUserId}` }, () => { fetchCounts(); })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(notifChannel);
+      supabase.removeChannel(reqChannel);
+    };
+  }, [currentUserId, supabase]);
 
   async function handleSignOut() {
     const supabase = createClient();
