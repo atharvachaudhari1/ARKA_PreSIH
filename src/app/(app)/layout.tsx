@@ -26,7 +26,7 @@ export default async function AppLayout({
   // Direct Prisma query — no extra HTTP roundtrip
   const dbUser = await prisma.user.findUnique({
     where: { auth_user_id: user.id },
-    select: { id: true, is_admin: true, team_memberships: { select: { id: true } } },
+    select: { id: true, name: true, is_admin: true, team_memberships: { select: { id: true } } },
   });
 
   if (!dbUser) {
@@ -47,7 +47,7 @@ export default async function AppLayout({
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-bg-base)" }}>
-      <AppNavbar userEmail={user.email ?? ""} userId={dbUser.id} isAdmin={dbUser.is_admin ?? false} hasTeam={dbUser.team_memberships.length > 0} />
+      <AppNavbar userEmail={user.email ?? ""} userName={dbUser.name ?? ""} userId={dbUser.id} isAdmin={dbUser.is_admin ?? false} hasTeam={dbUser.team_memberships.length > 0} />
       {children}
     </div>
   );

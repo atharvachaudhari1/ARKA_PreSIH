@@ -253,7 +253,8 @@ export default function HackersPage() {
               onMouseOut={fieldHoverOff}
             >
               <option value="">Any</option>
-              {facets.genders.map((g: string) => <option key={g} value={g}>{g}</option>)}
+              <option value="male">Male</option>
+              <option value="female">Female</option>
             </select>
           </div>
 

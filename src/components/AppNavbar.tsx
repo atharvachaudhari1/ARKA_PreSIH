@@ -27,7 +27,9 @@ const NAV_LINKS = [
   { href: "/notifications", label: "Alerts", icon: <IconAlertsBell size={20} /> },
 ];
 
-export default function AppNavbar({ userEmail, userId, isAdmin = false, hasTeam = false }: { userEmail: string, userId: string, isAdmin?: boolean, hasTeam?: boolean }) {
+export default function AppNavbar({ userEmail, userName, userId, isAdmin = false, hasTeam = false }: { userEmail: string, userName: string, userId: string, isAdmin?: boolean, hasTeam?: boolean }) {
+  const displayName = userName || userEmail.split("@")[0];
+  const avatarInitial = displayName.charAt(0).toUpperCase();
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
@@ -249,12 +251,13 @@ export default function AppNavbar({ userEmail, userId, isAdmin = false, hasTeam 
                   flexShrink: 0,
                 }}
               >
-                {userEmail.charAt(0).toUpperCase()}
+                {avatarInitial}
               </div>
-              <span style={{ maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {userEmail}
-              </span>
-              <span style={{ fontSize: "0.7rem" }}>▾</span>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", overflow: "hidden", maxWidth: 130 }}>
+                <span style={{ fontWeight: 800, fontSize: "0.82rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{displayName}</span>
+                <span style={{ fontSize: "0.68rem", color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{userEmail}</span>
+              </div>
+              <span style={{ fontSize: "0.7rem", flexShrink: 0 }}>▾</span>
             </button>
 
             {menuOpen && (
@@ -376,7 +379,7 @@ export default function AppNavbar({ userEmail, userId, isAdmin = false, hasTeam 
               display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.9rem",
               fontWeight: 800, fontFamily: "var(--font-mono)", border: "2px solid #1a1a1a"
             }}>
-              {userEmail.charAt(0).toUpperCase()}
+              {avatarInitial}
             </div>
           </button>
         </div>
@@ -513,9 +516,10 @@ export default function AppNavbar({ userEmail, userId, isAdmin = false, hasTeam 
               gap: "0.5rem"
             }}
           >
-            <div style={{ fontSize: "0.7rem", fontFamily: "var(--font-mono)", fontWeight: 800, color: "#777", letterSpacing: "1px", marginBottom: "0.5rem" }}>
-              [USER DOSSIER]
-              <br/>{userEmail}
+            <div style={{ fontFamily: "var(--font-mono)", marginBottom: "0.5rem", borderBottom: "1px solid #eee", paddingBottom: "0.5rem" }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#777", letterSpacing: "1px", marginBottom: "0.2rem" }}>[USER DOSSIER]</div>
+              <div style={{ fontWeight: 800, fontSize: "0.85rem", color: "#1a1a1a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</div>
+              <div style={{ fontSize: "0.68rem", color: "#888", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userEmail}</div>
             </div>
             
             <Link
