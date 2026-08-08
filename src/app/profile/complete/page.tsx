@@ -52,14 +52,43 @@ function ProfileCompleteContent() {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUserEmail(user.email ?? "");
-        const metaName = user.user_metadata?.full_name ?? user.user_metadata?.name ?? "";
+        const meta = user.user_metadata ?? {};
+        const metaName = meta.full_name ?? meta.name ?? "";
         if (metaName) setForm((f) => ({ ...f, name: metaName }));
+        if (meta.gender) setForm((f) => ({ ...f, gender: meta.gender }));
+        if (meta.college) setForm((f) => ({ ...f, college: meta.college }));
+        if (meta.department) setForm((f) => ({ ...f, department: meta.department }));
+        if (meta.past_hackathons_count != null) {
+          setForm((f) => ({ ...f, past_hackathons_count: String(meta.past_hackathons_count) }));
+        }
       }
     });
     const path = searchParams.get("path");
     if (path === "create") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedPath("create");
+    }
+
+    // Pre-fill with the profile data the user entered during signup (saved when
+    // email confirmation was required) — they never re-type these fields.
+    try {
+      const pending = localStorage.getItem("teamup_pending_profile");
+      if (pending) {
+        const data = JSON.parse(pending);
+        setForm((f) => ({
+          ...f,
+          name: data.name ?? f.name,
+          gender: data.gender ?? f.gender,
+          college: data.college ?? f.college,
+          department: data.department ?? f.department,
+          past_hackathons_count: data.past_hackathons_count ?? f.past_hackathons_count,
+        }));
+        if (data.path === "create") {
+          setSelectedPath("create");
+        }
+      }
+    } catch {
+      // Ignore malformed/absent pending data.
     }
   }, [searchParams, supabase.auth]);
 
@@ -128,6 +157,13 @@ function ProfileCompleteContent() {
       setError(data.error ?? "Profile creation failed.");
       setLoading(false);
       return;
+    }
+
+    // Profile created — the pending signup data is no longer needed.
+    try {
+      localStorage.removeItem("teamup_pending_profile");
+    } catch {
+      // ignore
     }
 
     router.push(selectedPath === "create" ? "/teams/create" : "/dashboard");

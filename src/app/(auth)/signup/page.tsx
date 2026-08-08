@@ -80,7 +80,20 @@ function SignupContent() {
       email: form.email,
       password: form.password,
       options: {
-        data: { name: form.name },
+        // Send the confirmation link back into our app. The /auth/callback page
+        // is a client component that picks up the session tokens (they arrive in
+        // the URL hash, which a server route can never read) and routes the user
+        // to /profile/complete (first-time) or their dashboard.
+        emailRedirectTo: `${window.location.origin}/auth/callback?path=${selectedPath}`,
+        // Mirror the profile details into user_metadata so the profile-completion
+        // form can pre-fill even if the email is confirmed from another device.
+        data: {
+          name: form.name,
+          gender: form.gender,
+          college: form.college,
+          department: form.department,
+          past_hackathons_count: form.past_hackathons_count,
+        },
       },
     });
 
@@ -96,11 +109,36 @@ function SignupContent() {
     }
 
     // No session means Supabase requires email confirmation before login.
-    // Profile creation happens on first login via the profile-completion gate.
+    // Save the profile details locally so the /profile/complete form is
+    // pre-filled after confirmation — the user never re-enters this data.
     if (!authData.session) {
+      try {
+        localStorage.setItem(
+          "teamup_pending_profile",
+          JSON.stringify({
+            name: form.name,
+            gender: form.gender,
+            college: form.college,
+            department: form.department,
+            past_hackathons_count: form.past_hackathons_count,
+            path: selectedPath,
+          })
+        );
+      } catch {
+        // localStorage unavailable — the profile-completion gate still works,
+        // the user just has to re-type the fields.
+      }
       setStep("verify-email");
       setLoading(false);
       return;
+    }
+
+    // A session was created immediately (email confirmation disabled) — there
+    // is no pending data to preserve.
+    try {
+      localStorage.removeItem("teamup_pending_profile");
+    } catch {
+      // ignore
     }
 
     // 2. Create user profile via API route
@@ -158,13 +196,13 @@ function SignupContent() {
           </h2>
           <p style={{ color: "#444", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
             We sent a confirmation link to <strong>{form.email}</strong>. Click it to activate
-            your account, then sign in to land on your dashboard.
+            your account — you&apos;ll be signed in automatically.
           </p>
           <Link
             href="/login"
             style={{ color: "#5b5fc7", textDecoration: "none", fontWeight: 700, fontFamily: "var(--font-mono)" }}
           >
-            Go to sign in →
+            Already confirmed? Sign in →
           </Link>
         </div>
       </div>
