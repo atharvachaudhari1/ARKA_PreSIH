@@ -7,7 +7,7 @@
 ## Stack
 
 | Layer | Technology |
-|---|---|
+|---|---|bbv
 | Frontend | Next.js 14 (App Router) + Tailwind CSS |
 | Backend | Next.js API Route Handlers |
 | Database | PostgreSQL (Supabase) |
