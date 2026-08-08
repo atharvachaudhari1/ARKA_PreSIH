@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import TeamCard from "@/components/TeamCard";
 import { SkillSelector } from "@/components/SkillSelector";
@@ -21,6 +21,16 @@ export default function TeamDetailsPage() {
   const [applicantSkills, setApplicantSkills] = useState<string[]>([]);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   
+  // Refetch just the team (roster/status) — used by realtime + polling so a new
+  // teammate appears without resetting any in-progress form state.
+  const fetchTeam = useCallback(async () => {
+    const res = await fetch(`/api/teams/${params.id}`);
+    if (res.ok) {
+      const data = await res.json();
+      setTeam(data.team);
+    }
+  }, [params.id]);
+
   useEffect(() => {
     async function fetchTeamAndProfile() {
       const [resTeam, resProfile] = await Promise.all([
@@ -43,7 +53,22 @@ export default function TeamDetailsPage() {
     }
     fetchTeamAndProfile();
 
-    const channel = supabase
+    // Live roster updates: a teammate accepting my invite INSERTs a membership.
+    const membersChannel = supabase
+      .channel(`team_members_${params.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "team_memberships", filter: `team_id=eq.${params.id}` },
+        () => {
+          fetchTeam();
+        }
+      )
+      .subscribe();
+
+    // Fallback polling so the roster reflects changes even without Realtime.
+    const poll = setInterval(fetchTeam, 15000);
+
+    const statusChannel = supabase
       .channel(`team_${params.id}`)
       .on(
         "postgres_changes",
@@ -60,9 +85,11 @@ export default function TeamDetailsPage() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(membersChannel);
+      supabase.removeChannel(statusChannel);
+      clearInterval(poll);
     };
-  }, [params.id, supabase]);
+  }, [params.id, supabase, fetchTeam]);
 
   async function handleRequestToJoin() {
     if (!applicantBio.trim()) {

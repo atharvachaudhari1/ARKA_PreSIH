@@ -6,6 +6,7 @@ import useSWR, { mutate } from "swr";
 import { GraduationCap, User, Medal, Mic, Phone, Hourglass, Zap, ThumbsUp, ThumbsDown, PartyPopper, X, Target, Send, Inbox } from "lucide-react";
 import { isStrongMatch } from "@/lib/recommendation";
 import { useToast } from "@/components/ToastProvider";
+import { createClient } from "@/lib/supabase/client";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -18,6 +19,9 @@ export default function RequestsPage() {
   const currentUserId = profileData?.profile?.id || null;
 
   const { data: requestsData, isLoading: loading } = useSWR('/api/join-requests', fetcher, {
+    // Fallback polling so changes (e.g. a teammate accepting my invite) reflect
+    // even before/without the Realtime publication being deployed.
+    refreshInterval: 15000,
     onSuccess: (data) => {
       if (!hasSetTab && data.teamRequests?.length > 0 && data.myRequests?.length === 0) {
         setActiveTab("team");
@@ -25,6 +29,30 @@ export default function RequestsPage() {
       }
     }
   });
+
+  // Live-refresh when any join request I sent or received on my team changes
+  // (status accepted/rejected/expired). Realtime RLS gates delivery to rows
+  // involving me or my team.
+  useEffect(() => {
+    if (!currentUserId) return;
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`join_requests_${currentUserId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "join_requests" },
+        () => {
+          mutate('/api/join-requests');
+          mutate('/api/users/profile'); // I may have joined/left a team
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId]);
 
   const myRequests = requestsData?.myRequests || [];
   const teamRequests = requestsData?.teamRequests || [];
