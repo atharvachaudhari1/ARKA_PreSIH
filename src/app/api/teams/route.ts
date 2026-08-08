@@ -69,6 +69,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             name: true,
+            college: true,
             phone_number: true,
             whatsapp_number: true,
             linkedin_url: true,
@@ -82,6 +83,7 @@ export async function GET(request: NextRequest) {
               select: {
                 id: true,
                 name: true,
+                college: true,
                 department: true,
                 skills: { select: { skill: true, proficiency: true } },
               },
@@ -98,6 +100,7 @@ export async function GET(request: NextRequest) {
               select: {
                 id: true,
                 name: true,
+                college: true,
                 department: true,
                 skills: { select: { skill: true, proficiency: true } },
               },

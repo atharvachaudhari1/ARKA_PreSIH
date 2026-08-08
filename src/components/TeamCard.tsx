@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Target, Crown, UserCircle2, Zap, Flag, FileText } from "lucide-react";
+import { Target, Crown, UserCircle2, Zap, Flag, FileText, GraduationCap } from "lucide-react";
 import ReportModal from "./ReportModal";
 import { isStrongMatch } from "@/lib/recommendation";
 
@@ -30,10 +30,38 @@ function GitHubIcon({ size = 14 }: { size?: number }) {
   );
 }
 
+function CollegeBadge({ college }: { college: string }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "3px",
+        fontSize: "0.68rem",
+        fontWeight: 800,
+        fontFamily: "var(--font-mono)",
+        color: "#1f2937",
+        background: "#fefce8",
+        border: "1.5px solid #ca8a04",
+        borderRadius: "3px",
+        padding: "1px 6px",
+        boxShadow: "1px 1px 0px #1a1a1a",
+        whiteSpace: "nowrap",
+        maxWidth: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis"
+      }}
+    >
+      <GraduationCap size={11} strokeWidth={2} color="#ca8a04" /> {college}
+    </span>
+  );
+}
+
 interface TeamMember {
   id: string;
   name: string;
   department: string | null;
+  college?: string | null;
   skills: { skill: string; proficiency: string }[];
   linkedin_url?: string | null;
   github_url?: string | null;
@@ -46,6 +74,7 @@ interface TeamMember {
 interface TeamLeader {
   id: string;
   name: string;
+  college?: string | null;
   phone_number: string | null;
   whatsapp_number: string | null;
   linkedin_url: string | null;
@@ -242,6 +271,7 @@ export default function TeamCard({ team, hideCTA = false, currentUserSkills = []
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
           <div style={{ fontWeight: 800, color: "#1a1a1a", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "4px" }}>
             <UserCircle2 size={18} strokeWidth={1.75} color="#2563eb" fill="#bfdbfe" /> {team.leader.name}
+            {team.leader.college && <CollegeBadge college={team.leader.college} />}
           </div>
           <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.8rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
             {team.leader.phone_number && (
@@ -343,6 +373,7 @@ export default function TeamCard({ team, hideCTA = false, currentUserSkills = []
                   <span style={{ color: "#6b7280", marginLeft: "0.25rem", fontWeight: 600, fontSize: "0.75rem" }}>
                     ({m.department || "Dept N/A"})
                   </span>
+                  {m.college && <CollegeBadge college={m.college} />}
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem", fontSize: "0.75rem", fontWeight: 700, fontFamily: "var(--font-mono)" }}>
                   {m.phone_number && (
