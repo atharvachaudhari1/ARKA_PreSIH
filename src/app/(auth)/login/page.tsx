@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import BrandLogo from "@/components/BrandLogo";
 
 export default function LoginPage() {
-  const router = useRouter();
   const supabase = createClient();
 
   const [email, setEmail] = useState("");
@@ -69,8 +67,10 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push("/dashboard");
-      router.refresh();
+      // Hard navigation: the session cookie is written before this call, so a
+      // full page load guarantees middleware sees the authenticated session and
+      // routes correctly (completed profile -> /dashboard, otherwise /profile/complete).
+      window.location.assign("/dashboard");
     }
   }
 

@@ -65,7 +65,10 @@ export async function middleware(request: NextRequest) {
   }
 
   // If authenticated and hitting a public route → redirect to /dashboard.
-  if (user && isPublicRoute && pathname !== "/auth/callback" && pathname !== "/") {
+  // NOTE: `/` (the marketing landing page) is included here too — a successful
+  // login must NEVER leave the user staring at the logged-out landing page.
+  // /auth/callback is excluded because it must finish the OAuth code exchange.
+  if (user && isPublicRoute && pathname !== "/auth/callback") {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
