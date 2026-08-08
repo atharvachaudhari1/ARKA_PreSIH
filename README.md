@@ -4,7 +4,7 @@
 
 **TeamUp** is a verified, semi-anonymous teammate-matching platform for Smart India Hackathon (SIH). It replaces chaotic WhatsApp group broadcasts with a structured, privacy-respecting platform where teams and individuals find each other.
 
-## Stackvv
+## Stack
 
 | Layer | Technology |
 |---|---
