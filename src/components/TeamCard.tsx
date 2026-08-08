@@ -29,6 +29,7 @@ interface TeamMember {
   skills: { skill: string; proficiency: string }[];
   linkedin_url?: string | null;
   github_url?: string | null;
+  portfolio_url?: string | null;
   phone_number?: string | null;
   whatsapp_number?: string | null;
   bio?: string | null;
@@ -41,6 +42,7 @@ interface TeamLeader {
   whatsapp_number: string | null;
   linkedin_url: string | null;
   github_url?: string | null;
+  portfolio_url?: string | null;
   resume_storage_path?: string | null;
   bio?: string | null;
   skills?: { skill: string }[];
@@ -246,6 +248,9 @@ export default function TeamCard({ team, hideCTA = false, currentUserSkills = []
             {team.leader.github_url && (
               <a href={team.leader.github_url} target="_blank" rel="noopener noreferrer" style={{ color: "#1a1a1a", textDecoration: "none", borderBottom: "1.5px solid #1a1a1a", paddingBottom: "1px" }}>git GitHub</a>
             )}
+            {team.leader.portfolio_url && (
+              <a href={team.leader.portfolio_url} target="_blank" rel="noopener noreferrer" style={{ color: "#d97706", textDecoration: "none", borderBottom: "1.5px solid #d97706", paddingBottom: "1px", display: "inline-flex", alignItems: "center", gap: "4px" }}>🌐 Portfolio</a>
+            )}
             {team.leader.resume_storage_path && (
               <a href={`/api/users/resume?path=${encodeURIComponent(team.leader.resume_storage_path)}`} target="_blank" rel="noopener noreferrer" style={{ color: "#dc2626", textDecoration: "none", borderBottom: "1.5px solid #dc2626", paddingBottom: "1px", display: "inline-flex", alignItems: "center", gap: "4px" }}><FileText size={12} /> Resume</a>
             )}
@@ -343,6 +348,9 @@ export default function TeamCard({ team, hideCTA = false, currentUserSkills = []
                   )}
                   {m.github_url && (
                     <a href={m.github_url} target="_blank" rel="noopener noreferrer" style={{ color: "#4b5563", textDecoration: "none", borderBottom: "1.5px solid #4b5563", paddingBottom: "1px" }}>git GitHub</a>
+                  )}
+                  {m.portfolio_url && (
+                    <a href={m.portfolio_url} target="_blank" rel="noopener noreferrer" style={{ color: "#d97706", textDecoration: "none", borderBottom: "1.5px solid #d97706", paddingBottom: "1px", display: "inline-flex", alignItems: "center", gap: "4px" }}>🌐 Portfolio</a>
                   )}
                   {(m as any).resume_storage_path && (
                     <a href={`/api/users/resume?path=${encodeURIComponent((m as any).resume_storage_path)}`} target="_blank" rel="noopener noreferrer" style={{ color: "#dc2626", textDecoration: "none", borderBottom: "1.5px solid #dc2626", paddingBottom: "1px", display: "inline-flex", alignItems: "center", gap: "4px" }}><FileText size={11} /> Resume</a>

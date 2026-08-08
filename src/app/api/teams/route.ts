@@ -72,6 +72,8 @@ export async function GET(request: NextRequest) {
             phone_number: true,
             whatsapp_number: true,
             linkedin_url: true,
+            github_url: true,
+            portfolio_url: true,
           },
         },
         memberships: {
@@ -139,7 +141,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { name, description, domain_interest, skills_needed, succession_mode, event_id, slots, leaderBio, leaderSkills } = body;
+    const { name, description, domain_interest, skills_needed, succession_mode, event_id, slots, leaderBio, leaderSkills, portfolioUrl, linkedinUrl, githubUrl } = body;
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return NextResponse.json({ error: "Team name is required" }, { status: 400 });
@@ -256,7 +258,10 @@ export async function POST(request: NextRequest) {
         where: { id: currentUser.id },
         data: { 
           preferred_contact_visibility: "public_to_logged_in",
-          ...(leaderBio ? { bio: leaderBio } : {})
+          ...(leaderBio ? { bio: leaderBio } : {}),
+          ...(portfolioUrl ? { portfolio_url: portfolioUrl } : {}),
+          ...(linkedinUrl ? { linkedin_url: linkedinUrl } : {}),
+          ...(githubUrl ? { github_url: githubUrl } : {})
         },
       });
 

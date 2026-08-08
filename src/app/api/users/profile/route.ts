@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
     bio?: string;
     github_url?: string;
     linkedin_url?: string;
+    portfolio_url?: string;
     whatsapp_number?: string;
     resume_storage_path?: string;
     intent?: "join" | "create";
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
       bio: body.bio,
       github_url: body.github_url,
       linkedin_url: body.linkedin_url,
+      portfolio_url: body.portfolio_url,
       whatsapp_number: body.whatsapp_number,
       resume_storage_path: body.resume_storage_path,
     },
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
       bio: true,
       github_url: true,
       linkedin_url: true,
+      portfolio_url: true,
       whatsapp_number: true,
       created_at: true,
     },
@@ -118,6 +121,7 @@ export async function GET() {
       whatsapp_number: true,
       linkedin_url: true,
       github_url: true,
+      portfolio_url: true,
       resume_storage_path: true,
       preferred_contact_visibility: true,
       led_teams: { select: { id: true, name: true, status: true } },
@@ -191,7 +195,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const allowed = ["name", "gender", "college", "department", "bio", "past_hackathons_count",
-    "presentation_skill_rating", "phone_number", "whatsapp_number", "linkedin_url", "github_url", "preferred_contact_visibility"];
+    "presentation_skill_rating", "phone_number", "whatsapp_number", "linkedin_url", "github_url", "portfolio_url", "preferred_contact_visibility"];
   const updateData: Record<string, unknown> = {};
   for (const key of allowed) { if (key in body) updateData[key] = body[key]; }
   if (updateData.gender) {
@@ -208,7 +212,7 @@ export async function PATCH(request: NextRequest) {
       id: true, name: true, email: true, gender: true, college: true, department: true,
       past_hackathons_count: true, bio: true,
       presentation_skill_rating: true, phone_number: true, whatsapp_number: true,
-      linkedin_url: true, github_url: true, resume_storage_path: true, preferred_contact_visibility: true,
+      linkedin_url: true, github_url: true, portfolio_url: true, resume_storage_path: true, preferred_contact_visibility: true,
       led_teams: { select: { id: true, name: true, status: true } },
       team_memberships: { select: { team_id: true, team: { select: { name: true, status: true } } } },
       skills: { select: { skill: true, proficiency: true } },

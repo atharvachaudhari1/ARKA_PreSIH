@@ -90,6 +90,9 @@ function CreateTeamForm() {
     domain_interest: "",
     succession_mode: "manual",
     leaderBio: "",
+    portfolioUrl: "",
+    linkedinUrl: "",
+    githubUrl: "",
   });
 
   const [leaderSkills, setLeaderSkills] = useState<string[]>([]);
@@ -135,6 +138,22 @@ function CreateTeamForm() {
 
     if (!form.name.trim()) {
       setError("Team name is required.");
+      setLoading(false);
+      return;
+    }
+
+    if (form.portfolioUrl && !/^https?:\/\/\S+$/.test(form.portfolioUrl)) {
+      setError("Please provide a valid Portfolio URL (e.g. https://yourportfolio.dev).");
+      setLoading(false);
+      return;
+    }
+    if (form.linkedinUrl && !/^https?:\/\/(www\.)?linkedin\.com\/.+/.test(form.linkedinUrl)) {
+      setError("Please provide a valid LinkedIn URL (e.g. https://linkedin.com/in/username).");
+      setLoading(false);
+      return;
+    }
+    if (form.githubUrl && !/^https?:\/\/(www\.)?github\.com\/.+/.test(form.githubUrl)) {
+      setError("Please provide a valid GitHub URL (e.g. https://github.com/username).");
       setLoading(false);
       return;
     }
@@ -232,6 +251,50 @@ function CreateTeamForm() {
               placeholder="A brief intro about yourself..."
               rows={3}
               style={{ ...fieldStyle, fontWeight: 500, minHeight: "auto", resize: "vertical" }}
+              {...fieldHover}
+            />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div>
+              <label htmlFor="leader-linkedin" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                LinkedIn URL <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+              </label>
+              <input
+                id="leader-linkedin"
+                type="url"
+                value={form.linkedinUrl}
+                onChange={(e) => update("linkedinUrl", e.target.value)}
+                placeholder="https://linkedin.com/in/username"
+                style={fieldStyle}
+                {...fieldHover}
+              />
+            </div>
+            <div>
+              <label htmlFor="leader-github" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                GitHub URL <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+              </label>
+              <input
+                id="leader-github"
+                type="url"
+                value={form.githubUrl}
+                onChange={(e) => update("githubUrl", e.target.value)}
+                placeholder="https://github.com/username"
+                style={fieldStyle}
+                {...fieldHover}
+              />
+            </div>
+          </div>
+          <div>
+            <label htmlFor="leader-portfolio" style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.4rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+              Portfolio Website URL <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+            </label>
+            <input
+              id="leader-portfolio"
+              type="url"
+              value={form.portfolioUrl}
+              onChange={(e) => update("portfolioUrl", e.target.value)}
+              placeholder="https://yourportfolio.dev/"
+              style={fieldStyle}
               {...fieldHover}
             />
           </div>

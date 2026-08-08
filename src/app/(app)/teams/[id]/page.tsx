@@ -19,6 +19,9 @@ export default function TeamDetailsPage() {
   const [selectedNewLeaderId, setSelectedNewLeaderId] = useState("");
   const [applicantBio, setApplicantBio] = useState("");
   const [applicantSkills, setApplicantSkills] = useState<string[]>([]);
+  const [portfolioUrl, setPortfolioUrl] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [githubUrl, setGithubUrl] = useState("");
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   
   // Refetch just the team (roster/status) — used by realtime + polling so a new
@@ -47,6 +50,9 @@ export default function TeamDetailsPage() {
         if (data.profile) {
           setApplicantBio(data.profile.bio || "");
           setApplicantSkills(data.profile.skills?.map((s: any) => s.skill) || []);
+          setPortfolioUrl(data.profile.portfolio_url || "");
+          setLinkedinUrl(data.profile.linkedin_url || "");
+          setGithubUrl(data.profile.github_url || "");
         }
       }
       setLoading(false);
@@ -96,12 +102,24 @@ export default function TeamDetailsPage() {
       setMessage({ type: "error", text: "Please provide a bio or description." });
       return;
     }
+    if (portfolioUrl && !/^https?:\/\/\S+$/.test(portfolioUrl)) {
+      setMessage({ type: "error", text: "Please provide a valid Portfolio URL (e.g. https://yourportfolio.dev)." });
+      return;
+    }
+    if (linkedinUrl && !/^https?:\/\/(www\.)?linkedin\.com\/.+/.test(linkedinUrl)) {
+      setMessage({ type: "error", text: "Please provide a valid LinkedIn URL (e.g. https://linkedin.com/in/username)." });
+      return;
+    }
+    if (githubUrl && !/^https?:\/\/(www\.)?github\.com\/.+/.test(githubUrl)) {
+      setMessage({ type: "error", text: "Please provide a valid GitHub URL (e.g. https://github.com/username)." });
+      return;
+    }
     setRequestLoading(true);
     setMessage(null);
     const res = await fetch(`/api/join-requests`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ team_id: team.id, direction: "user_to_team", applicantBio, applicantSkills }),
+      body: JSON.stringify({ team_id: team.id, direction: "user_to_team", applicantBio, applicantSkills, portfolioUrl, linkedinUrl, githubUrl }),
     });
 
     if (res.ok) {
@@ -303,6 +321,56 @@ export default function TeamDetailsPage() {
                 Your Skills
               </label>
               <SkillSelector selectedSkills={applicantSkills} onChange={setApplicantSkills} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.35rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                  LinkedIn URL <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  placeholder="https://linkedin.com/in/username"
+                  style={{
+                    border: "2px solid #1a1a1a", borderRadius: "4px", padding: "0.55rem 0.75rem",
+                    background: "#fdfbfa", color: "#1a1a1a", fontWeight: 700, fontSize: "0.9rem",
+                    width: "100%", boxSizing: "border-box", outline: "none",
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.35rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                  GitHub URL <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+                </label>
+                <input
+                  type="url"
+                  value={githubUrl}
+                  onChange={(e) => setGithubUrl(e.target.value)}
+                  placeholder="https://github.com/username"
+                  style={{
+                    border: "2px solid #1a1a1a", borderRadius: "4px", padding: "0.55rem 0.75rem",
+                    background: "#fdfbfa", color: "#1a1a1a", fontWeight: 700, fontSize: "0.9rem",
+                    width: "100%", boxSizing: "border-box", outline: "none",
+                  }}
+                />
+              </div>
+            </div>
+            <div>
+              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 800, color: "#1a1a1a", marginBottom: "0.35rem", fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                Portfolio Website URL <span style={{ color: "#777", fontWeight: 600 }}>(Optional)</span>
+              </label>
+              <input
+                type="url"
+                value={portfolioUrl}
+                onChange={(e) => setPortfolioUrl(e.target.value)}
+                placeholder="https://yourportfolio.dev/"
+                style={{
+                  border: "2px solid #1a1a1a", borderRadius: "4px", padding: "0.55rem 0.75rem",
+                  background: "#fdfbfa", color: "#1a1a1a", fontWeight: 700, fontSize: "0.9rem",
+                  width: "100%", boxSizing: "border-box", outline: "none",
+                }}
+              />
             </div>
           </div>
 

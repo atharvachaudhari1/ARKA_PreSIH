@@ -50,6 +50,9 @@ export async function GET(request: NextRequest) {
             bio: true,
             phone_number: true,
             whatsapp_number: true,
+            linkedin_url: true,
+            github_url: true,
+            portfolio_url: true,
           }
         },
         opinions: {
@@ -79,6 +82,9 @@ export async function GET(request: NextRequest) {
               bio: true,
               phone_number: true,
               whatsapp_number: true,
+              linkedin_url: true,
+              github_url: true,
+              portfolio_url: true,
             }
           }
         },
@@ -104,7 +110,7 @@ export async function POST(request: NextRequest) {
   let body: any;
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
-  const { team_id, user_id, direction = "user_to_team", applicantBio, applicantSkills } = body;
+  const { team_id, user_id, direction = "user_to_team", applicantBio, applicantSkills, portfolioUrl, linkedinUrl, githubUrl } = body;
 
   if (direction === "user_to_team") {
     if (!team_id) return NextResponse.json({ error: "team_id is required" }, { status: 400 });
@@ -147,6 +153,18 @@ export async function POST(request: NextRequest) {
         await tx.user.update({
           where: { id: currentUser.id },
           data: { bio: applicantBio.trim() }
+        });
+      }
+
+      // Update contact/social links if provided
+      const linkUpdates: Record<string, string> = {};
+      if (typeof portfolioUrl === "string" && portfolioUrl.trim()) linkUpdates.portfolio_url = portfolioUrl.trim();
+      if (typeof linkedinUrl === "string" && linkedinUrl.trim()) linkUpdates.linkedin_url = linkedinUrl.trim();
+      if (typeof githubUrl === "string" && githubUrl.trim()) linkUpdates.github_url = githubUrl.trim();
+      if (Object.keys(linkUpdates).length > 0) {
+        await tx.user.update({
+          where: { id: currentUser.id },
+          data: linkUpdates
         });
       }
       

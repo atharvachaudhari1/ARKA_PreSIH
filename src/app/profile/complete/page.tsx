@@ -35,6 +35,7 @@ function ProfileCompleteContent() {
     bio: string;
     github_url: string;
     linkedin_url: string;
+    portfolio_url: string;
     whatsapp_number: string;
   }>({
     name: "",
@@ -45,6 +46,7 @@ function ProfileCompleteContent() {
     bio: "",
     github_url: "",
     linkedin_url: "",
+    portfolio_url: "",
     whatsapp_number: "",
   });
 
@@ -110,6 +112,10 @@ function ProfileCompleteContent() {
       setError("Please provide a valid LinkedIn profile URL (e.g. https://linkedin.com/in/username)");
       setLoading(false); return;
     }
+    if (form.portfolio_url && !/^https?:\/\/\S+$/.test(form.portfolio_url)) {
+      setError("Please provide a valid Portfolio URL (e.g. https://yourportfolio.dev)");
+      setLoading(false); return;
+    }
     if (form.whatsapp_number && !form.whatsapp_number.match(/^\+?[1-9]\d{1,14}$/)) {
       setError("Please provide a valid WhatsApp number with country code (e.g. +919876543210)");
       setLoading(false); return;
@@ -146,6 +152,7 @@ function ProfileCompleteContent() {
         bio: form.bio,
         github_url: form.github_url,
         linkedin_url: form.linkedin_url,
+        portfolio_url: form.portfolio_url,
         whatsapp_number: form.whatsapp_number,
         resume_storage_path: resumeStoragePath,
         intent: selectedPath,
@@ -286,6 +293,11 @@ function ProfileCompleteContent() {
                   <div>
                     <label htmlFor="complete-github" className="input-label">GitHub URL <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>(optional)</span></label>
                     <input id="complete-github" type="url" value={form.github_url ?? ""} onChange={(e) => update("github_url", e.target.value)} placeholder="https://github.com/yourusername" className="input-field" />
+                  </div>
+
+                  <div>
+                    <label htmlFor="complete-portfolio" className="input-label">Portfolio URL <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>(optional)</span></label>
+                    <input id="complete-portfolio" type="url" value={form.portfolio_url ?? ""} onChange={(e) => update("portfolio_url", e.target.value)} placeholder="https://yourportfolio.dev/…" className="input-field" />
                   </div>
 
                   <div style={{ gridColumn: "1 / -1", marginTop: "0.5rem" }}>

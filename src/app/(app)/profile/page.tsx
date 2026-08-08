@@ -23,6 +23,7 @@ interface Profile {
   whatsapp_number: string | null;
   linkedin_url: string | null;
   github_url: string | null;
+  portfolio_url: string | null;
   resume_storage_path: string | null;
   contact_visibility: string;
   skills: Skill[];
@@ -87,6 +88,11 @@ export default function ProfilePage() {
       setSaving(false);
       return;
     }
+    if (form.portfolio_url && !/^https?:\/\/\S+$/.test(form.portfolio_url)) {
+      setSaveMsg("Error: Invalid Portfolio URL");
+      setSaving(false);
+      return;
+    }
     if (form.whatsapp_number && !form.whatsapp_number.match(/^\+?[1-9]\d{1,14}$/)) {
       setSaveMsg("Error: Invalid WhatsApp number");
       setSaving(false);
@@ -100,7 +106,7 @@ export default function ProfilePage() {
         name: form.name, gender: form.gender, bio: form.bio, college: form.college, department: form.department,
         past_hackathons_count: form.past_hackathons_count, presentation_skill_rating: form.presentation_skill_rating,
         phone_number: form.phone_number, whatsapp_number: form.whatsapp_number,
-        linkedin_url: form.linkedin_url, github_url: form.github_url, contact_visibility: form.contact_visibility,
+        linkedin_url: form.linkedin_url, github_url: form.github_url, portfolio_url: form.portfolio_url, contact_visibility: form.contact_visibility,
       }),
     });
     if (res.ok) {
@@ -378,12 +384,17 @@ export default function ProfilePage() {
                 <label className="input-label">GitHub URL <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>(optional)</span></label>
                 <input className="input-field" placeholder="https://github.com/…" value={form.github_url ?? ""} onChange={(e) => update("github_url", e.target.value)} />
               </div>
+              <div>
+                <label className="input-label">Portfolio URL <span style={{ color: "var(--color-text-muted)", fontWeight: 400 }}>(optional)</span></label>
+                <input className="input-field" placeholder="https://yourportfolio.dev/…" value={form.portfolio_url ?? ""} onChange={(e) => update("portfolio_url", e.target.value)} />
+              </div>
             </>
           ) : (
             <>
               <InfoRow label="Phone" value={profile.phone_number ?? <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
               <InfoRow label="LinkedIn" value={profile.linkedin_url ? <a href={profile.linkedin_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ember-peach)" }}>View profile</a> : <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
               <InfoRow label="GitHub" value={profile.github_url ? <a href={profile.github_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ember-peach)" }}>View profile</a> : <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
+              <InfoRow label="Portfolio" value={profile.portfolio_url ? <a href={profile.portfolio_url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ember-peach)" }}>View portfolio</a> : <span style={{ color: "var(--color-text-muted)" }}>Not set</span>} />
               <InfoRow label="Visibility" value={
                 ({ private: "🔒 Private", team_only: "👥 Team members only", public_to_logged_in: "🌐 All logged-in users" } as any)[profile.contact_visibility] ?? profile.contact_visibility
               } />
