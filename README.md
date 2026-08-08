@@ -6,7 +6,7 @@
 
 ## Stack
 
-| Layer | Technology |
+| Layer | Technology |hi
 |---|---
 | Frontend | Next.js 14 (App Router) + Tailwind CSS |
 | Backend | Next.js API Route Handlers |
