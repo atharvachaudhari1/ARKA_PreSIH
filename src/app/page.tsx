@@ -10,7 +10,7 @@ import {
 } from "@/components/TerminalIcons";
 
 export const metadata: Metadata = {
-  title: "TeamUp — Find Your Hackathon Team",
+  title: "TeamUp",
   description:
     "The verified teammate-matching platform for Smart India Hackathon. Join a team or build one — all verified, all semi-anonymous.",
 };

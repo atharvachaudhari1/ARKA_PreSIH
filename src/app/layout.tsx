@@ -21,14 +21,14 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "TeamUp — Find Your Hackathon Team",
+    default: "TeamUp",
     template: "%s | TeamUp",
   },
   description:
     "The verified, semi-anonymous teammate-matching platform for Smart India Hackathon. Browse open teams, check skill gaps, and request to join — all without publicly broadcasting your details.",
   keywords: ["SIH", "Smart India Hackathon", "team formation", "hackathon", "teammates"],
   openGraph: {
-    title: "TeamUp — Find Your Hackathon Team",
+    title: "TeamUp",
     description:
       "Verified teammate-matching for Smart India Hackathon. Browse open teams and join without publicly broadcasting your details.",
     type: "website",
