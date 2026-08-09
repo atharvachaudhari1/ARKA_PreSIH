@@ -41,6 +41,8 @@ export default function HackersPage() {
   const { data: hackersData, isLoading: loading } = useSWR(`/api/hackers?${params.toString()}`, fetcher, { keepPreviousData: true });
   const { data: profileData } = useSWR('/api/users/profile', fetcher);
   const { data: requestsData } = useSWR('/api/join-requests', fetcher);
+  // Live platform stats — refreshed every 60s so "online now" stays current.
+  const { data: statsData } = useSWR("/api/stats", fetcher, { refreshInterval: 60000, revalidateOnFocus: false });
 
   const ledTeamId = profileData?.profile?.led_teams?.[0]?.id || null;
   const hackers = hackersData?.hackers || [];
@@ -160,9 +162,39 @@ export default function HackersPage() {
         }}>
           $ ./FIND_TALENT.SH --LIST
         </div>
-        <h1 style={{ fontSize: "2.75rem", fontWeight: 900, color: "#1a1a1a", letterSpacing: "-0.04em", lineHeight: "1.15", margin: 0 }}>
-          Solo Hackers
-        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+          <h1 style={{ fontSize: "2.75rem", fontWeight: 900, color: "#1a1a1a", letterSpacing: "-0.04em", lineHeight: "1.15", margin: 0 }}>
+            Solo Hackers
+          </h1>
+          <div
+            title="Users at the platform right now / active in the last 24h"
+            style={{
+              display: "flex",
+              alignItems: "stretch",
+              border: "2px solid #1a1a1a",
+              boxShadow: "2px 2px 0px rgba(0,0,0,0.1)",
+              borderRadius: "4px",
+              overflow: "hidden",
+              fontFamily: "var(--font-mono)",
+              background: "#fdfbf7",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.15rem", padding: "0.3rem 0.75rem", background: (statsData?.online_now ?? 0) > 0 ? "#ecfdf5" : "transparent" }}>
+              <span style={{ fontSize: "0.58rem", letterSpacing: "1px", color: "#6b7280", fontWeight: 800 }}>ONLINE</span>
+              <span style={{ fontSize: "0.95rem", fontWeight: 900, color: "#1a1a1a", lineHeight: 1, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: (statsData?.online_now ?? 0) > 0 ? "#10b981" : "#9ca3af", border: "1.5px solid #1a1a1a" }} />
+                {statsData?.online_now ?? "—"}
+              </span>
+            </div>
+            <div style={{ width: 2, background: "#1a1a1a" }} />
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.15rem", padding: "0.3rem 0.75rem" }}>
+              <span style={{ fontSize: "0.58rem", letterSpacing: "1px", color: "#6b7280", fontWeight: 800 }}>ACTIVE 24H</span>
+              <span style={{ fontSize: "0.95rem", fontWeight: 900, color: "#1a1a1a", lineHeight: 1 }}>
+                {statsData?.active_24h ?? "—"}
+              </span>
+            </div>
+          </div>
+        </div>
         <p style={{ color: "#5a5a5a", fontSize: "1.05rem", fontWeight: 500, marginTop: "0.4rem" }}>
           {loading ? "Scanning registration database for unassigned hackers..." : `${total} solo hacker${total !== 1 ? "s" : ""} found matching your filter parameters.`}
         </p>
