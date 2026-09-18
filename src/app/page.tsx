@@ -786,7 +786,7 @@ export default function HomePage() {
 
               {/* Atharva Chaudhari */}
               <a 
-                href="#"
+                href="https://www.linkedin.com/in/atharva-chaudhari-89a469329/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="maintainer-card"
